@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoengOS – A Web-Enabled Linux OS Inspired by Zen Minimalism</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+  /* ── Reset ── */
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --black: #000000;
+    --white: #FFFFFF;
+    --g1: #111111;
+    --g2: #222222;
+    --g3: #333333;
+    --g5: #555555;
+    --g7: #777777;
+    --ga: #AAAAAA;
+    --gc: #CCCCCC;
+    --ge: #EEEEEE;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Space Grotesk', system-ui, sans-serif;
+    --transition: 150ms linear;
+    --topbar-h: 32px;
+  }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    font-family: var(--mono);
+    background: var(--g1);
+    color: var(--gc);
+    cursor: default;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Boot screen ── */
+  #boot-screen {
+    position: fixed; inset: 0; z-index: 99999;
+    background: var(--black);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px;
+    opacity: 1;
+    transition: opacity 800ms linear;
+  }
+  #boot-screen.fade-out { opacity: 0; pointer-events: none; }
+  #boot-screen .boot-logo {
+    font-family: var(--mono);
+    font-size: 28px; font-weight: 400;
+    color: var(--white);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: bootFadeIn 600ms 200ms linear forwards;
+  }
+  #boot-screen .boot-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--g5);
+    letter-spacing: 3px;
+    opacity: 0;
+    animation: bootFadeIn 400ms 500ms linear forwards;
+  }
+  @keyframes bootFadeIn { to { opacity: 1; } }
+
+  /* ── Keyboard hint overlay ── */
+  #keyboard-hint {
+    position: fixed;
+    bottom: 48px; left: 50%; transform: translateX(-50%);
+    z-index: 90000;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+    padding: 10px 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ga);
+    line-height: 1.8;
+    opacity: 0;
+    transition: opacity var(--transition);
+    pointer-events: none;
+    text-align: center;
+  }
+  #keyboard-hint.visible { opacity: 1; }
+  #keyboard-hint kbd {
+    display: inline-block;
+    background: var(--g3);
+    border: 1px solid var(--g5);
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--gc);
+    margin: 0 2px;
+  }
+
+  /* ── Top bar ── */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--topbar-h);
+    background: var(--black);
+    border-bottom: 1px solid var(--g3);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px;
+    z-index: 10000;
+    font-size: 12px;
+  }
+  #topbar .logo {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--white);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  #topbar .right {
+    display: flex; align-items: center; gap: 14px;
+    color: var(--ga);
+    font-size: 11px;
+  }
+  #topbar .right .clock { font-variant-numeric: tabular-nums; }
+  #topbar .right .battery {
+    display: flex; align-items: center; gap: 4px;
+  }
+  #topbar .right .battery svg { display: block; }
+  #topbar .right .menu-btn {
+    background: none; border: 1px solid var(--g5);
+    color: var(--ga);
+    padding: 2px 8px;
+    font-family: var(--mono); font-size: 10px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+  #topbar .right .menu-btn:hover {
+    background: var(--g3); color: var(--white);
+  }
+
+  /* ── Desktop ── */
+  #desktop {
+    position: fixed;
+    top: var(--topbar-h); left: 0; right: 0; bottom: 0;
+    background: var(--g1);
+    overflow: hidden;
+  }
+  /* Faint grid */
+  #desktop::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+  }
+
+  /* ── Desktop icons ── */
+  #desktop-icons {
+    position: absolute;
+    top: 24px; left: 24px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .desktop-icon {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    width: 72px;
+    padding: 8px 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: border-color var(--transition), background var(--transition);
+  }
+  .desktop-icon:hover {
+    border-color: var(--g3);
+    background: rgba(255,255,255,0.03);
+  }
+  .desktop-icon.selected {
+    border-color: var(--g5);
+    background: rgba(255,255,255,0.05);
+  }
+  .desktop-icon svg {
+    width: 32px; height: 32px;
+    stroke: var(--ga);
+    stroke-width: 1;
+    fill: none;
+  }
+  .desktop-icon span {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ga);
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  /* ── Window system ── */
+  .window {
+    position: absolute;
+    min-width: 320px; min-height: 200px;
+    border: 1px solid var(--g3);
+    display: flex; flex-direction: column;
+    z-index: 100;
+    transition: opacity var(--transition);
+  }
+  .window.minimized { display: none; }
+  .window.maximized {
+    top: 0 !important; left: 0 !important;
+    width: 100% !important; height: 100% !important;
+  }
+  .window-titlebar {
+    height: 28px;
+    background: var(--black);
+    border-bottom: 1px solid var(--g3);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 8px;
+    cursor: grab;
+    flex-shrink: 0;
+  }
+  .window-titlebar:active { cursor: grabbing; }
+  .window-titlebar .title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ga);
+    letter-spacing: 1px;
+  }
+  .window-titlebar .controls {
+    display: flex; gap: 6px;
+  }
+  .window-titlebar .controls button {
+    width: 12px; height: 12px;
+    background: var(--g5);
+    border: 1px solid var(--g7);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    transition: background var(--transition);
+  }
+  .window-titlebar .controls button:hover { background: var(--g7); }
+  .window-titlebar .controls button svg {
+    width: 8px; height: 8px;
+    stroke: var(--gc);
+    stroke-width: 1.5;
+    fill: none;
+  }
+  .window-content {
+    flex: 1;
+    background: var(--g2);
+    overflow: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--gc);
+  }
+  /* Resize handle */
+  .window-resize {
+    position: absolute; bottom: 0; right: 0;
+    width: 14px; height: 14px;
+    cursor: nwse-resize;
+  }
+  .window-resize::before {
+    content: '';
+    position: absolute; bottom: 3px; right: 3px;
+    width: 8px; height: 8px;
+    border-right: 1px solid var(--g5);
+    border-bottom: 1px solid var(--g5);
+  }
+
+  /* ── File Manager ── */
+  .fm-toolbar {
+    height: 28px;
+    background: var(--g1);
+    border-bottom: 1px solid var(--g3);
+    display: flex; align-items: center;
+    padding: 0 10px;
+    font-size: 10px;
+    color: var(--g7);
+    gap: 12px;
+  }
+  .fm-toolbar .path {
+    flex: 1;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+    padding: 2px 8px;
+    color: var(--ga);
+    font-family: var(--mono); font-size: 10px;
+  }
+  .fm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 2px;
+    padding: 12px;
+  }
+  .fm-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background var(--transition), border-color var(--transition);
+  }
+  .fm-item:hover {
+    background: rgba(255,255,255,0.04);
+    border-color: var(--g3);
+  }
+  .fm-item svg { width: 28px; height: 28px; stroke: var(--g7); stroke-width: 1; fill: none; }
+  .fm-item span { font-size: 9px; color: var(--ga); text-align: center; word-break: break-all; }
+  .fm-item.folder svg { stroke: var(--gc); }
+
+  /* ── Terminal ── */
+  .terminal-body {
+    padding: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--gc);
+    height: 100%;
+    overflow-y: auto;
+    cursor: text;
+  }
+  .terminal-body .line { white-space: pre-wrap; word-break: break-all; }
+  .terminal-body .prompt-color { color: var(--ga); }
+  .terminal-body .input-line {
+    display: flex; align-items: center;
+  }
+  .terminal-body .input-line input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--gc);
+    font-family: var(--mono);
+    font-size: 12px;
+    caret-color: var(--gc);
+  }
+
+  /* ── Settings ── */
+  .settings-body { padding: 16px; }
+  .settings-section {
+    margin-bottom: 20px;
+  }
+  .settings-section h3 {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--g7);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--g3);
+  }
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .settings-row label {
+    font-size: 12px; color: var(--gc);
+  }
+  .settings-row .sublabel {
+    font-size: 10px; color: var(--g5); margin-top: 2px;
+  }
+  /* Toggle */
+  .toggle {
+    width: 36px; height: 18px;
+    background: var(--g3);
+    border: 1px solid var(--g5);
+    position: relative;
+    cursor: pointer;
+    transition: background var(--transition);
+  }
+  .toggle.on { background: var(--g7); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    background: var(--gc);
+    transition: left var(--transition);
+  }
+  .toggle.on::after { left: 20px; }
+  /* Slider */
+  .settings-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px; height: 2px;
+    background: var(--g3);
+    outline: none;
+    cursor: pointer;
+  }
+  .settings-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: var(--gc);
+    border: 1px solid var(--g7);
+    cursor: pointer;
+  }
+  .settings-slider::-moz-range-thumb {
+    width: 12px; height: 12px;
+    background: var(--gc);
+    border: 1px solid var(--g7);
+    cursor: pointer;
+    border-radius: 0;
+  }
+
+  /* ── Browser ── */
+  .browser-toolbar {
+    height: 32px;
+    background: var(--g1);
+    border-bottom: 1px solid var(--g3);
+    display: flex; align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .browser-toolbar .nav-btn {
+    background: none; border: 1px solid var(--g3);
+    color: var(--g7); width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background var(--transition);
+  }
+  .browser-toolbar .nav-btn:hover { background: var(--g3); color: var(--gc); }
+  .browser-toolbar .url-bar {
+    flex: 1; height: 22px;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+    padding: 0 8px;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--ga);
+    outline: none;
+  }
+  .browser-toolbar .url-bar:focus { border-color: var(--g5); }
+  .browser-content {
+    flex: 1;
+    background: var(--ge);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .browser-page {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px;
+    background: var(--white);
+    color: var(--g3);
+    font-family: var(--sans);
+  }
+  .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--g1); }
+  .browser-page p { font-size: 12px; color: var(--g7); max-width: 400px; text-align: center; line-height: 1.6; }
+
+  /* ── Command Palette ── */
+  #cmd-palette {
+    position: fixed;
+    top: 20%; left: 50%; transform: translateX(-50%);
+    width: 440px;
+    background: var(--g1);
+    border: 1px solid var(--g3);
+    z-index: 50000;
+    display: none;
+    flex-direction: column;
+  }
+  #cmd-palette.open { display: flex; }
+  #cmd-palette input {
+    width: 100%; height: 36px;
+    background: var(--g2);
+    border: none; border-bottom: 1px solid var(--g3);
+    padding: 0 14px;
+    font-family: var(--mono); font-size: 13px;
+    color: var(--gc);
+    outline: none;
+  }
+  #cmd-palette .results {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  #cmd-palette .result-item {
+    padding: 8px 14px;
+    font-family: var(--mono); font-size: 12px;
+    color: var(--ga);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    display: flex; align-items: center; gap: 10px;
+    transition: background var(--transition);
+  }
+  #cmd-palette .result-item:hover,
+  #cmd-palette .result-item.active {
+    background: var(--g2);
+    color: var(--white);
+  }
+  #cmd-palette .result-item .shortcut {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--g5);
+  }
+
+  /* ── About Modal ── */
+  #about-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 60000;
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  #about-modal.open { display: flex; }
+  #about-modal .modal-box {
+    width: 480px;
+    background: var(--g1);
+    border: 1px solid var(--g3);
+    padding: 28px;
+  }
+  #about-modal .modal-box h2 {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--white);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  #about-modal .modal-box p {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--ga);
+    margin-bottom: 12px;
+  }
+  #about-modal .modal-box .close-btn {
+    margin-top: 12px;
+    background: none;
+    border: 1px solid var(--g5);
+    color: var(--ga);
+    padding: 5px 16px;
+    font-family: var(--mono); font-size: 11px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+  #about-modal .modal-box .close-btn:hover {
+    background: var(--g3); color: var(--white);
+  }
+
+  /* ── Power menu ── */
+  #power-menu {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 60000;
+    display: none;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+  }
+  #power-menu.open { display: flex; }
+  #power-menu .power-option {
+    width: 200px;
+    padding: 10px 0;
+    text-align: center;
+    font-family: var(--mono); font-size: 13px;
+    color: var(--ga);
+    border: 1px solid var(--g3);
+    cursor: pointer;
+    background: var(--g1);
+    transition: background var(--transition), color var(--transition);
+  }
+  #power-menu .power-option:hover {
+    background: var(--g3); color: var(--white);
+  }
+
+  /* ── Footer credit ── */
+  #footer-credit {
+    position: fixed;
+    bottom: 6px; right: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--g3);
+    letter-spacing: 1px;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* ── Focus mode ── */
+  body.focus-mode #topbar,
+  body.focus-mode #desktop-icons,
+  body.focus-mode #footer-credit { display: none; }
+  body.focus-mode #desktop { top: 0; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--g1); }
+  ::-webkit-scrollbar-thumb { background: var(--g3); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--g5); }
+
+  /* ── Selection ── */
+  ::selection { background: var(--g5); color: var(--white); }
+</style>
+</head>
+<body>
+
+<!-- Boot Screen -->
+<div id="boot-screen">
+  <div class="boot-logo">SoengOS</div>
+  <div class="boot-sub">Engineering Edition</div>
+</div>
+
+<!-- Keyboard Hint -->
+<div id="keyboard-hint">
+  <kbd>Ctrl</kbd>+<kbd>K</kbd> Command Palette &nbsp;&middot;&nbsp;
+  <kbd>Esc</kbd> Close Window &nbsp;&middot;&nbsp;
+  <kbd>F11</kbd> Focus Mode
+</div>
+
+<!-- Top Bar -->
+<div id="topbar">
+  <div class="logo">SoengOS</div>
+  <div class="right">
+    <div class="clock" id="clock">00:00</div>
+    <div class="battery">
+      <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="#AAAAAA" stroke-width="1">
+        <rect x="0.5" y="0.5" width="14" height="9" />
+        <rect x="2" y="2" width="9" height="5" fill="#777777" stroke="none" />
+        <rect x="15" y="3" width="2" height="4" />
+      </svg>
+      <span style="font-size:9px">87%</span>
+    </div>
+    <button class="menu-btn" onclick="toggleAbout()">MENU</button>
+  </div>
+</div>
+
+<!-- Desktop -->
+<div id="desktop">
+  <div id="desktop-icons">
+
+    <!-- File Manager -->
+    <div class="desktop-icon" ondblclick="openApp('filemanager')">
+      <svg viewBox="0 0 32 32">
+        <path d="M4 8h10l2 3h12v15H4z"/>
+      </svg>
+      <span>Files</span>
+    </div>
+
+    <!-- Terminal -->
+    <div class="desktop-icon" ondblclick="openApp('terminal')">
+      <svg viewBox="0 0 32 32">
+        <rect x="3" y="5" width="26" height="22"/>
+        <path d="M8 14l5 4-5 4"/>
+        <line x1="16" y1="22" x2="24" y2="22"/>
+      </svg>
+      <span>Terminal</span>
+    </div>
+
+    <!-- Settings -->
+    <div class="desktop-icon" ondblclick="openApp('settings')">
+      <svg viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="5"/>
+        <path d="M16 4v4M16 24v4M4 16h4M24 16h4M7.5 7.5l2.8 2.8M21.7 21.7l2.8 2.8M7.5 24.5l2.8-2.8M21.7 10.3l2.8-2.8"/>
+      </svg>
+      <span>Settings</span>
+    </div>
+
+    <!-- Browser -->
+    <div class="desktop-icon" ondblclick="openApp('browser')">
+      <svg viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="12"/>
+        <ellipse cx="16" cy="16" rx="5" ry="12"/>
+        <line x1="4" y1="16" x2="28" y2="16"/>
+        <line x1="16" y1="4" x2="16" y2="28"/>
+      </svg>
+      <span>Browser</span>
+    </div>
+
+    <!-- Power -->
+    <div class="desktop-icon" ondblclick="openPower()">
+      <svg viewBox="0 0 32 32">
+        <path d="M16 4v12"/>
+        <path d="M10 8a10 10 0 1 0 12 0"/>
+      </svg>
+      <span>Power</span>
+    </div>
+
+  </div>
+
+  <!-- Windows render here -->
+  <div id="windows-container"></div>
+</div>
+
+<!-- Command Palette -->
+<div id="cmd-palette">
+  <input type="text" id="cmd-input" placeholder="Type a command…" autocomplete="off" />
+  <div class="results" id="cmd-results"></div>
+</div>
+
+<!-- About Modal -->
+<div id="about-modal">
+  <div class="modal-box">
+    <h2>About SoengOS</h2>
+    <p>SoengOS is a web-enabled Linux operating system concept inspired by Zen minimalism. It embodies the philosophy of "less is more" — extreme focus, no distractions, and precise engineering aesthetics.</p>
+    <p>Built as a single-file browser prototype using vanilla JavaScript and CSS. All applications run entirely within the browser. No external dependencies, no frameworks, no runtime.</p>
+    <p style="color:#555555; font-size:10px; margin-top:8px;">Engineering Minimalism Edition &middot; Black/White/Gray only &middot; v1.0</p>
+    <button class="close-btn" onclick="toggleAbout()">CLOSE</button>
+  </div>
+</div>
+
+<!-- Power Menu -->
+<div id="power-menu">
+  <div class="power-option" onclick="doShutdown()">SHUT DOWN</div>
+  <div class="power-option" onclick="doRestart()">RESTART</div>
+  <div class="power-option" onclick="closePower()">CANCEL</div>
+</div>
+
+<!-- Footer -->
+<div id="footer-credit">Prototype &bull; Black/White/Gray Engineering Minimalism Edition</div>
+
+<script>
+/* ═══════════════════════════════════════
+   SoengOS — Core System
+   ═══════════════════════════════════════ */
+
+// ── Boot sequence ──
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('boot-screen').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('boot-screen').style.display = 'none';
+      // Show keyboard hint
+      const hint = document.getElementById('keyboard-hint');
+      hint.classList.add('visible');
+      setTimeout(() => hint.classList.remove('visible'), 4000);
+    }, 800);
+  }, 800);
+});
+
+// ── Clock ──
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}`;
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ── Window management ──
+let windowZ = 100;
+const openWindows = {};
+
+function createWindow(id, title, width, height, contentHTML) {
+  if (openWindows[id]) {
+    const existing = document.getElementById('win-' + id);
+    if (existing) {
+      existing.classList.remove('minimized');
+      bringToFront(existing);
+      return;
+    }
+  }
+
+  const container = document.getElementById('windows-container');
+  const desktop = document.getElementById('desktop');
+  const dw = desktop.clientWidth;
+  const dh = desktop.clientHeight;
+
+  const x = Math.max(40, Math.min(dw - width - 40, 80 + Object.keys(openWindows).length * 30));
+  const y = Math.max(20, Math.min(dh - height - 40, 40 + Object.keys(openWindows).length * 30));
+
+  const win = document.createElement('div');
+  win.className = 'window';
+  win.id = 'win-' + id;
+  win.style.cssText = `left:${x}px;top:${y}px;width:${width}px;height:${height}px;z-index:${++windowZ}`;
+
+  win.innerHTML = `
+    <div class="window-titlebar" data-win="${id}">
+      <span class="title">${title}</span>
+      <div class="controls">
+        <button onclick="minimizeWindow('${id}')" title="Minimize">
+          <svg viewBox="0 0 8 8"><line x1="1" y1="7" x2="7" y2="7"/></svg>
+        </button>
+        <button onclick="maximizeWindow('${id}')" title="Maximize">
+          <svg viewBox="0 0 8 8"><rect x="1" y="1" width="6" height="6"/></svg>
+        </button>
+        <button onclick="closeWindow('${id}')" title="Close">
+          <svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="window-content" id="wc-${id}">${contentHTML}</div>
+    <div class="window-resize" data-win="${id}"></div>
+  `;
+
+  container.appendChild(win);
+  openWindows[id] = true;
+
+  // Focus on click
+  win.addEventListener('mousedown', () => bringToFront(win));
+
+  // Drag
+  initDrag(win);
+  // Resize
+  initResize(win);
+
+  // Post-init hooks
+  if (id === 'terminal') initTerminal();
+}
+
+function bringToFront(win) {
+  win.style.zIndex = ++windowZ;
+}
+
+function closeWindow(id) {
+  const win = document.getElementById('win-' + id);
+  if (win) { win.remove(); delete openWindows[id]; }
+}
+
+function minimizeWindow(id) {
+  const win = document.getElementById('win-' + id);
+  if (win) win.classList.add('minimized');
+}
+
+function maximizeWindow(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win) return;
+  win.classList.toggle('maximized');
+}
+
+// ── Drag ──
+function initDrag(win) {
+  const bar = win.querySelector('.window-titlebar');
+  let dragging = false, ox, oy;
+
+  bar.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.controls')) return;
+    dragging = true;
+    ox = e.clientX - win.offsetLeft;
+    oy = e.clientY - win.offsetTop;
+    win.classList.remove('maximized');
+    bringToFront(win);
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    win.style.left = (e.clientX - ox) + 'px';
+    win.style.top = (e.clientY - oy) + 'px';
+  });
+
+  document.addEventListener('mouseup', () => { dragging = false; });
+}
+
+// ── Resize ──
+function initResize(win) {
+  const handle = win.querySelector('.window-resize');
+  let resizing = false, sw, sh, sx, sy;
+
+  handle.addEventListener('mousedown', (e) => {
+    resizing = true;
+    sw = win.offsetWidth;
+    sh = win.offsetHeight;
+    sx = e.clientX;
+    sy = e.clientY;
+    win.classList.remove('maximized');
+    bringToFront(win);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!resizing) return;
+    const nw = Math.max(320, sw + (e.clientX - sx));
+    const nh = Math.max(200, sh + (e.clientY - sy));
+    win.style.width = nw + 'px';
+    win.style.height = nh + 'px';
+  });
+
+  document.addEventListener('mouseup', () => { resizing = false; });
+}
+
+// ── App launchers ──
+function openApp(name) {
+  switch(name) {
+    case 'filemanager': openFileManager(); break;
+    case 'terminal': openTerminal(); break;
+    case 'settings': openSettings(); break;
+    case 'browser': openBrowser(); break;
+  }
+}
+
+// ── File Manager ──
+function openFileManager() {
+  const files = [
+    { name: 'Documents', type: 'folder' },
+    { name: 'Pictures', type: 'folder' },
+    { name: 'Downloads', type: 'folder' },
+    { name: 'Projects', type: 'folder' },
+    { name: '.config', type: 'folder' },
+    { name: 'readme.md', type: 'file' },
+    { name: 'notes.txt', type: 'file' },
+    { name: 'script.sh', type: 'file' },
+    { name: 'data.json', type: 'file' },
+    { name: 'Makefile', type: 'file' },
+    { name: '.bashrc', type: 'file' },
+    { name: 'LICENSE', type: 'file' },
+  ];
+
+  let items = files.map(f => {
+    const icon = f.type === 'folder'
+      ? `<svg viewBox="0 0 28 28"><path d="M3 7h9l2 2h11v14H3z"/></svg>`
+      : `<svg viewBox="0 0 28 28"><rect x="5" y="2" width="18" height="24"/><line x1="9" y1="10" x2="19" y2="10"/><line x1="9" y1="14" x2="19" y2="14"/><line x1="9" y1="18" x2="15" y2="18"/></svg>`;
+    return `<div class="fm-item ${f.type}">${icon}<span>${f.name}</span></div>`;
+  }).join('');
+
+  const html = `
+    <div class="fm-toolbar">
+      <span style="color:#777">&#9664;</span>
+      <span style="color:#777">&#9654;</span>
+      <div class="path">/home/user</div>
+    </div>
+    <div class="fm-grid">${items}</div>
+  `;
+
+  createWindow('filemanager', 'File Manager', 560, 400, html);
+}
+
+// ── Terminal ──
+function openTerminal() {
+  const html = `
+    <div class="terminal-body" id="terminal-body">
+      <div class="line"><span class="prompt-color">SoengOS v1.0 — Engineering Edition</span></div>
+      <div class="line"><span class="prompt-color">Type 'help' for available commands.</span></div>
+      <div class="line">&nbsp;</div>
+      <div class="input-line">
+        <span class="prompt-color">user@soeng:~$ </span>
+        <input type="text" id="terminal-input" autocomplete="off" autofocus spellcheck="false" />
+      </div>
+    </div>
+  `;
+  createWindow('terminal', 'Terminal', 600, 360, html);
+}
+
+// Terminal filesystem & commands
+const termFS = {
+  '/': ['home', 'etc', 'usr', 'var', 'tmp'],
+  '/home': ['user'],
+  '/home/user': ['Documents', 'Pictures', 'Downloads', 'Projects', 'readme.md', 'notes.txt', '.bashrc'],
+  '/home/user/Documents': ['report.pdf', 'todo.txt'],
+  '/home/user/Pictures': ['wallpaper.png', 'screenshot.png'],
+  '/home/user/Downloads': [],
+  '/home/user/Projects': ['soengos', 'webapp'],
+  '/etc': ['hosts', 'passwd', 'fstab'],
+  '/usr': ['bin', 'lib', 'share'],
+  '/var': ['log', 'cache'],
+  '/tmp': [],
+};
+
+let termCwd = '/home/user';
+let termHistory = [];
+let termHistIdx = -1;
+
+function initTerminal() {
+  const input = document.getElementById('terminal-input');
+  if (!input) return;
+  input.focus();
+
+  // Click body to focus input
+  const tbody = document.getElementById('terminal-body');
+  tbody.addEventListener('click', () => input.focus());
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const cmd = input.value.trim();
+      if (cmd) { termHistory.unshift(cmd); termHistIdx = -1; }
+      execCommand(cmd);
+      input.value = '';
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (termHistIdx < termHistory.length - 1) {
+        termHistIdx++;
+        input.value = termHistory[termHistIdx];
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (termHistIdx > 0) {
+        termHistIdx--;
+        input.value = termHistory[termHistIdx];
+      } else {
+        termHistIdx = -1;
+        input.value = '';
+      }
+    }
+  });
+}
+
+function termPrint(text) {
+  const body = document.getElementById('terminal-body');
+  const inputLine = body.querySelector('.input-line');
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.textContent = text;
+  body.insertBefore(line, inputLine);
+  body.scrollTop = body.scrollHeight;
+}
+
+function execCommand(raw) {
+  const body = document.getElementById('terminal-body');
+  const inputLine = body.querySelector('.input-line');
+
+  // Echo the command
+  const echo = document.createElement('div');
+  echo.className = 'line';
+  echo.innerHTML = `<span class="prompt-color">user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ </span>${escapeHtml(raw)}`;
+  body.insertBefore(echo, inputLine);
+
+  if (!raw) { body.scrollTop = body.scrollHeight; return; }
+
+  const parts = raw.split(/\s+/);
+  const cmd = parts[0];
+  const args = parts.slice(1);
+
+  switch(cmd) {
+    case 'help':
+      termPrint('Available commands:');
+      termPrint('  ls          List directory contents');
+      termPrint('  cd <dir>    Change directory');
+      termPrint('  pwd         Print working directory');
+      termPrint('  echo <msg>  Print a message');
+      termPrint('  cat <file>  Display file contents');
+      termPrint('  whoami      Current user');
+      termPrint('  uname       System information');
+      termPrint('  date        Current date/time');
+      termPrint('  clear       Clear the terminal');
+      termPrint('  neofetch    System info display');
+      termPrint('  history     Command history');
+      termPrint('  help        Show this help');
+      break;
+
+    case 'ls':
+      const entries = termFS[termCwd];
+      if (entries) {
+        if (entries.length === 0) termPrint('(empty directory)');
+        else termPrint(entries.join('  '));
+      } else {
+        termPrint('ls: cannot access directory');
+      }
+      break;
+
+    case 'cd':
+      if (!args[0] || args[0] === '~') {
+        termCwd = '/home/user';
+      } else if (args[0] === '..') {
+        const segs = termCwd.split('/').filter(Boolean);
+        segs.pop();
+        termCwd = '/' + segs.join('/');
+        if (!termCwd || termCwd === '/') termCwd = '/';
+      } else {
+        const target = termCwd === '/' ? '/' + args[0] : termCwd + '/' + args[0];
+        if (termFS[target]) {
+          termCwd = target;
+        } else {
+          termPrint(`cd: ${args[0]}: No such directory`);
+        }
+      }
+      // Update prompt
+      updatePrompt();
+      break;
+
+    case 'pwd':
+      termPrint(termCwd);
+      break;
+
+    case 'echo':
+      termPrint(args.join(' '));
+      break;
+
+    case 'cat':
+      if (!args[0]) { termPrint('cat: missing operand'); break; }
+      const catContents = {
+        'readme.md': '# SoengOS\n\nA web-enabled Linux OS inspired by Zen minimalism.\nEngineering Edition — Black/White/Gray only.',
+        'notes.txt': 'TODO: Implement additional system services\nNOTE: All transitions 150ms linear',
+        '.bashrc': '# SoengOS .bashrc\nexport PS1="user@soeng:\\w$ "\nexport EDITOR=nano\nalias ll="ls -la"',
+        'todo.txt': '[ ] Finish kernel module\n[x] Design window manager\n[x] Implement terminal',
+        'hosts': '127.0.0.1  localhost\n::1        localhost',
+        'passwd': 'root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:user:/home/user:/bin/bash',
+        'fstab': '/dev/sda1  /      ext4  defaults  0 1\n/dev/sda2  /home  ext4  defaults  0 2',
+      };
+      if (catContents[args[0]]) {
+        catContents[args[0]].split('\n').forEach(l => termPrint(l));
+      } else {
+        termPrint(`cat: ${args[0]}: No such file`);
+      }
+      break;
+
+    case 'whoami':
+      termPrint('user');
+      break;
+
+    case 'uname':
+      termPrint('SoengOS 1.0.0 x86_64 Engineering-Edition');
+      break;
+
+    case 'date':
+      termPrint(new Date().toString());
+      break;
+
+    case 'clear':
+      const lines = body.querySelectorAll('.line');
+      lines.forEach(l => l.remove());
+      break;
+
+    case 'neofetch':
+      const neoLines = [
+        '       ┌──────────┐      user@soeng',
+        '       │          │      ──────────',
+        '       │  SOENG   │      OS: SoengOS 1.0.0',
+        '       │    OS    │      Kernel: Web/JS',
+        '       │          │      Shell: soeng-sh',
+        '       └──────────┘      Resolution: ' + window.innerWidth + 'x' + window.innerHeight,
+        '                         WM: SoengWM',
+        '                         Theme: Engineering Minimal',
+        '                         Terminal: SoengTerm',
+      ];
+      neoLines.forEach(l => termPrint(l));
+      break;
+
+    case 'history':
+      termHistory.slice().reverse().forEach((h, i) => {
+        termPrint(`  ${i + 1}  ${h}`);
+      });
+      break;
+
+    default:
+      termPrint(`${cmd}: command not found. Type 'help' for available commands.`);
+  }
+
+  // Update prompt display
+  updatePrompt();
+  body.scrollTop = body.scrollHeight;
+  const input = document.getElementById('terminal-input');
+  if (input) input.focus();
+}
+
+function updatePrompt() {
+  const inputLine = document.querySelector('#terminal-body .input-line .prompt-color');
+  if (inputLine) {
+    const display = termCwd === '/home/user' ? '~' : termCwd;
+    inputLine.textContent = `user@soeng:${display}$ `;
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Settings ──
+function openSettings() {
+  const html = `
+    <div class="settings-body">
+      <div class="settings-section">
+        <h3>Appearance</h3>
+        <div class="settings-row">
+          <div><label>Dark Mode</label><div class="sublabel">Always enabled in Engineering Edition</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Desktop Grid</label><div class="sublabel">Show background grid lines</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Font Size</label></div>
+          <input type="range" class="settings-slider" min="10" max="16" value="12" />
+        </div>
+        <div class="settings-row">
+          <div><label>UI Scale</label></div>
+          <input type="range" class="settings-slider" min="80" max="120" value="100" />
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>System</h3>
+        <div class="settings-row">
+          <div><label>Animations</label><div class="sublabel">150ms linear transitions</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Sound</label><div class="sublabel">System notification sounds</div></div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Auto-lock</label><div class="sublabel">Lock after 5 minutes idle</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Network</h3>
+        <div class="settings-row">
+          <div><label>Wi-Fi</label><div class="sublabel">Connected — SoengNet_5G</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Bluetooth</label><div class="sublabel">Disabled</div></div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>VPN</label><div class="sublabel">Not configured</div></div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>About</h3>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+          <label>SoengOS v1.0.0</label>
+          <div class="sublabel">Engineering Minimalism Edition</div>
+          <div class="sublabel">Kernel: Web/JS &middot; WM: SoengWM &middot; Shell: soeng-sh</div>
+          <div class="sublabel">License: MIT &middot; Palette: Black/White/Gray</div>
+        </div>
+      </div>
+    </div>
+  `;
+  createWindow('settings', 'Settings', 420, 480, html);
+}
+
+// ── Browser ──
+function openBrowser() {
+  const html = `
+    <div class="browser-toolbar">
+      <button class="nav-btn">&#9664;</button>
+      <button class="nav-btn">&#9654;</button>
+      <button class="nav-btn">&#8635;</button>
+      <input type="text" class="url-bar" value="soeng://welcome" id="browser-url" spellcheck="false" />
+    </div>
+    <div class="browser-content">
+      <div class="browser-page" id="browser-page-content">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#333333" stroke-width="1">
+          <circle cx="24" cy="24" r="20"/>
+          <ellipse cx="24" cy="24" rx="8" ry="20"/>
+          <line x1="4" y1="24" x2="44" y2="24"/>
+          <line x1="24" y1="4" x2="24" y2="44"/>
+        </svg>
+        <h2>Welcome to SoengBrowser</h2>
+        <p>A minimal, engineering-grade web browser. Enter a URL above to navigate. This is a sandboxed environment — external pages load as placeholders for security.</p>
+        <p style="font-size:10px;color:#AAAAAA;margin-top:8px;">soeng://welcome &middot; SoengOS v1.0</p>
+      </div>
+    </div>
+  `;
+  createWindow('browser', 'Browser', 640, 440, html);
+
+  // URL bar navigation
+  setTimeout(() => {
+    const urlBar = document.getElementById('browser-url');
+    if (urlBar) {
+      urlBar.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const url = urlBar.value.trim();
+          const page = document.getElementById('browser-page-content');
+          if (page) {
+            page.innerHTML = `
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#333333" stroke-width="1">
+                <rect x="8" y="8" width="32" height="32"/>
+                <line x1="8" y1="16" x2="40" y2="16"/>
+                <circle cx="14" cy="12" r="1.5"/>
+                <circle cx="19" cy="12" r="1.5"/>
+              </svg>
+              <h2>${escapeHtml(url)}</h2>
+              <p>Page loaded in sandboxed mode. External content is displayed as a placeholder in this prototype environment.</p>
+            `;
+          }
+        }
+      });
+    }
+  }, 100);
+}
+
+// ── Command Palette ──
+const cmdActions = [
+  { name: 'Open File Manager', action: () => openApp('filemanager'), shortcut: '' },
+  { name: 'Open Terminal', action: () => openApp('terminal'), shortcut: '' },
+  { name: 'Open Settings', action: () => openApp('settings'), shortcut: '' },
+  { name: 'Open Browser', action: () => openApp('browser'), shortcut: '' },
+  { name: 'Toggle Focus Mode', action: () => toggleFocus(), shortcut: 'F11' },
+  { name: 'About SoengOS', action: () => toggleAbout(), shortcut: '' },
+  { name: 'Close All Windows', action: () => closeAllWindows(), shortcut: '' },
+  { name: 'Power Menu', action: () => openPower(), shortcut: '' },
+];
+
+function openCmdPalette() {
+  const pal = document.getElementById('cmd-palette');
+  pal.classList.add('open');
+  const input = document.getElementById('cmd-input');
+  input.value = '';
+  input.focus();
+  renderCmdResults('');
+}
+
+function closeCmdPalette() {
+  document.getElementById('cmd-palette').classList.remove('open');
+}
+
+function renderCmdResults(query) {
+  const container = document.getElementById('cmd-results');
+  const q = query.toLowerCase();
+  const filtered = cmdActions.filter(a => a.name.toLowerCase().includes(q));
+
+  container.innerHTML = filtered.map((a, i) => `
+    <div class="result-item${i === 0 ? ' active' : ''}" data-idx="${i}">
+      <span>${a.name}</span>
+      ${a.shortcut ? `<span class="shortcut">${a.shortcut}</span>` : ''}
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.result-item').forEach((el, i) => {
+    el.addEventListener('click', () => {
+      filtered[i].action();
+      closeCmdPalette();
+    });
+    el.addEventListener('mouseenter', () => {
+      container.querySelectorAll('.result-item').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+    });
+  });
+}
+
+document.getElementById('cmd-input').addEventListener('input', (e) => {
+  renderCmdResults(e.target.value);
+});
+
+document.getElementById('cmd-input').addEventListener('keydown', (e) => {
+  const results = document.querySelectorAll('#cmd-results .result-item');
+  const activeIdx = [...results].findIndex(r => r.classList.contains('active'));
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    results.forEach(r => r.classList.remove('active'));
+    const next = (activeIdx + 1) % results.length;
+    if (results[next]) results[next].classList.add('active');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    results.forEach(r => r.classList.remove('active'));
+    const prev = (activeIdx - 1 + results.length) % results.length;
+    if (results[prev]) results[prev].classList.add('active');
+  } else if (e.key === 'Enter') {
+    const active = document.querySelector('#cmd-results .result-item.active');
+    if (active) active.click();
+  } else if (e.key === 'Escape') {
+    closeCmdPalette();
+  }
+});
+
+// ── Focus mode ──
+function toggleFocus() {
+  document.body.classList.toggle('focus-mode');
+}
+
+// ── About modal ──
+function toggleAbout() {
+  document.getElementById('about-modal').classList.toggle('open');
+}
+
+// ── Power menu ──
+function openPower() {
+  document.getElementById('power-menu').classList.add('open');
+}
+
+function closePower() {
+  document.getElementById('power-menu').classList.remove('open');
+}
+
+function closeAllWindows() {
+  Object.keys(openWindows).forEach(id => closeWindow(id));
+}
+
+function doShutdown() {
+  closePower();
+  closeAllWindows();
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 600ms linear;';
+  overlay.innerHTML = '<span style="font-family:var(--mono);color:#555;font-size:12px;letter-spacing:3px;">SYSTEM HALTED</span>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.style.opacity = '1');
+}
+
+function doRestart() {
+  closePower();
+  closeAllWindows();
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;opacity:0;transition:opacity 400ms linear;';
+  overlay.innerHTML = `
+    <span style="font-family:var(--mono);color:#777;font-size:12px;letter-spacing:3px;">RESTARTING</span>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.style.opacity = '1');
+  setTimeout(() => location.reload(), 1600);
+}
+
+// ── Global keyboard shortcuts ──
+document.addEventListener('keydown', (e) => {
+  // Ctrl/Cmd + K → command palette
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const pal = document.getElementById('cmd-palette');
+    if (pal.classList.contains('open')) closeCmdPalette();
+    else openCmdPalette();
+  }
+
+  // Escape → close top-level overlays or frontmost window
+  if (e.key === 'Escape') {
+    if (document.getElementById('cmd-palette').classList.contains('open')) {
+      closeCmdPalette(); return;
+    }
+    if (document.getElementById('about-modal').classList.contains('open')) {
+      toggleAbout(); return;
+    }
+    if (document.getElementById('power-menu').classList.contains('open')) {
+      closePower(); return;
+    }
+    // Close frontmost window
+    const wins = document.querySelectorAll('.window:not(.minimized)');
+    if (wins.length) {
+      let topWin = wins[0];
+      wins.forEach(w => {
+        if (parseInt(w.style.zIndex) > parseInt(topWin.style.zIndex)) topWin = w;
+      });
+      const id = topWin.id.replace('win-', '');
+      closeWindow(id);
+    }
+  }
+
+  // F11 → focus mode
+  if (e.key === 'F11') {
+    e.preventDefault();
+    toggleFocus();
+  }
+});
+
+// Close modals on backdrop click
+document.getElementById('about-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('about-modal')) toggleAbout();
+});
+document.getElementById('power-menu').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('power-menu')) closePower();
+});
+document.getElementById('cmd-palette').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('cmd-palette')) closeCmdPalette();
+});
+</script>
+<script data-pplx-inline-edit>
+(function(){
+  if(window===window.top)return;
+  function inlineAll(orig,clone){
+    if(orig.nodeType!==1)return;
+    try{
+      var cs=getComputedStyle(orig);
+      var t='';
+      for(var i=0;i<cs.length;i++){t+=cs[i]+':'+cs.getPropertyValue(cs[i])+';';}
+      clone.style.cssText=t;
+    }catch(e){}
+    var oc=orig.children,cc=clone.children;
+    for(var j=0;j<oc.length&&j<cc.length;j++){inlineAll(oc[j],cc[j]);}
+  }
+  function stripExternal(clone){
+    var imgs=clone.querySelectorAll('img');
+    for(var i=0;i<imgs.length;i++){
+      var s=imgs[i].getAttribute('src');
+      if(s&&!s.startsWith('data:'))imgs[i].removeAttribute('src');
+    }
+    var all=clone.querySelectorAll('*');
+    for(var i=0;i<all.length;i++){
+      var st=all[i].style.cssText;
+      if(st&&st.indexOf('url(')>=0){
+        all[i].style.cssText=st.replace(/url\(["']?(?!data:)[^)"']*["']?\)/gi,'none');
+      }
+    }
+  }
+  var scrollRaf=0;
+  function emitScroll(){
+    scrollRaf=0;
+    var x=window.scrollX||window.pageXOffset||0;
+    var y=window.scrollY||window.pageYOffset||0;
+    window.parent.postMessage({type:'INLINE_EDIT_SCROLL',scrollX:x,scrollY:y},'*');
+  }
+  window.addEventListener('scroll',function(){
+    if(scrollRaf)return;
+    scrollRaf=requestAnimationFrame(emitScroll);
+  },{passive:true,capture:true});
+  emitScroll();
+  window.addEventListener('message',function(e){
+    if(!e.data||e.data.type!=='INLINE_EDIT_CAPTURE_REQUEST')return;
+    var scrollX=window.scrollX||window.pageXOffset||0;
+    var scrollY=window.scrollY||window.pageYOffset||0;
+    var w=window.innerWidth,h=window.innerHeight;
+    try{
+      var clone=document.documentElement.cloneNode(true);
+      var rm=clone.querySelectorAll('script,link[rel="stylesheet"],style');
+      for(var i=0;i<rm.length;i++){rm[i].remove();}
+      inlineAll(document.documentElement,clone);
+      stripExternal(clone);
+      var html=new XMLSerializer().serializeToString(clone);
+      var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'">'
+        +'<foreignObject width="100%" height="100%">'
+        +'<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+w+'px;height:'+h+'px;overflow:hidden">'
+        +'<div style="transform:translate(-'+scrollX+'px,-'+scrollY+'px);transform-origin:top left">'
+        +html+'</div></div></foreignObject></svg>';
+      var svgUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+      var img=new Image();
+      img.onload=function(){
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0);
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:c.toDataURL('image/png'),scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.onerror=function(){
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.src=svgUrl;
+    }catch(err){
+      window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+    }
+  });
+})();
+</script></body>
+</html>
