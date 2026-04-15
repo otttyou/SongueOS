@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoengOS Workflow Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --black: #000000;
+            --white: #FFFFFF;
+            --gray-100: #EEEEEE;
+            --gray-200: #CCCCCC;
+            --gray-300: #AAAAAA;
+            --gray-400: #777777;
+            --gray-500: #555555;
+            --gray-600: #333333;
+            --gray-700: #222222;
+            --gray-800: #111111;
+        }
+        
+        body {
+            font-family: 'IBM Plex Mono', 'Courier New', monospace;
+            background-color: var(--gray-800);
+            color: var(--white);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            cursor: default;
+        }
+        
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--gray-700);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-500);
+        }
+        
+        ::selection {
+            background: var(--white);
+            color: var(--black);
+        }
+        
+        input, textarea {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        button {
+            cursor: default;
+        }
+        
+        .window {
+            position: absolute;
+            background: var(--gray-800);
+            border: 1px solid var(--gray-600);
+            min-width: 400px;
+            min-height: 300px;
+        }
+        
+        .window-header {
+            height: 32px;
+            background: var(--black);
+            border-bottom: 1px solid var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .window-controls {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--gray-500);
+            background: transparent;
+        }
+        
+        .window-control:hover {
+            background: var(--gray-600);
+        }
+        
+        .dock-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            cursor: default;
+            transition: border-color 150ms linear;
+        }
+        
+        .dock-icon:hover {
+            border-color: var(--gray-500);
+        }
+        
+        .dock-icon.active {
+            border-color: var(--white);
+        }
+        
+        .kanban-column {
+            min-width: 200px;
+            background: var(--gray-700);
+            border: 1px solid var(--gray-600);
+        }
+        
+        .kanban-card {
+            background: var(--gray-800);
+            border: 1px solid var(--gray-600);
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .terminal-line {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 800ms ease-out;
+        }
+        
+        .tooltip {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background: var(--black);
+            border: 1px solid var(--gray-500);
+            padding: 12px;
+            max-width: 300px;
+            z-index: 10000;
+        }
+        
+        .tab {
+            padding: 4px 12px;
+            border-right: 1px solid var(--gray-600);
+            background: var(--gray-700);
+            cursor: default;
+            user-select: none;
+        }
+        
+        .tab.active {
+            background: var(--gray-800);
+        }
+        
+        .toggle {
+            width: 32px;
+            height: 16px;
+            border: 1px solid var(--gray-500);
+            position: relative;
+        }
+        
+        .toggle.on::after {
+            content: '';
+            position: absolute;
+            right: 1px;
+            top: 1px;
+            width: 12px;
+            height: 12px;
+            background: var(--white);
+        }
+        
+        .toggle.off::after {
+            content: '';
+            position: absolute;
+            left: 1px;
+            top: 1px;
+            width: 12px;
+            height: 12px;
+            background: var(--gray-500);
+        }
+        
+        .file-item {
+            border: 1px solid transparent;
+            padding: 8px;
+            cursor: default;
+        }
+        
+        .file-item:hover {
+            border-color: var(--gray-500);
+        }
+        
+        .file-item.selected {
+            background: var(--gray-700);
+            border-color: var(--white);
+        }
+    </style>
+</head>
+<body class="grid-bg">
+    <!-- Boot Screen -->
+    <div id="bootScreen" class="boot-screen">
+        <div style="text-align: center;">
+            <h1 style="font-size: 24px; letter-spacing: 2px;">SoengOS Workflow</h1>
+            <p style="color: var(--gray-500); font-size: 12px; margin-top: 8px;">Engineering Minimalism Edition</p>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div style="position: fixed; top: 0; left: 0; right: 0; height: 32px; background: var(--black); border-bottom: 1px solid var(--gray-600); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 1000;">
+        <div style="font-size: 14px; letter-spacing: 1px;">SoengOS Workflow</div>
+        <div style="display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--gray-300);">
+            <span id="clock">00:00:00</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1">
+                <rect x="2" y="4" width="10" height="8" rx="1"/>
+                <line x1="13" y1="6" x2="13" y2="10"/>
+                <line x1="4" y1="7" x2="4" y2="9"/>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1">
+                <circle cx="8" cy="8" r="6"/>
+                <path d="M8 2v12M2 8h12"/>
+                <circle cx="8" cy="8" r="3"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Left Dock -->
+    <div style="position: fixed; top: 32px; left: 0; bottom: 32px; width: 56px; background: var(--black); border-right: 1px solid var(--gray-600); display: flex; flex-direction: column; align-items: center; padding-top: 16px; z-index: 1000;">
+        <div class="dock-icon" data-app="workflow" title="Workflow Hub">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+            </svg>
+        </div>
+        <div class="dock-icon" data-app="browser" title="Browser">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M3 12h18M12 3v18"/>
+            </svg>
+        </div>
+        <div class="dock-icon" data-app="terminal" title="Terminal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <polyline points="4 17 10 11 4 5"/>
+                <line x1="14" y1="17" x2="20" y2="17"/>
+            </svg>
+        </div>
+        <div class="dock-icon" data-app="files" title="File Manager">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M3 7h6l2 2h10v10H3z"/>
+                <path d="M3 7V5a2 2 0 012-2h4"/>
+            </svg>
+        </div>
+        <div class="dock-icon" data-app="automation" title="Automation Studio">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+        </div>
+        <div class="dock-icon" data-app="settings" title="Settings">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Desktop Area -->
+    <div id="desktop" style="position: fixed; top: 32px; left: 56px; right: 0; bottom: 32px; overflow: hidden;"></div>
+
+    <!-- Status Bar -->
+    <div style="position: fixed; bottom: 0; left: 56px; right: 0; height: 32px; background: var(--black); border-top: 1px solid var(--gray-600); display: flex; align-items: center; padding: 0 16px; font-size: 11px; color: var(--gray-400); z-index: 1000;">
+        <span>Workflows running: <span id="workflowCount">2</span></span>
+        <span style="margin-left: 24px;">Automations active: <span id="automationCount">1</span></span>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip" style="display: none;">
+        <p style="font-size: 11px; color: var(--gray-300); line-height: 1.5;">Type natural language prompts in Automation Studio to create instant workflows.</p>
+        <button onclick="closeTooltip()" style="margin-top: 8px; font-size: 10px; color: var(--gray-400); background: transparent; border: 1px solid var(--gray-600); padding: 4px 8px;">GOT IT</button>
+    </div>
+
+    <!-- Command Palette -->
+    <div id="commandPalette" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; background: var(--black); border: 1px solid var(--gray-500); z-index: 20000;">
+        <div style="padding: 12px; border-bottom: 1px solid var(--gray-600);">
+            <input type="text" id="paletteInput" placeholder="Run workflow... New automation... Open browser..." style="width: 100%; background: transparent; border: none; color: var(--white); font-size: 14px; outline: none;">
+        </div>
+        <div id="paletteResults" style="max-height: 300px; overflow-y: auto;">
+            <div class="palette-item" data-action="workflow" style="padding: 8px 12px; border-bottom: 1px solid var(--gray-700); cursor: default;">▶ Run Workflow</div>
+            <div class="palette-item" data-action="automation" style="padding: 8px 12px; border-bottom: 1px solid var(--gray-700); cursor: default;">⚡ New Automation</div>
+            <div class="palette-item" data-action="browser" style="padding: 8px 12px; border-bottom: 1px solid var(--gray-700); cursor: default;">🌐 Open Browser</div>
+            <div class="palette-item" data-action="terminal" style="padding: 8px 12px; border-bottom: 1px solid var(--gray-700); cursor: default;">💻 Open Terminal</div>
+            <div class="palette-item" data-action="files" style="padding: 8px 12px; border-bottom: 1px solid var(--gray-700); cursor: default;">📁 File Manager</div>
+            <div class="palette-item" data-action="settings" style="padding: 8px 12px; cursor: default;">⚙️ Settings</div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let windowZIndex = 100;
+        let windows = [];
+        let activeWindow = null;
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let draggedWindow = null;
+        let isResizing = false;
+        let resizeDirection = null;
+        let resizedWindow = null;
+
+        // Boot sequence
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('bootScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('bootScreen').style.display = 'none';
+                    showTooltip();
+                }, 800);
+            }, 800);
+            updateClock();
+            setInterval(updateClock, 1000);
+        });
+
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-GB', { hour12: false });
+            document.getElementById('clock').textContent = time;
+        }
+
+        function showTooltip() {
+            if (!localStorage.getItem('tooltipClosed')) {
+                document.getElementById('tooltip').style.display = 'block';
+            }
+        }
+
+        function closeTooltip() {
+            document.getElementById('tooltip').style.display = 'none';
+            localStorage.setItem('tooltipClosed', 'true');
+        }
+
+        // Dock click handlers
+        document.querySelectorAll('.dock-icon').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const app = icon.dataset.app;
+                openApp(app);
+            });
+        });
+
+        // App definitions
+        const apps = {
+            workflow: {
+                title: 'Workflow Hub',
+                width: 900,
+                height: 600,
+                content: `
+                    <div style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--gray-600);">
+                            <button onclick="newWorkflow()" style="background: var(--white); color: var(--black); border: none; padding: 6px 16px; font-size: 12px;">New Workflow</button>
+                            <button onclick="runAllWorkflows()" style="background: transparent; color: var(--white); border: 1px solid var(--gray-500); padding: 6px 16px; font-size: 12px;">Run All</button>
+                            <button onclick="pauseAllWorkflows()" style="background: transparent; color: var(--white); border: 1px solid var(--gray-500); padding: 6px 16px; font-size: 12px;">Pause All</button>
+                        </div>
+                        <div style="flex: 1; overflow-x: auto; padding: 12px;">
+                            <div style="display: flex; gap: 12px; min-height: 400px;">
+                                <div class="kanban-column" style="flex: 1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="todo">
+                                    <div style="padding: 8px; border-bottom: 1px solid var(--gray-600); font-size: 12px; color: var(--gray-400);">TO DO</div>
+                                    <div style="padding: 8px;">
+                                        <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="1">
+                                            <div style="font-size: 12px; margin-bottom: 4px;">Data Export</div>
+                                            <div style="font-size: 10px; color: var(--gray-500);">Priority: High</div>
+                                        </div>
+                                        <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="2">
+                                            <div style="font-size: 12px; margin-bottom: 4px;">Report Generation</div>
+                                            <div style="font-size: 10px; color: var(--gray-500);">Priority: Medium</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="kanban-column" style="flex: 1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="progress">
+                                    <div style="padding: 8px; border-bottom: 1px solid var(--gray-600); font-size: 12px; color: var(--gray-400);">IN PROGRESS</div>
+                                    <div style="padding: 8px;">
+                                        <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="3">
+                                            <div style="font-size: 12px; margin-bottom: 4px;">API Integration</div>
+                                            <div style="font-size: 10px; color: var(--gray-500);">Priority: High</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="kanban-column" style="flex: 1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="done">
+                                    <div style="padding: 8px; border-bottom: 1px solid var(--gray-600); font-size: 12px; color: var(--gray-400);">DONE</div>
+                                    <div style="padding: 8px;">
+                                        <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="4">
+                                            <div style="font-size: 12px; margin-bottom: 4px;">Backup Complete</div>
+                                            <div style="font-size: 10px; color: var(--gray-500);">Priority: Low</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="border-top: 1px solid var(--gray-600); padding: 12px;">
+                            <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 8px;">ACTIVE WORKFLOWS</div>
+                            <table style="width: 100%; font-size: 11px;">
+                                <tr style="border-bottom: 1px solid var(--gray-700);">
+                                    <td style="padding: 4px; color: var(--gray-400);">Name</td>
+                                    <td style="padding: 4px; color: var(--gray-400);">Status</td>
+                                    <td style="padding: 4px; color: var(--gray-400);">Last Run</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px;">Daily Sync</td>
+                                    <td style="padding: 4px; color: var(--gray-400);">Running</td>
+                                    <td style="padding: 4px; color: var(--gray-400);">2 min ago</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 4px;">Email Digest</td>
+                                    <td style="padding: 4px; color: var(--gray-400);">Paused</td>
+                                    <td style="padding: 4px; color: var(--gray-400);">1 hour ago</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                `
+            },
+            browser: {
+                title: 'Browser',
+                width: 1000,
+                height: 700,
+                content: `
+                    <div style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="display: flex; border-bottom: 1px solid var(--gray-600);">
+                            <div class="tab active" onclick="switchTab(this)">
+                                <span>New Tab</span>
+                                <span onclick="closeTab(event, this)" style="margin-left: 8px; font-size: 10px;">×</span>
+                            </div>
+                            <div style="width: 32px; display: flex; align-items: center; justify-content: center; border-left: 1px solid var(--gray-600);" onclick="addTab()">+</div>
+                        </div>
+                        <div style="display: flex; align-items: center; padding: 8px; gap: 8px; border-bottom: 1px solid var(--gray-600);">
+                            <button style="background: transparent; border: none; color: var(--gray-400);">←</button>
+                            <button style="background: transparent; border: none; color: var(--gray-400);">→</button>
+                            <button style="background: transparent; border: none; color: var(--gray-400);">⟳</button>
+                            <input type="text" value="about:blank" style="flex: 1; background: var(--gray-700); border: 1px solid var(--gray-600); color: var(--white); padding: 4px 8px; font-size: 12px; outline: none;" onchange="navigateTo(this.value)">
+                            <button style="background: transparent; border: 1px solid var(--gray-600); color: var(--gray-400); padding: 4px 8px; font-size: 11px;" onclick="goHome()">Home</button>
+                        </div>
+                        <div id="browserContent" style="flex: 1; background: var(--white); color: var(--black);">
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 40px;">
+                                <h1 style="font-size: 24px; margin-bottom: 24px; color: var(--black);">New Tab</h1>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; max-width: 600px;">
+                                    <div onclick="quickLink('https://github.com')" style="border: 1px solid var(--gray-300); padding: 16px; text-align: center; cursor: default;">GitHub</div>
+                                    <div onclick="quickLink('https://stackoverflow.com')" style="border: 1px solid var(--gray-300); padding: 16px; text-align: center; cursor: default;">Stack Overflow</div>
+                                    <div onclick="quickLink('https://docs.python.org')" style="border: 1px solid var(--gray-300); padding: 16px; text-align: center; cursor: default;">Python Docs</div>
+                                    <div onclick="quickLink('https://nodejs.org')" style="border: 1px solid var(--gray-300); padding: 16px; text-align: center; cursor: default;">Node.js</div>
+                                    <div onclick="quickLink('https://docker.com')" style="border: 1px solid var(--gray-300); padding: 16px; text-align: center; cursor: default;">Docker</div>
+                                    <div onclick="quickLink('https://aws.amazon.com')" style="border: 1px solid var(--gray-300); padding: 16px; text-align: center; cursor: default;">AWS Console</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            terminal: {
+                title: 'Terminal',
+                width: 800,
+                height: 500,
+                content: `
+                    <div id="terminalOutput" style="height: 100%; padding: 12px; font-size: 12px; overflow-y: auto;" onclick="focusTerminal()">
+                        <div class="terminal-line">SoengOS Workflow [Version 1.0.0]</div>
+                        <div class="terminal-line">(c) SoengOS Engineering. All rights reserved.</div>
+                        <br>
+                        <div class="terminal-line">Type 'help' for available commands.</div>
+                        <br>
+                        <div class="terminal-line"><span style="color: var(--gray-400);">user@soengos</span>:<span style="color: var(--gray-500);">~</span>$ <span id="terminalCursor" class="blink">_</span></div>
+                    </div>
+                    <input type="text" id="terminalInput" style="position: absolute; opacity: 0;" onkeydown="handleTerminalInput(event)">
+                `
+            },
+            files: {
+                title: 'File Manager',
+                width: 700,
+                height: 500,
+                content: `
+                    <div style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid var(--gray-600); gap: 8px;">
+                            <button style="background: transparent; border: 1px solid var(--gray-600); color: var(--gray-400); padding: 4px 8px; font-size: 11px;">↑ Up</button>
+                            <div style="flex: 1; background: var(--gray-700); border: 1px solid var(--gray-600); padding: 4px 8px; font-size: 12px;">/home/user/workflows</div>
+                        </div>
+                        <div style="display: flex; border-bottom: 1px solid var(--gray-600);">
+                            <button style="flex: 1; padding: 8px; background: var(--gray-700); border: none; border-right: 1px solid var(--gray-600); font-size: 11px;">Grid View</button>
+                            <button style="flex: 1; padding: 8px; background: transparent; border: none; border-right: 1px solid var(--gray-600); font-size: 11px;">List View</button>
+                        </div>
+                        <div style="flex: 1; padding: 12px; overflow-y: auto;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;">
+                                <div class="file-item selected" onclick="selectFile(this)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 4px;">
+                                        <path d="M3 7h6l2 2h10v10H3z"/>
+                                    </svg>
+                                    <div style="font-size: 10px; text-align: center;">projects</div>
+                                </div>
+                                <div class="file-item" onclick="selectFile(this)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 4px;">
+                                        <path d="M3 7h6l2 2h10v10H3z"/>
+                                    </svg>
+                                    <div style="font-size: 10px; text-align: center;">documents</div>
+                                </div>
+                                <div class="file-item" onclick="selectFile(this)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 4px;">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    </svg>
+                                    <div style="font-size: 10px; text-align: center;">config.yaml</div>
+                                </div>
+                                <div class="file-item" onclick="selectFile(this)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 4px;">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    </svg>
+                                    <div style="font-size: 10px; text-align: center;">workflow.json</div>
+                                </div>
+                                <div class="file-item" onclick="selectFile(this)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 4px;">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    </svg>
+                                    <div style="font-size: 10px; text-align: center;">data.csv</div>
+                                </div>
+                                <div class="file-item" onclick="selectFile(this)">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 4px;">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    </svg>
+                                    <div style="font-size: 10px; text-align: center;">report.pdf</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            automation: {
+                title: 'Automation Studio',
+                width: 900,
+                height: 650,
+                content: `
+                    <div style="display: flex; flex-direction: column; height: 100%;">
+                        <div style="display: flex; flex: 1; overflow: hidden;">
+                            <div style="flex: 1; padding: 16px; border-right: 1px solid var(--gray-600);">
+                                <div style="font-size: 12px; color: var(--gray-400); margin-bottom: 8px;">NATURAL LANGUAGE PROMPT</div>
+                                <textarea id="automationPrompt" placeholder="Describe the automation you want..." style="width: 100%; height: 150px; background: var(--gray-700); border: 1px solid var(--gray-600); color: var(--white); padding: 12px; font-size: 13px; resize: none; outline: none;"></textarea>
+                                <button onclick="generateAutomation()" style="margin-top: 12px; background: var(--white); color: var(--black); border: none; padding: 8px 24px; font-size: 12px; width: 100%;">Generate & Run</button>
+                                <div style="margin-top: 16px;">
+                                    <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 8px;">QUICK TEMPLATES</div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        <button onclick="setPrompt('Send daily report to email')" style="background: transparent; border: 1px solid var(--gray-600); color: var(--gray-400); padding: 4px 8px; font-size: 10px;">Daily Report</button>
+                                        <button onclick="setPrompt('Monitor website for changes')" style="background: transparent; border: 1px solid var(--gray-600); color: var(--gray-400); padding: 4px 8px; font-size: 10px;">Website Monitor</button>
+                                        <button onclick="setPrompt('Auto organize downloaded files')" style="background: transparent; border: 1px solid var(--gray-600); color: var(--gray-400); padding: 4px 8px; font-size: 10px;">File Organizer</button>
+                                        <button onclick="setPrompt('Backup database every hour')" style="background: transparent; border: 1px solid var(--gray-600); color: var(--gray-400); padding: 4px 8px; font-size: 10px;">DB Backup</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="flex: 1; padding: 16px; overflow-y: auto;">
+                                <div style="font-size: 12px; color: var(--gray-400); margin-bottom: 8px;">WORKFLOW PREVIEW</div>
+                                <div id="workflowPreview" style="border: 1px solid var(--gray-600); padding: 12px; min-height: 200px;">
+                                    <div style="font-size: 11px; color: var(--gray-500); text-align: center; padding: 40px 0;">Enter a prompt to generate workflow steps</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="height: 200px; border-top: 1px solid var(--gray-600);">
+                            <div style="font-size: 12px; color: var(--gray-400); padding: 8px 12px; border-bottom: 1px solid var(--gray-700);">EXECUTION LOG</div>
+                            <div id="automationLog" style="height: calc(100% - 32px); overflow-y: auto; padding: 8px 12px; font-size: 11px;">
+                                <div style="color: var(--gray-500);">[System] Ready for automation commands...</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            settings: {
+                title: 'Settings',
+                width: 500,
+                height: 400,
+                content: `
+                    <div style="padding: 16px;">
+                        <div style="font-size: 12px; color: var(--gray-400); margin-bottom: 16px;">SYSTEM SETTINGS</div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-700);">
+                            <span style="font-size: 13px;">Focus Mode (F11)</span>
+                            <div class="toggle off" id="focusToggle" onclick="toggleFocus()"></div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-700);">
+                            <span style="font-size: 13px;">Keyboard Shortcuts</span>
+                            <div class="toggle on" id="shortcutsToggle" onclick="toggleSetting(this)"></div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-700);">
+                            <span style="font-size: 13px;">Automation Permissions</span>
+                            <div class="toggle on" id="permissionsToggle" onclick="toggleSetting(this)"></div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--gray-700);">
+                            <span style="font-size: 13px;">Notifications</span>
+                            <div class="toggle off" id="notificationsToggle" onclick="toggleSetting(this)"></div>
+                        </div>
+                        <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--gray-700);">
+                            <div style="font-size: 10px; color: var(--gray-500);">SoengOS Workflow Prototype • Black/White/Gray Engineering Minimalism • Prompt-Driven Automation</div>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        function openApp(appName) {
+            const app = apps[appName];
+            if (!app) return;
+
+            const windowId = 'win-' + Date.now();
+            const desktop = document.getElementById('desktop');
+            
+            const windowEl = document.createElement('div');
+            windowEl.className = 'window';
+            windowEl.id = windowId;
+            windowEl.style.left = (100 + windows.length * 30) + 'px';
+            windowEl.style.top = (50 + windows.length * 30) + 'px';
+            windowEl.style.width = app.width + 'px';
+            windowEl.style.height = app.height + 'px';
+            windowEl.style.zIndex = ++windowZIndex;
+
+            windowEl.innerHTML = `
+                <div class="window-header" onmousedown="startDrag(event, '${windowId}')">
+                    <span style="font-size: 12px;">${app.title}</span>
+                    <div class="window-controls">
+                        <button class="window-control" onclick="minimizeWindow('${windowId}')"></button>
+                        <button class="window-control" onclick="maximizeWindow('${windowId}')"></button>
+                        <button class="window-control" onclick="closeWindow('${windowId}')" style="border-color: var(--gray-400);"></button>
+                    </div>
+                </div>
+                <div style="height: calc(100% - 32px); overflow: auto;">${app.content}</div>
+                <div style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; cursor: se-resize;" onmousedown="startResize(event, '${windowId}')"></div>
+            `;
+
+            windowEl.addEventListener('mousedown', () => focusWindow(windowId));
+            desktop.appendChild(windowEl);
+            windows.push({ id: windowId, appName, minimized: false });
+            focusWindow(windowId);
+
+            // Initialize terminal if it's a terminal window
+            if (appName === 'terminal') {
+                initTerminal(windowId);
+            }
+        }
+
+        function focusWindow(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (windowEl) {
+                windowEl.style.zIndex = ++windowZIndex;
+                activeWindow = windowId;
+            }
+        }
+
+        function closeWindow(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (windowEl) {
+                windowEl.remove();
+                windows = windows.filter(w => w.id !== windowId);
+            }
+        }
+
+        function minimizeWindow(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (windowEl) {
+                windowEl.style.display = 'none';
+                const win = windows.find(w => w.id === windowId);
+                if (win) win.minimized = true;
+            }
+        }
+
+        function maximizeWindow(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (windowEl) {
+                if (windowEl.dataset.maximized === 'true') {
+                    windowEl.style.left = windowEl.dataset.prevLeft;
+                    windowEl.style.top = windowEl.dataset.prevTop;
+                    windowEl.style.width = windowEl.dataset.prevWidth;
+                    windowEl.style.height = windowEl.dataset.prevHeight;
+                    windowEl.dataset.maximized = 'false';
+                } else {
+                    windowEl.dataset.prevLeft = windowEl.style.left;
+                    windowEl.dataset.prevTop = windowEl.style.top;
+                    windowEl.dataset.prevWidth = windowEl.style.width;
+                    windowEl.dataset.prevHeight = windowEl.style.height;
+                    windowEl.style.left = '0';
+                    windowEl.style.top = '0';
+                    windowEl.style.width = '100%';
+                    windowEl.style.height = '100%';
+                    windowEl.dataset.maximized = 'true';
+                }
+            }
+        }
+
+        // Dragging
+        function startDrag(e, windowId) {
+            if (e.target.closest('.window-controls')) return;
+            isDragging = true;
+            draggedWindow = document.getElementById(windowId);
+            const rect = draggedWindow.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            focusWindow(windowId);
+        }
+
+        // Resizing
+        function startResize(e, windowId) {
+            e.stopPropagation();
+            isResizing = true;
+            resizedWindow = document.getElementById(windowId);
+            focusWindow(windowId);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && draggedWindow) {
+                draggedWindow.style.left = (e.clientX - dragOffset.x) + 'px';
+                draggedWindow.style.top = (e.clientY - dragOffset.y) + 'px';
+            }
+            if (isResizing && resizedWindow) {
+                const rect = resizedWindow.getBoundingClientRect();
+                resizedWindow.style.width = (e.clientX - rect.left) + 'px';
+                resizedWindow.style.height = (e.clientY - rect.top) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            isResizing = false;
+            draggedWindow = null;
+            resizedWindow = null;
+        });
+
+        // Terminal functionality
+        let terminalHistory = [];
+        let terminalHistoryIndex = -1;
+
+        function initTerminal(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (!windowEl) return;
+            
+            const terminalInput = windowEl.querySelector('#terminalInput');
+            const terminalOutput = windowEl.querySelector('#terminalOutput');
+            
+            terminalOutput.addEventListener('click', () => {
+                terminalInput.focus();
+            });
+        }
+
+        function focusTerminal() {
+            const activeTerm = document.querySelector('.window:not([style*="display: none"]) #terminalInput');
+            if (activeTerm) activeTerm.focus();
+        }
+
+        function handleTerminalInput(e) {
+            if (e.key === 'Enter') {
+                const input = e.target.value;
+                terminalHistory.push(input);
+                terminalHistoryIndex = terminalHistory.length;
+                
+                const output = e.target.parentElement.querySelector('#terminalOutput');
+                const cursor = output.querySelector('#terminalCursor');
+                
+                // Remove cursor from previous line
+                cursor.remove();
+                
+                // Add command line
+                const cmdLine = document.createElement('div');
+                cmdLine.className = 'terminal-line';
+                cmdLine.innerHTML = `<span style="color: var(--gray-400);">user@soengos</span>:<span style="color: var(--gray-500);">~</span>$ ${input}`;
+                output.insertBefore(cmdLine, output.lastElementChild);
+                
+                // Process command
+                const response = processCommand(input);
+                if (response) {
+                    const respLine = document.createElement('div');
+                    respLine.className = 'terminal-line';
+                    respLine.textContent = response;
+                    output.insertBefore(respLine, output.lastElementChild);
+                }
+                
+                // Add new cursor line
+                const newCursorLine = document.createElement('div');
+                newCursorLine.className = 'terminal-line';
+                newCursorLine.innerHTML = `<span style="color: var(--gray-400);">user@soengos</span>:<span style="color: var(--gray-500);">~</span>$ <span id="terminalCursor" class="blink">_</span>`;
+                output.insertBefore(newCursorLine, output.lastElementChild);
+                
+                e.target.value = '';
+                output.scrollTop = output.scrollHeight;
+            } else if (e.key === 'ArrowUp') {
+                if (terminalHistoryIndex > 0) {
+                    terminalHistoryIndex--;
+                    e.target.value = terminalHistory[terminalHistoryIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                if (terminalHistoryIndex < terminalHistory.length - 1) {
+                    terminalHistoryIndex++;
+                    e.target.value = terminalHistory[terminalHistoryIndex];
+                } else {
+                    terminalHistoryIndex = terminalHistory.length;
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function processCommand(cmd) {
+            const parts = cmd.trim().split(' ');
+            const command = parts[0].toLowerCase();
+            const args = parts.slice(1);
+            
+            switch(command) {
+                case 'help':
+                    return 'Available commands: help, clear, ls, cd, pwd, echo, date, whoami, workflow-run, automate, exit';
+                case 'clear':
+                    const output = document.querySelector('.window:not([style*="display: none"]) #terminalOutput');
+                    if (output) {
+                        const cursor = output.querySelector('#terminalCursor');
+                        output.innerHTML = '<div class="terminal-line"><span style="color: var(--gray-400);">user@soengos</span>:<span style="color: var(--gray-500);">~</span>$ <span id="terminalCursor" class="blink">_</span></div>';
+                    }
+                    return '';
+                case 'ls':
+                    return 'projects  documents  config.yaml  workflow.json  data.csv  report.pdf';
+                case 'pwd':
+                    return '/home/user/workflows';
+                case 'echo':
+                    return args.join(' ');
+                case 'date':
+                    return new Date().toString();
+                case 'whoami':
+                    return 'user';
+                case 'workflow-run':
+                    return 'Starting workflow execution... [OK]';
+                case 'automate':
+                    return 'Automation engine initialized. Ready for prompts.';
+                case 'exit':
+                    return 'Use the window controls to close the terminal.';
+                case '':
+                    return '';
+                default:
+                    return `Command not found: ${command}. Type 'help' for available commands.`;
+            }
+        }
+
+        // Browser functions
+        function switchTab(tab) {
+            tab.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }
+
+        function closeTab(e, btn) {
+            e.stopPropagation();
+            const tab = btn.parentElement;
+            const tabs = tab.parentElement.querySelectorAll('.tab');
+            if (tabs.length > 1) {
+                tab.remove();
+                tabs[0].classList.add('active');
+            }
+        }
+
+        function addTab() {
+            const tabsContainer = document.querySelector('.window:not([style*="display: none"]) .tab').parentElement;
+            const newTab = document.createElement('div');
+            newTab.className = 'tab';
+            newTab.innerHTML = '<span>New Tab</span><span onclick="closeTab(event, this)" style="margin-left: 8px; font-size: 10px;">×</span>';
+            newTab.onclick = function() { switchTab(this); };
+            tabsContainer.insertBefore(newTab, tabsContainer.lastElementChild);
+        }
+
+        function navigateTo(url) {
+            const content = document.querySelector('.window:not([style*="display: none"]) #browserContent');
+            if (content) {
+                if (url === 'about:blank') {
+                    content.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;"><h1 style="font-size: 24px;">Blank Page</h1></div>';
+                } else {
+                    content.innerHTML = `<iframe src="${url}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+                }
+            }
+        }
+
+        function quickLink(url) {
+            const input = document.querySelector('.window:not([style*="display: none"]) input[onchange*="navigateTo"]');
+            if (input) {
+                input.value = url;
+                navigateTo(url);
+            }
+        }
+
+        function goHome() {
+            const input = document.querySelector('.window:not([style*="display: none"]) input[onchange*="navigateTo"]');
+            if (input) {
+                input.value = 'about:blank';
+                navigateTo('about:blank');
+            }
+        }
+
+        // Automation Studio functions
+        function setPrompt(text) {
+            const textarea = document.querySelector('.window:not([style*="display: none"]) #automationPrompt');
+            if (textarea) {
+                textarea.value = text;
+            }
+        }
+
+        function generateAutomation() {
+            const textarea = document.querySelector('.window:not([style*="display: none"]) #automationPrompt');
+            const preview = document.querySelector('.window:not([style*="display: none"]) #workflowPreview');
+            const log = document.querySelector('.window:not([style*="display: none"]) #automationLog');
+            
+            if (!textarea || !preview || !log) return;
+            
+            const prompt = textarea.value.trim();
+            if (!prompt) return;
+            
+            // Generate workflow preview based on prompt
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let steps = [];
+            if (prompt.toLowerCase().includes('email') || prompt.toLowerCase().includes('report')) {
+                steps = [
+                    { action: 'Collect data from sources', status: 'pending' },
+                    { action: 'Format report template', status: 'pending' },
+                    { action: 'Generate PDF document', status: 'pending' },
+                    { action: 'Send via email SMTP', status: 'pending' },
+                    { action: 'Log completion status', status: 'pending' }
+                ];
+            } else if (prompt.toLowerCase().includes('monitor') || prompt.toLowerCase().includes('website')) {
+                steps = [
+                    { action: 'Fetch target URL content', status: 'pending' },
+                    { action: 'Compare with baseline', status: 'pending' },
+                    { action: 'Detect changes', status: 'pending' },
+                    { action: 'Trigger notification', status: 'pending' },
+                    { action: 'Update baseline', status: 'pending' }
+                ];
+            } else if (prompt.toLowerCase().includes('organize') || prompt.toLowerCase().includes('file')) {
+                steps = [
+                    { action: 'Scan download directory', status: 'pending' },
+                    { action: 'Classify file types', status: 'pending' },
+                    { action: 'Move to appropriate folders', status: 'pending' },
+                    { action: 'Update file index', status: 'pending' },
+                    { action: 'Generate summary report', status: 'pending' }
+                ];
+            } else if (prompt.toLowerCase().includes('backup') || prompt.toLowerCase().includes('database')) {
+                steps = [
+                    { action: 'Connect to database', status: 'pending' },
+                    { action: 'Export database dump', status: 'pending' },
+                    { action: 'Compress backup file', status: 'pending' },
+                    { action: 'Upload to storage', status: 'pending' },
+                    { action: 'Verify backup integrity', status: 'pending' }
+                ];
+            } else {
+                steps = [
+                    { action: 'Parse automation request', status: 'pending' },
+                    { action: 'Identify required actions', status: 'pending' },
+                    { action: 'Configure parameters', status: 'pending' },
+                    { action: 'Execute workflow', status: 'pending' },
+                    { action: 'Report results', status: 'pending' }
+                ];
+            }
+            
+            // Render workflow preview
+            preview.innerHTML = steps.map((step, i) => `
+                <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid var(--gray-700);">
+                    <div style="width: 24px; height: 24px; border: 1px solid var(--gray-500); display: flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 12px;">${i + 1}</div>
+                    <div style="flex: 1; font-size: 12px;">${step.action}</div>
+                    <div style="font-size: 10px; color: var(--gray-500);">${step.status.toUpperCase()}</div>
+                </div>
+            `).join('');
+            
+            // Add to log
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] Generated automation: ${prompt.substring(0, 50)}...`;
+            log.appendChild(logEntry);
+            
+            // Simulate execution
+            setTimeout(() => {
+                executeWorkflow(steps, log);
+            }, 1000);
+        }
+
+        function executeWorkflow(steps, log) {
+            let delay = 1500;
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const logEntry = document.createElement('div');
+                    logEntry.innerHTML = `[${timestamp}] Step ${index + 1}: ${step.action} [COMPLETED]`;
+                    log.appendChild(logEntry);
+                    log.scrollTop = log.scrollHeight;
+                    
+                    // Update preview
+                    const preview = document.querySelector('.window:not([style*="display: none"]) #workflowPreview');
+                    if (preview) {
+                        const stepEls = preview.querySelectorAll('[style*="border-bottom"]');
+                        if (stepEls[index]) {
+                            const statusEl = stepEls[index].querySelector('[style*="color: var(--gray-500)"]');
+                            if (statusEl) {
+                                statusEl.textContent = 'COMPLETED';
+                                statusEl.style.color = 'var(--white)';
+                            }
+                        }
+                    }
+                }, delay);
+                delay += 1000;
+            });
+            
+            setTimeout(() => {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `[${timestamp}] ✓ Automation completed successfully`;
+                logEntry.style.color = 'var(--white)';
+                log.appendChild(logEntry);
+                log.scrollTop = log.scrollHeight;
+            }, delay);
+        }
+
+        // Kanban drag and drop
+        function allowDrop(e) {
+            e.preventDefault();
+        }
+
+        function drag(e) {
+            e.dataTransfer.setData('text', e.target.dataset.id);
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const data = e.dataTransfer.getData('text');
+            const card = document.querySelector(`[data-id="${data}"]`);
+            const column = e.target.closest('.kanban-column');
+            if (card && column) {
+                column.querySelector('[style*="padding: 8px"]:last-of-type')?.appendChild(card);
+            }
+        }
+
+        // Workflow actions
+        function newWorkflow() {
+            alert('Create New Workflow dialog would open here.');
+        }
+
+        function runAllWorkflows() {
+            addLogEntry('Running all active workflows...');
+            document.getElementById('workflowCount').textContent = '5';
+        }
+
+        function pauseAllWorkflows() {
+            addLogEntry('Pausing all workflows...');
+            document.getElementById('workflowCount').textContent = '0';
+        }
+
+        function addLogEntry(message) {
+            console.log('[Workflow]', message);
+        }
+
+        // Settings toggles
+        function toggleFocus() {
+            const toggle = document.getElementById('focusToggle');
+            if (toggle.classList.contains('off')) {
+                toggle.classList.remove('off');
+                toggle.classList.add('on');
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                toggle.classList.remove('on');
+                toggle.classList.add('off');
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+
+        function toggleSetting(el) {
+            if (el.classList.contains('on')) {
+                el.classList.remove('on');
+                el.classList.add('off');
+            } else {
+                el.classList.remove('off');
+                el.classList.add('on');
+            }
+        }
+
+        // File manager
+        function selectFile(el) {
+            el.parentElement.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        // Command palette
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                toggleCommandPalette();
+            }
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFocus();
+            }
+            if (e.key === 'Escape') {
+                document.getElementById('commandPalette').style.display = 'none';
+            }
+        });
+
+        function toggleCommandPalette() {
+            const palette = document.getElementById('commandPalette');
+            const input = document.getElementById('paletteInput');
+            
+            if (palette.style.display === 'none' || !palette.style.display) {
+                palette.style.display = 'block';
+                input.value = '';
+                input.focus();
+            } else {
+                palette.style.display = 'none';
+            }
+        }
+
+        document.getElementById('paletteInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.palette-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? 'block' : 'none';
+            });
+        });
+
+        document.querySelectorAll('.palette-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const action = item.dataset.action;
+                if (action && apps[action]) {
+                    openApp(action);
+                }
+                document.getElementById('commandPalette').style.display = 'none';
+            });
+        });
+
+        // Focus mode with F11
+        let focusMode = false;
+        function toggleFocusMode() {
+            focusMode = !focusMode;
+            const topBar = document.querySelector('[style*="top: 0; left: 0; right: 0; height: 32px"]');
+            const dock = document.querySelector('[style*="top: 32px; left: 0; bottom: 32px; width: 56px"]');
+            const statusBar = document.querySelector('[style*="bottom: 0; left: 56px; right: 0; height: 32px"]');
+            
+            if (focusMode) {
+                topBar.style.display = 'none';
+                dock.style.display = 'none';
+                statusBar.style.display = 'none';
+                document.getElementById('desktop').style.top = '0';
+                document.getElementById('desktop').style.left = '0';
+            } else {
+                topBar.style.display = 'flex';
+                dock.style.display = 'flex';
+                statusBar.style.display = 'flex';
+                document.getElementById('desktop').style.top = '32px';
+                document.getElementById('desktop').style.left = '56px';
+            }
+        }
+
+        // Override F11 handler
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFocusMode();
+            }
+        });
+    </script>
+</body>
+</html>
