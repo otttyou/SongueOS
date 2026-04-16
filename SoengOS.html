@@ -11,6 +11,7 @@
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
   :root {
+    --taskbar-h: 28px;
     --black: #000000;
     --white: #FFFFFF;
     --g1: #111111;
@@ -140,7 +141,7 @@
   /* ── Desktop ── */
   #desktop {
     position: fixed;
-    top: var(--topbar-h); left: 0; right: 0; bottom: 0;
+    top: var(--topbar-h); left: 0; right: 0; bottom: var(--taskbar-h);
     background: var(--g1);
     overflow: hidden;
   }
@@ -251,15 +252,15 @@
   /* Resize handle */
   .window-resize {
     position: absolute; bottom: 0; right: 0;
-    width: 14px; height: 14px;
+    width: 20px; height: 20px;
     cursor: nwse-resize;
   }
   .window-resize::before {
     content: '';
-    position: absolute; bottom: 3px; right: 3px;
-    width: 8px; height: 8px;
-    border-right: 1px solid var(--g5);
-    border-bottom: 1px solid var(--g5);
+    position: absolute; bottom: 4px; right: 4px;
+    width: 10px; height: 10px;
+    border-right: 1.5px solid var(--g5);
+    border-bottom: 1.5px solid var(--g5);
   }
 
   /* ── File Manager ── */
@@ -571,8 +572,8 @@
   /* ── Focus mode ── */
   body.focus-mode #topbar,
   body.focus-mode #desktop-icons,
-  body.focus-mode #footer-credit { display: none; }
-  body.focus-mode #desktop { top: 0; }
+  body.focus-mode #taskbar { display: none; }
+  body.focus-mode #desktop { top: 0; bottom: 0; }
 
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; }
@@ -582,6 +583,99 @@
 
   /* ── Selection ── */
   ::selection { background: var(--g5); color: var(--white); }
+
+  /* ── Taskbar ── */
+  #taskbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--taskbar-h);
+    background: var(--black);
+    border-top: 1px solid var(--g3);
+    z-index: 10000;
+    display: flex; align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .taskbar-win {
+    height: 20px;
+    padding: 0 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--g7);
+    background: none;
+    border: 1px solid var(--g3);
+    cursor: pointer;
+    display: flex; align-items: center;
+    transition: background var(--transition), color var(--transition), border-color var(--transition);
+    max-width: 140px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .taskbar-win:hover { background: var(--g3); color: var(--gc); border-color: var(--g5); }
+  .taskbar-win.active { background: var(--g2); color: var(--white); border-color: var(--g5); }
+  .taskbar-spacer { flex: 1; }
+  .taskbar-credit {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--g3);
+    letter-spacing: 1px;
+    pointer-events: none;
+    padding-right: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Toast notifications ── */
+  #toast-container {
+    position: fixed;
+    bottom: calc(var(--taskbar-h) + 8px);
+    right: 12px;
+    z-index: 70000;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--g2);
+    border: 1px solid var(--g5);
+    padding: 7px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gc);
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 200ms linear, transform 200ms linear;
+  }
+  .toast.show { opacity: 1; transform: translateX(0); }
+
+  /* ── Context Menu ── */
+  #ctx-menu {
+    position: fixed;
+    background: var(--g1);
+    border: 1px solid var(--g3);
+    z-index: 80000;
+    display: none;
+    flex-direction: column;
+    min-width: 160px;
+  }
+  #ctx-menu.open { display: flex; }
+  .ctx-item {
+    padding: 7px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ga);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: background var(--transition), color var(--transition);
+  }
+  .ctx-item:last-child { border-bottom: none; }
+  .ctx-item:hover { background: var(--g2); color: var(--white); }
+  .ctx-sep { height: 1px; background: var(--g3); }
+
+  /* ── Window focus indicator ── */
+  .window.focused { border-color: var(--g5); }
+  .window.focused .window-titlebar { background: var(--g1); }
+  .window.focused .window-titlebar .title { color: var(--gc); }
 </style>
 </head>
 <body>
@@ -697,8 +791,26 @@
   <div class="power-option" onclick="closePower()">CANCEL</div>
 </div>
 
-<!-- Footer -->
-<div id="footer-credit">Prototype &bull; Black/White/Gray Engineering Minimalism Edition</div>
+<!-- Context Menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="openApp('filemanager');closeCtxMenu()">Files</div>
+  <div class="ctx-item" onclick="openApp('terminal');closeCtxMenu()">Terminal</div>
+  <div class="ctx-item" onclick="openApp('browser');closeCtxMenu()">Browser</div>
+  <div class="ctx-item" onclick="openApp('settings');closeCtxMenu()">Settings</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="toggleFocus();closeCtxMenu()">Toggle Focus Mode</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="openPower();closeCtxMenu()">Power&hellip;</div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Taskbar -->
+<div id="taskbar">
+  <div class="taskbar-spacer"></div>
+  <div class="taskbar-credit">Engineering Edition &bull; v1.0</div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════
@@ -724,10 +836,11 @@ function updateClock() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2,'0');
   const m = String(now.getMinutes()).padStart(2,'0');
-  document.getElementById('clock').textContent = `${h}:${m}`;
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
 }
 updateClock();
-setInterval(updateClock, 10000);
+setInterval(updateClock, 1000);
 
 // ── Window management ──
 let windowZ = 100;
@@ -777,6 +890,8 @@ function createWindow(id, title, width, height, contentHTML) {
 
   container.appendChild(win);
   openWindows[id] = true;
+  addToTaskbar(id, title);
+  bringToFront(win);
 
   // Focus on click
   win.addEventListener('mousedown', () => bringToFront(win));
@@ -792,16 +907,60 @@ function createWindow(id, title, width, height, contentHTML) {
 
 function bringToFront(win) {
   win.style.zIndex = ++windowZ;
+  document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+  win.classList.add('focused');
+  const id = win.id.replace('win-', '');
+  setTaskbarActive(id);
+}
+
+// ── Taskbar helpers ──
+function addToTaskbar(id, title) {
+  const taskbar = document.getElementById('taskbar');
+  const spacer = taskbar.querySelector('.taskbar-spacer');
+  const btn = document.createElement('button');
+  btn.className = 'taskbar-win';
+  btn.id = 'tb-' + id;
+  btn.textContent = title;
+  btn.onclick = () => {
+    const win = document.getElementById('win-' + id);
+    if (!win) return;
+    if (win.classList.contains('minimized')) {
+      win.classList.remove('minimized');
+      bringToFront(win);
+    } else if (win.classList.contains('focused')) {
+      minimizeWindow(id);
+    } else {
+      bringToFront(win);
+    }
+  };
+  taskbar.insertBefore(btn, spacer);
+}
+
+function removeFromTaskbar(id) {
+  const btn = document.getElementById('tb-' + id);
+  if (btn) btn.remove();
+}
+
+function setTaskbarActive(id) {
+  document.querySelectorAll('.taskbar-win').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tb-' + id);
+  if (btn) btn.classList.add('active');
 }
 
 function closeWindow(id) {
   const win = document.getElementById('win-' + id);
   if (win) { win.remove(); delete openWindows[id]; }
+  removeFromTaskbar(id);
 }
 
 function minimizeWindow(id) {
   const win = document.getElementById('win-' + id);
-  if (win) win.classList.add('minimized');
+  if (win) {
+    win.classList.add('minimized');
+    win.classList.remove('focused');
+  }
+  const btn = document.getElementById('tb-' + id);
+  if (btn) btn.classList.remove('active');
 }
 
 function maximizeWindow(id) {
@@ -940,7 +1099,7 @@ const termFS = {
 };
 
 let termCwd = '/home/user';
-let termHistory = [];
+let termHistory = JSON.parse(localStorage.getItem('soeng-term-history') || '[]');
 let termHistIdx = -1;
 
 function initTerminal() {
@@ -955,7 +1114,12 @@ function initTerminal() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const cmd = input.value.trim();
-      if (cmd) { termHistory.unshift(cmd); termHistIdx = -1; }
+      if (cmd) {
+        termHistory.unshift(cmd);
+        if (termHistory.length > 100) termHistory.pop();
+        termHistIdx = -1;
+        try { localStorage.setItem('soeng-term-history', JSON.stringify(termHistory.slice(0, 50))); } catch(e) {}
+      }
       execCommand(cmd);
       input.value = '';
     } else if (e.key === 'ArrowUp') {
@@ -1264,8 +1428,22 @@ const cmdActions = [
   { name: 'Toggle Focus Mode', action: () => toggleFocus(), shortcut: 'F11' },
   { name: 'About SoengOS', action: () => toggleAbout(), shortcut: '' },
   { name: 'Close All Windows', action: () => closeAllWindows(), shortcut: '' },
+  { name: 'Minimize All Windows', action: () => Object.keys(openWindows).forEach(id => minimizeWindow(id)), shortcut: '' },
   { name: 'Power Menu', action: () => openPower(), shortcut: '' },
 ];
+
+function fuzzyMatch(str, query) {
+  if (!query) return true;
+  const s = str.toLowerCase();
+  const q = query.toLowerCase();
+  let si = 0;
+  for (let qi = 0; qi < q.length; qi++) {
+    while (si < s.length && s[si] !== q[qi]) si++;
+    if (si >= s.length) return false;
+    si++;
+  }
+  return true;
+}
 
 function openCmdPalette() {
   const pal = document.getElementById('cmd-palette');
@@ -1282,8 +1460,7 @@ function closeCmdPalette() {
 
 function renderCmdResults(query) {
   const container = document.getElementById('cmd-results');
-  const q = query.toLowerCase();
-  const filtered = cmdActions.filter(a => a.name.toLowerCase().includes(q));
+  const filtered = cmdActions.filter(a => fuzzyMatch(a.name, query));
 
   container.innerHTML = filtered.map((a, i) => `
     <div class="result-item${i === 0 ? ' active' : ''}" data-idx="${i}">
@@ -1333,6 +1510,8 @@ document.getElementById('cmd-input').addEventListener('keydown', (e) => {
 // ── Focus mode ──
 function toggleFocus() {
   document.body.classList.toggle('focus-mode');
+  const on = document.body.classList.contains('focus-mode');
+  showToast(on ? 'Focus mode on — F11 to exit' : 'Focus mode off');
 }
 
 // ── About modal ──
@@ -1352,6 +1531,58 @@ function closePower() {
 function closeAllWindows() {
   Object.keys(openWindows).forEach(id => closeWindow(id));
 }
+
+// ── Toast notifications ──
+function showToast(msg, duration = 2500) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 250);
+  }, duration);
+}
+
+// ── Context menu ──
+const ctxMenu = document.getElementById('ctx-menu');
+
+function openCtxMenu(x, y) {
+  ctxMenu.classList.add('open');
+  const menuW = ctxMenu.offsetWidth || 160;
+  const menuH = ctxMenu.offsetHeight || 220;
+  ctxMenu.style.left = Math.min(x, window.innerWidth - menuW - 4) + 'px';
+  ctxMenu.style.top = Math.min(y, window.innerHeight - menuH - 4) + 'px';
+}
+
+function closeCtxMenu() {
+  ctxMenu.classList.remove('open');
+}
+
+document.getElementById('desktop').addEventListener('contextmenu', (e) => {
+  if (e.target.closest('.window')) return;
+  e.preventDefault();
+  openCtxMenu(e.clientX, e.clientY);
+});
+
+document.addEventListener('click', (e) => {
+  if (!ctxMenu.contains(e.target)) closeCtxMenu();
+});
+
+// ── Desktop icon single-click selection ──
+document.querySelectorAll('.desktop-icon').forEach(icon => {
+  icon.addEventListener('click', () => {
+    document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+    icon.classList.add('selected');
+  });
+});
+document.getElementById('desktop').addEventListener('click', (e) => {
+  if (!e.target.closest('.desktop-icon') && !e.target.closest('.window')) {
+    document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+  }
+});
 
 function doShutdown() {
   closePower();
