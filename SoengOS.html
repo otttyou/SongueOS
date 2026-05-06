@@ -26,6 +26,14 @@
     --sans: 'Space Grotesk', system-ui, sans-serif;
     --transition: 150ms linear;
     --topbar-h: 32px;
+    --gray-100: var(--ge);
+    --gray-200: var(--gc);
+    --gray-300: var(--ga);
+    --gray-400: var(--g7);
+    --gray-500: var(--g5);
+    --gray-600: var(--g3);
+    --gray-700: var(--g2);
+    --gray-800: var(--g1);
   }
 
   html, body {
@@ -137,6 +145,48 @@
   #topbar .right .menu-btn:hover {
     background: var(--g3); color: var(--white);
   }
+
+
+  /* ── Unified platform chrome ── */
+  body[data-desktop-mode="hybrid"] #desktop-dock,
+  body[data-desktop-mode="mac"] #desktop-dock { display: flex; left: 50%; transform: translateX(-50%); bottom: 14px; }
+  body[data-desktop-mode="hybrid"][data-dock-position="left"] #desktop-dock,
+  body[data-desktop-mode="mac"][data-dock-position="left"] #desktop-dock { left: 14px; bottom: 50%; transform: translateY(50%); flex-direction: column; }
+  body[data-desktop-mode="mac"] #taskbar { display: none; }
+  body[data-desktop-mode="mac"] #desktop { bottom: 0; }
+  body[data-desktop-mode="linux"] #topbar,
+  body[data-desktop-mode="linux"] #desktop-dock { display: none; }
+  body[data-desktop-mode="linux"] #desktop { top: 0; }
+  body[data-taskbar-visible="false"] #taskbar { display: none; }
+  body[data-taskbar-visible="false"] #desktop { bottom: 0; }
+  body[data-window-controls="mac"] .window-titlebar { justify-content: flex-start; gap: 10px; }
+  body[data-window-controls="mac"] .window-titlebar .controls { order: -1; }
+  body[data-window-controls="mac"] .window-titlebar .controls button { border-radius: 50%; }
+  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(1) { background: #aaaaaa; }
+  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(2) { background: #777777; }
+  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(3) { background: #555555; }
+  body[data-window-controls="mac"] .window-titlebar .controls button svg { display: none; }
+  body[data-window-controls="linux"] .window-titlebar .controls { margin-left: auto; order: 2; }
+  body[data-window-controls="linux"] .window-titlebar .controls button { border-radius: 0; }
+  #desktop-dock {
+    position: fixed;
+    z-index: 11000;
+    display: flex;
+    gap: 6px;
+    padding: 7px;
+    background: rgba(0,0,0,0.86);
+    border: 1px solid var(--g3);
+  }
+  .dock-icon {
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid transparent;
+    color: var(--ga);
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition), color var(--transition);
+  }
+  .dock-icon:hover { border-color: var(--g5); background: var(--g2); color: var(--white); }
+  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1; fill: none; }
 
   /* ── Desktop ── */
   #desktop {
@@ -262,6 +312,56 @@
     border-right: 1.5px solid var(--g5);
     border-bottom: 1.5px solid var(--g5);
   }
+
+
+  /* ── Workflow apps ── */
+  .kanban-column {
+    min-width: 200px;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+  }
+  .kanban-card {
+    background: var(--g1);
+    border: 1px solid var(--g3);
+    padding: 8px;
+    margin-bottom: 8px;
+    cursor: grab;
+  }
+  .kanban-card:active { cursor: grabbing; }
+  .workflow-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--g7);
+    margin-right: 16px;
+  }
+  .tab {
+    padding: 4px 12px;
+    border-right: 1px solid var(--g3);
+    background: var(--g2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .tab.active { background: var(--g1); color: var(--white); }
+  .file-item {
+    border: 1px solid transparent;
+    padding: 8px;
+    cursor: pointer;
+  }
+  .file-item:hover { border-color: var(--g5); }
+  .file-item.selected { background: var(--g2); border-color: var(--white); }
+  .settings-select {
+    min-width: 150px;
+    background: var(--g2);
+    color: var(--gc);
+    border: 1px solid var(--g3);
+    padding: 4px 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    outline: none;
+  }
+  .settings-select:focus { border-color: var(--g5); }
 
   /* ── File Manager ── */
   .fm-toolbar {
@@ -678,7 +778,7 @@
   .window.focused .window-titlebar .title { color: var(--gc); }
 </style>
 </head>
-<body>
+<body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
 
 <!-- Boot Screen -->
 <div id="boot-screen">
@@ -688,7 +788,7 @@
 
 <!-- Keyboard Hint -->
 <div id="keyboard-hint">
-  <kbd>Ctrl</kbd>+<kbd>K</kbd> Command Palette &nbsp;&middot;&nbsp;
+  <span id="shortcut-mod"><kbd>Ctrl</kbd></span>+<kbd>K</kbd> Command Palette &nbsp;&middot;&nbsp;
   <kbd>Esc</kbd> Close Window &nbsp;&middot;&nbsp;
   <kbd>F11</kbd> Focus Mode
 </div>
@@ -752,6 +852,26 @@
       <span>Browser</span>
     </div>
 
+    <!-- Workflow Hub -->
+    <div class="desktop-icon" ondblclick="openApp('workflow')">
+      <svg viewBox="0 0 32 32">
+        <rect x="5" y="5" width="8" height="8"/>
+        <rect x="19" y="5" width="8" height="8"/>
+        <rect x="5" y="19" width="8" height="8"/>
+        <rect x="19" y="19" width="8" height="8"/>
+      </svg>
+      <span>Workflow</span>
+    </div>
+
+    <!-- Automation Studio -->
+    <div class="desktop-icon" ondblclick="openApp('automation')">
+      <svg viewBox="0 0 32 32">
+        <path d="M16 3v6M16 23v6M5 16h6M21 16h6M7.5 7.5l4 4M20.5 20.5l4 4M7.5 24.5l4-4M20.5 11.5l4-4"/>
+        <circle cx="16" cy="16" r="4"/>
+      </svg>
+      <span>Automate</span>
+    </div>
+
     <!-- Power -->
     <div class="desktop-icon" ondblclick="openPower()">
       <svg viewBox="0 0 32 32">
@@ -765,6 +885,28 @@
 
   <!-- Windows render here -->
   <div id="windows-container"></div>
+</div>
+
+<!-- Unified Dock (Mac / Hybrid mode) -->
+<div id="desktop-dock" aria-label="Application Dock">
+  <div class="dock-icon" onclick="openApp('workflow')" title="Workflow Hub">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+  </div>
+  <div class="dock-icon" onclick="openApp('automation')" title="Automation Studio">
+    <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+  </div>
+  <div class="dock-icon" onclick="openApp('browser')" title="Browser">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18"/></svg>
+  </div>
+  <div class="dock-icon" onclick="openApp('terminal')" title="Terminal">
+    <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="14" y1="17" x2="20" y2="17"/></svg>
+  </div>
+  <div class="dock-icon" onclick="openApp('filemanager')" title="Files">
+    <svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/><path d="M3 7V5a2 2 0 012-2h4"/></svg>
+  </div>
+  <div class="dock-icon" onclick="openApp('settings')" title="Settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+  </div>
 </div>
 
 <!-- Command Palette -->
@@ -796,6 +938,8 @@
   <div class="ctx-item" onclick="openApp('filemanager');closeCtxMenu()">Files</div>
   <div class="ctx-item" onclick="openApp('terminal');closeCtxMenu()">Terminal</div>
   <div class="ctx-item" onclick="openApp('browser');closeCtxMenu()">Browser</div>
+  <div class="ctx-item" onclick="openApp('workflow');closeCtxMenu()">Workflow Hub</div>
+  <div class="ctx-item" onclick="openApp('automation');closeCtxMenu()">Automation Studio</div>
   <div class="ctx-item" onclick="openApp('settings');closeCtxMenu()">Settings</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" onclick="toggleFocus();closeCtxMenu()">Toggle Focus Mode</div>
@@ -809,6 +953,8 @@
 <!-- Taskbar -->
 <div id="taskbar">
   <div class="taskbar-spacer"></div>
+  <div class="workflow-status">Workflows: <span id="workflowCount">2</span></div>
+  <div class="workflow-status">Automations: <span id="automationCount">1</span></div>
   <div class="taskbar-credit">Engineering Edition &bull; v1.0</div>
 </div>
 
@@ -841,10 +987,79 @@ function updateClock() {
 }
 updateClock();
 setInterval(updateClock, 1000);
+applyDesktopMode('hybrid');
 
 // ── Window management ──
 let windowZ = 100;
 const openWindows = {};
+
+// ── Unified desktop platform model ──
+// desktopMode: 'hybrid' keeps Mac-style top bar/dock and Linux-style taskbar/menu together.
+let desktopMode = 'hybrid';
+let windowControls = 'linux';
+let dockPosition = 'center';
+let taskbarVisible = true;
+
+const desktopModeModels = {
+  hybrid: {
+    label: 'Hybrid',
+    chrome: 'Top system bar + Dock + bottom taskbar + desktop context menu',
+    shortcutMod: 'Ctrl/Cmd',
+    windowControls: 'linux',
+    dockPosition: 'center',
+    taskbarVisible: true,
+  },
+  mac: {
+    label: 'Mac',
+    chrome: 'Top system bar, centered/left Dock, left window control dots, Cmd hints',
+    shortcutMod: 'Cmd',
+    windowControls: 'mac',
+    dockPosition: 'center',
+    taskbarVisible: false,
+  },
+  linux: {
+    label: 'Linux',
+    chrome: 'Bottom taskbar, desktop right-click menu, right titlebar controls, Ctrl hints',
+    shortcutMod: 'Ctrl',
+    windowControls: 'linux',
+    dockPosition: 'center',
+    taskbarVisible: true,
+  },
+};
+
+function platformShortcutMod() {
+  return desktopMode === 'mac' ? 'Cmd' : (desktopMode === 'hybrid' ? 'Ctrl/Cmd' : 'Ctrl');
+}
+
+function applyDesktopMode(mode = desktopMode, overrides = {}) {
+  const model = desktopModeModels[mode] || desktopModeModels.hybrid;
+  desktopMode = mode;
+  windowControls = overrides.windowControls || (overrides.keepControls ? windowControls : model.windowControls);
+  dockPosition = overrides.dockPosition || (overrides.keepDock ? dockPosition : model.dockPosition);
+  taskbarVisible = typeof overrides.taskbarVisible === 'boolean'
+    ? overrides.taskbarVisible
+    : (overrides.keepTaskbar ? taskbarVisible : model.taskbarVisible);
+
+  document.body.dataset.desktopMode = desktopMode;
+  document.body.dataset.windowControls = windowControls;
+  document.body.dataset.dockPosition = dockPosition;
+  document.body.dataset.taskbarVisible = String(taskbarVisible);
+
+  const shortcutMod = document.getElementById('shortcut-mod');
+  if (shortcutMod) {
+    shortcutMod.innerHTML = platformShortcutMod().split('/').map(key => `<kbd>${key}</kbd>`).join('/');
+  }
+
+  document.querySelectorAll('[data-platform-value]').forEach(el => {
+    const key = el.dataset.platformValue;
+    if (key === 'desktopMode') el.textContent = model.label;
+    if (key === 'windowControls') el.textContent = windowControls === 'mac' ? 'Mac left dots' : 'Linux right buttons';
+    if (key === 'dockPosition') el.textContent = dockPosition === 'left' ? 'Left Dock' : 'Centered Dock';
+    if (key === 'taskbarVisible') el.textContent = taskbarVisible ? 'Visible' : 'Hidden';
+    if (key === 'shortcutMod') el.textContent = platformShortcutMod();
+  });
+}
+
 
 function createWindow(id, title, width, height, contentHTML) {
   if (openWindows[id]) {
@@ -1028,6 +1243,9 @@ function openApp(name) {
     case 'terminal': openTerminal(); break;
     case 'settings': openSettings(); break;
     case 'browser': openBrowser(); break;
+    case 'workflow': openWorkflowHub(); break;
+    case 'automation': openAutomationStudio(); break;
+    case 'files': openFileManager(); break;
   }
 }
 
@@ -1301,10 +1519,236 @@ function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── Workflow Hub / Automation Studio (migrated from Workflow Edition) ──
+function openWorkflowHub() {
+  const html = `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--gray-600);">
+        <button onclick="newWorkflow()" style="background:var(--white);color:var(--black);border:none;padding:6px 16px;font-size:12px;">New Workflow</button>
+        <button onclick="runAllWorkflows()" style="background:transparent;color:var(--white);border:1px solid var(--gray-500);padding:6px 16px;font-size:12px;">Run All</button>
+        <button onclick="pauseAllWorkflows()" style="background:transparent;color:var(--white);border:1px solid var(--gray-500);padding:6px 16px;font-size:12px;">Pause All</button>
+      </div>
+      <div style="flex:1;overflow-x:auto;padding:12px;">
+        <div style="display:flex;gap:12px;min-height:400px;">
+          <div class="kanban-column" style="flex:1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="todo">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-600);font-size:12px;color:var(--gray-400);">TO DO</div>
+            <div class="kanban-list" style="padding:8px;">
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="1"><div style="font-size:12px;margin-bottom:4px;">Data Export</div><div style="font-size:10px;color:var(--gray-500);">Priority: High</div></div>
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="2"><div style="font-size:12px;margin-bottom:4px;">Report Generation</div><div style="font-size:10px;color:var(--gray-500);">Priority: Medium</div></div>
+            </div>
+          </div>
+          <div class="kanban-column" style="flex:1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="progress">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-600);font-size:12px;color:var(--gray-400);">IN PROGRESS</div>
+            <div class="kanban-list" style="padding:8px;">
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="3"><div style="font-size:12px;margin-bottom:4px;">API Integration</div><div style="font-size:10px;color:var(--gray-500);">Priority: High</div></div>
+            </div>
+          </div>
+          <div class="kanban-column" style="flex:1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="done">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-600);font-size:12px;color:var(--gray-400);">DONE</div>
+            <div class="kanban-list" style="padding:8px;">
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="4"><div style="font-size:12px;margin-bottom:4px;">Backup Complete</div><div style="font-size:10px;color:var(--gray-500);">Priority: Low</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--gray-600);padding:12px;">
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">ACTIVE WORKFLOWS</div>
+        <table style="width:100%;font-size:11px;">
+          <tr><td style="padding:4px;color:var(--gray-400);">Name</td><td style="padding:4px;color:var(--gray-400);">Status</td><td style="padding:4px;color:var(--gray-400);">Last Run</td></tr>
+          <tr><td style="padding:4px;">Daily Sync</td><td style="padding:4px;color:var(--gray-400);">Running</td><td style="padding:4px;color:var(--gray-400);">2 min ago</td></tr>
+          <tr><td style="padding:4px;">Email Digest</td><td style="padding:4px;color:var(--gray-400);">Paused</td><td style="padding:4px;color:var(--gray-400);">1 hour ago</td></tr>
+        </table>
+      </div>
+    </div>
+  `;
+  createWindow('workflow', 'Workflow Hub', 900, 600, html);
+}
+
+function openAutomationStudio() {
+  const html = `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;flex:1;overflow:hidden;">
+        <div style="flex:1;padding:16px;border-right:1px solid var(--gray-600);">
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px;">NATURAL LANGUAGE PROMPT</div>
+          <textarea id="automationPrompt" placeholder="Describe the automation you want..." style="width:100%;height:150px;background:var(--gray-700);border:1px solid var(--gray-600);color:var(--white);padding:12px;font-size:13px;resize:none;outline:none;"></textarea>
+          <button onclick="generateAutomation()" style="margin-top:12px;background:var(--white);color:var(--black);border:none;padding:8px 24px;font-size:12px;width:100%;">Generate & Run</button>
+          <div style="margin-top:16px;">
+            <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">QUICK TEMPLATES</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <button onclick="setPrompt('Send daily report to email')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">Daily Report</button>
+              <button onclick="setPrompt('Monitor website for changes')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">Website Monitor</button>
+              <button onclick="setPrompt('Auto organize downloaded files')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">File Organizer</button>
+              <button onclick="setPrompt('Backup database every hour')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">DB Backup</button>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;padding:16px;overflow-y:auto;">
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px;">WORKFLOW PREVIEW</div>
+          <div id="workflowPreview" style="border:1px solid var(--gray-600);padding:12px;min-height:200px;">
+            <div style="font-size:11px;color:var(--gray-500);text-align:center;padding:40px 0;">Enter a prompt to generate workflow steps</div>
+          </div>
+        </div>
+      </div>
+      <div style="height:200px;border-top:1px solid var(--gray-600);">
+        <div style="font-size:12px;color:var(--gray-400);padding:8px 12px;border-bottom:1px solid var(--gray-700);">EXECUTION LOG</div>
+        <div id="automationLog" style="height:calc(100% - 32px);overflow-y:auto;padding:8px 12px;font-size:11px;">
+          <div style="color:var(--gray-500);">[System] Ready for automation commands...</div>
+        </div>
+      </div>
+    </div>
+  `;
+  createWindow('automation', 'Automation Studio', 900, 650, html);
+}
+
+function setPrompt(text) {
+  const textarea = document.querySelector('#win-automation #automationPrompt');
+  if (textarea) textarea.value = text;
+}
+
+function generateAutomation() {
+  const textarea = document.querySelector('#win-automation #automationPrompt');
+  const preview = document.querySelector('#win-automation #workflowPreview');
+  const log = document.querySelector('#win-automation #automationLog');
+  if (!textarea || !preview || !log) return;
+  const prompt = textarea.value.trim();
+  if (!prompt) return;
+  const timestamp = new Date().toLocaleTimeString();
+  let steps = [];
+  const lower = prompt.toLowerCase();
+  if (lower.includes('email') || lower.includes('report')) {
+    steps = ['Collect data from sources', 'Format report template', 'Generate PDF document', 'Send via email SMTP', 'Log completion status'];
+  } else if (lower.includes('monitor') || lower.includes('website')) {
+    steps = ['Fetch target URL content', 'Compare with baseline', 'Detect changes', 'Trigger notification', 'Update baseline'];
+  } else if (lower.includes('organize') || lower.includes('file')) {
+    steps = ['Scan download directory', 'Classify file types', 'Move to appropriate folders', 'Update file index', 'Generate summary report'];
+  } else if (lower.includes('backup') || lower.includes('database')) {
+    steps = ['Connect to database', 'Export database dump', 'Compress backup file', 'Upload to storage', 'Verify backup integrity'];
+  } else {
+    steps = ['Parse automation request', 'Identify required actions', 'Configure parameters', 'Execute workflow', 'Report results'];
+  }
+  preview.innerHTML = steps.map((action, i) => `
+    <div class="automation-step" style="display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--gray-700);">
+      <div style="width:24px;height:24px;border:1px solid var(--gray-500);display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:12px;">${i + 1}</div>
+      <div style="flex:1;font-size:12px;">${action}</div>
+      <div class="automation-status" style="font-size:10px;color:var(--gray-500);">PENDING</div>
+    </div>`).join('');
+  const logEntry = document.createElement('div');
+  logEntry.textContent = `[${timestamp}] Generated automation: ${prompt.substring(0, 50)}...`;
+  log.appendChild(logEntry);
+  setTimeout(() => executeWorkflow(steps, log), 1000);
+}
+
+function executeWorkflow(steps, log) {
+  let delay = 1500;
+  steps.forEach((action, index) => {
+    setTimeout(() => {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.textContent = `[${timestamp}] Step ${index + 1}: ${action} [COMPLETED]`;
+      log.appendChild(logEntry);
+      log.scrollTop = log.scrollHeight;
+      const statusEl = document.querySelectorAll('#win-automation .automation-status')[index];
+      if (statusEl) {
+        statusEl.textContent = 'COMPLETED';
+        statusEl.style.color = 'var(--white)';
+      }
+    }, delay);
+    delay += 1000;
+  });
+  setTimeout(() => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.textContent = `[${timestamp}] ✓ Automation completed successfully`;
+    logEntry.style.color = 'var(--white)';
+    log.appendChild(logEntry);
+    log.scrollTop = log.scrollHeight;
+    const count = document.getElementById('automationCount');
+    if (count) count.textContent = String(Number(count.textContent || 0) + 1);
+  }, delay);
+}
+
+function allowDrop(e) { e.preventDefault(); }
+function drag(e) { e.dataTransfer.setData('text', e.target.dataset.id); }
+function drop(e) {
+  e.preventDefault();
+  const data = e.dataTransfer.getData('text');
+  const card = document.querySelector(`[data-id="${data}"]`);
+  const column = e.target.closest('.kanban-column');
+  if (card && column) {
+    const list = column.querySelector('.kanban-list');
+    if (list) list.appendChild(card);
+  }
+}
+function newWorkflow() { showToast('Create New Workflow dialog ready'); }
+function runAllWorkflows() {
+  showToast('Running all active workflows...');
+  const count = document.getElementById('workflowCount');
+  if (count) count.textContent = '5';
+}
+function pauseAllWorkflows() {
+  showToast('Pausing all workflows...');
+  const count = document.getElementById('workflowCount');
+  if (count) count.textContent = '0';
+}
+function addLogEntry(message) { console.log('[Workflow]', message); }
+
 // ── Settings ──
+function setDesktopMode(value) {
+  applyDesktopMode(value);
+  showToast(`${desktopModeModels[value].label} desktop mode enabled`);
+}
+function setWindowControls(value) {
+  applyDesktopMode(desktopMode, { windowControls: value, keepDock: true, keepTaskbar: true });
+  showToast(value === 'mac' ? 'Mac left window dots enabled' : 'Linux right window buttons enabled');
+}
+function setDockPosition(value) {
+  applyDesktopMode(desktopMode, { dockPosition: value, keepControls: true, keepTaskbar: true });
+  showToast(value === 'left' ? 'Dock moved left' : 'Dock centered');
+}
+function setTaskbarVisibility(value) {
+  applyDesktopMode(desktopMode, { taskbarVisible: value === 'visible', keepControls: true, keepDock: true });
+  showToast(value === 'visible' ? 'Taskbar visible' : 'Taskbar hidden');
+}
+
 function openSettings() {
   const html = `
     <div class="settings-body">
+      <div class="settings-section">
+        <h3>Platform Model</h3>
+        <div class="settings-row">
+          <div><label>Desktop Mode</label><div class="sublabel">Hybrid combines Mac chrome with Linux taskbar/menu; current: <span data-platform-value="desktopMode"></span></div></div>
+          <select class="settings-select" onchange="setDesktopMode(this.value)">
+            <option value="hybrid" ${desktopMode === 'hybrid' ? 'selected' : ''}>Hybrid</option>
+            <option value="mac" ${desktopMode === 'mac' ? 'selected' : ''}>Mac</option>
+            <option value="linux" ${desktopMode === 'linux' ? 'selected' : ''}>Linux</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><label>Window Controls</label><div class="sublabel">Mac = left control dots; Linux = right titlebar buttons; current: <span data-platform-value="windowControls"></span></div></div>
+          <select class="settings-select" onchange="setWindowControls(this.value)">
+            <option value="linux" ${windowControls === 'linux' ? 'selected' : ''}>Linux right buttons</option>
+            <option value="mac" ${windowControls === 'mac' ? 'selected' : ''}>Mac left dots</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><label>Dock Position</label><div class="sublabel">Mac/hybrid Dock can be centered or pinned left; current: <span data-platform-value="dockPosition"></span></div></div>
+          <select class="settings-select" onchange="setDockPosition(this.value)">
+            <option value="center" ${dockPosition === 'center' ? 'selected' : ''}>Centered</option>
+            <option value="left" ${dockPosition === 'left' ? 'selected' : ''}>Left</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><label>Taskbar Visibility</label><div class="sublabel">Linux taskbar and workflow counters; current: <span data-platform-value="taskbarVisible"></span></div></div>
+          <select class="settings-select" onchange="setTaskbarVisibility(this.value)">
+            <option value="visible" ${taskbarVisible ? 'selected' : ''}>Visible</option>
+            <option value="hidden" ${!taskbarVisible ? 'selected' : ''}>Hidden</option>
+          </select>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+          <label>Shortcut Hint Model</label>
+          <div class="sublabel">Mac mode presents <span data-platform-value="shortcutMod"></span> shortcuts; Linux mode presents Ctrl shortcuts.</div>
+        </div>
+      </div>
       <div class="settings-section">
         <h3>Appearance</h3>
         <div class="settings-row">
@@ -1365,7 +1809,8 @@ function openSettings() {
       </div>
     </div>
   `;
-  createWindow('settings', 'Settings', 420, 480, html);
+  createWindow('settings', 'Settings', 500, 620, html);
+  applyDesktopMode(desktopMode, { windowControls, dockPosition, taskbarVisible });
 }
 
 // ── Browser ──
@@ -1425,6 +1870,8 @@ const cmdActions = [
   { name: 'Open Terminal', action: () => openApp('terminal'), shortcut: '' },
   { name: 'Open Settings', action: () => openApp('settings'), shortcut: '' },
   { name: 'Open Browser', action: () => openApp('browser'), shortcut: '' },
+  { name: 'Open Workflow Hub', action: () => openApp('workflow'), shortcut: '' },
+  { name: 'Open Automation Studio', action: () => openApp('automation'), shortcut: '' },
   { name: 'Toggle Focus Mode', action: () => toggleFocus(), shortcut: 'F11' },
   { name: 'About SoengOS', action: () => toggleAbout(), shortcut: '' },
   { name: 'Close All Windows', action: () => closeAllWindows(), shortcut: '' },
