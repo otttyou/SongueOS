@@ -183,10 +183,54 @@
     border: 1px solid transparent;
     color: var(--ga);
     cursor: pointer;
+    position: relative;
     transition: border-color var(--transition), background var(--transition), color var(--transition);
   }
-  .dock-icon:hover { border-color: var(--g5); background: var(--g2); color: var(--white); }
+  .dock-icon:hover, .dock-icon.active { border-color: var(--g5); background: var(--g2); color: var(--white); }
   .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1; fill: none; }
+  .dock-icon::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border: 1px solid var(--g6);
+    border-radius: 50%;
+    opacity: 0;
+    transform: translateX(-50%);
+  }
+  .dock-icon.active::after { background: var(--white); border-color: var(--white); opacity: 1; }
+  .dock-icon.minimized::after { background: transparent; border-color: var(--ga); opacity: 1; }
+  .dock-icon.multiple::before {
+    content: '';
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--ga);
+    background: var(--black);
+  }
+  #dock-menu {
+    position: fixed;
+    z-index: 20000;
+    min-width: 144px;
+    display: none;
+    background: var(--black);
+    border: 1px solid var(--g5);
+    box-shadow: var(--shadow-hard);
+  }
+  #dock-menu.open { display: block; }
+  .dock-menu-item {
+    padding: 9px 12px;
+    color: var(--ga);
+    font-size: 11px;
+    border-bottom: 1px solid var(--g3);
+    cursor: pointer;
+  }
+  .dock-menu-item:last-child { border-bottom: 0; }
+  .dock-menu-item:hover { background: var(--g2); color: var(--white); }
 
   /* ── Desktop ── */
   #desktop {
@@ -889,24 +933,30 @@
 
 <!-- Unified Dock (Mac / Hybrid mode) -->
 <div id="desktop-dock" aria-label="Application Dock">
-  <div class="dock-icon" onclick="openApp('workflow')" title="Workflow Hub">
+  <div class="dock-icon" data-app="workflow" title="Workflow Hub">
     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
   </div>
-  <div class="dock-icon" onclick="openApp('automation')" title="Automation Studio">
+  <div class="dock-icon" data-app="automation" title="Automation Studio">
     <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
   </div>
-  <div class="dock-icon" onclick="openApp('browser')" title="Browser">
+  <div class="dock-icon" data-app="browser" title="Browser">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18"/></svg>
   </div>
-  <div class="dock-icon" onclick="openApp('terminal')" title="Terminal">
+  <div class="dock-icon" data-app="terminal" title="Terminal">
     <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="14" y1="17" x2="20" y2="17"/></svg>
   </div>
-  <div class="dock-icon" onclick="openApp('filemanager')" title="Files">
+  <div class="dock-icon" data-app="filemanager" title="Files">
     <svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/><path d="M3 7V5a2 2 0 012-2h4"/></svg>
   </div>
-  <div class="dock-icon" onclick="openApp('settings')" title="Settings">
+  <div class="dock-icon" data-app="settings" title="Settings">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
   </div>
+</div>
+
+<!-- Dock Context Menu -->
+<div id="dock-menu" role="menu" aria-label="Dock app actions">
+  <div class="dock-menu-item" data-action="activate" role="menuitem">Open / Restore</div>
+  <div class="dock-menu-item" data-action="new-window" role="menuitem">New Window</div>
 </div>
 
 <!-- Command Palette -->
@@ -987,7 +1037,49 @@ function updateClock() {
 }
 updateClock();
 setInterval(updateClock, 1000);
-applyDesktopMode('hybrid');
+
+function showDockMenu(event, appName) {
+  const menu = document.getElementById('dock-menu');
+  if (!menu) return;
+  menu.dataset.app = appName;
+  menu.style.left = `${event.clientX}px`;
+  menu.style.top = `${event.clientY}px`;
+  menu.classList.add('open');
+}
+
+function hideDockMenu() {
+  const menu = document.getElementById('dock-menu');
+  if (menu) menu.classList.remove('open');
+}
+
+document.querySelectorAll('.dock-icon[data-app]').forEach(icon => {
+  icon.addEventListener('click', () => {
+    hideDockMenu();
+    activateApp(icon.dataset.app);
+  });
+  icon.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    showDockMenu(event, icon.dataset.app);
+  });
+});
+
+document.querySelectorAll('#dock-menu .dock-menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const menu = document.getElementById('dock-menu');
+    const appName = menu?.dataset.app;
+    if (!appName) return;
+    if (item.dataset.action === 'new-window') {
+      openApp(appName, { forceNew: true });
+    } else {
+      activateApp(appName);
+    }
+    hideDockMenu();
+  });
+});
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('#dock-menu')) hideDockMenu();
+});
 
 // ── Window management ──
 let windowZ = 100;
@@ -1060,16 +1152,80 @@ function applyDesktopMode(mode = desktopMode, overrides = {}) {
   });
 }
 
+applyDesktopMode('hybrid');
 
-function createWindow(id, title, width, height, contentHTML) {
-  if (openWindows[id]) {
-    const existing = document.getElementById('win-' + id);
-    if (existing) {
-      existing.classList.remove('minimized');
-      bringToFront(existing);
-      return;
+function getAppWindows(appName) {
+  return Object.entries(openWindows)
+    .filter(([, meta]) => meta.appName === appName)
+    .map(([id, meta]) => ({ id, ...meta }));
+}
+
+function getMostRecentWindow(appWindows, includeMinimized = false) {
+  return appWindows
+    .filter(win => includeMinimized || !win.minimized)
+    .sort((a, b) => {
+      const aEl = document.getElementById('win-' + a.id);
+      const bEl = document.getElementById('win-' + b.id);
+      return (Number(bEl?.style.zIndex) || 0) - (Number(aEl?.style.zIndex) || 0);
+    })[0];
+}
+
+function makeWindowId(appName) {
+  if (!openWindows[appName]) return appName;
+  let index = 2;
+  while (openWindows[`${appName}-${index}`]) index++;
+  return `${appName}-${index}`;
+}
+
+function restoreWindow(id) {
+  const win = document.getElementById('win-' + id);
+  const meta = openWindows[id];
+  if (!win || !meta) return false;
+  win.classList.remove('minimized');
+  meta.minimized = false;
+  bringToFront(win);
+  return true;
+}
+
+function activateApp(appName, options = {}) {
+  if (!options.forceNew) {
+    const appWindows = getAppWindows(appName);
+    const minimizedWindow = getMostRecentWindow(appWindows.filter(win => win.minimized), true);
+    if (minimizedWindow && restoreWindow(minimizedWindow.id)) return;
+
+    const visibleWindow = getMostRecentWindow(appWindows);
+    if (visibleWindow) {
+      const win = document.getElementById('win-' + visibleWindow.id);
+      if (win) {
+        bringToFront(win);
+        return;
+      }
     }
   }
+
+  openApp(appName, { forceNew: true });
+}
+
+function updateDockIndicators() {
+  document.querySelectorAll('.dock-icon[data-app]').forEach(icon => {
+    const appWindows = getAppWindows(icon.dataset.app);
+    icon.classList.toggle('active', appWindows.some(win => win.active && !win.minimized));
+    icon.classList.toggle('minimized', appWindows.some(win => win.minimized));
+    icon.classList.toggle('multiple', appWindows.length > 1);
+  });
+}
+
+function createWindow(id, title, width, height, contentHTML, options = {}) {
+  const appName = options.appName || id;
+  if (!options.forceNew && openWindows[id]) {
+    const existing = document.getElementById('win-' + id);
+    if (existing) {
+      restoreWindow(id);
+      return id;
+    }
+  }
+
+  if (options.forceNew) id = makeWindowId(appName);
 
   const container = document.getElementById('windows-container');
   const desktop = document.getElementById('desktop');
@@ -1104,7 +1260,7 @@ function createWindow(id, title, width, height, contentHTML) {
   `;
 
   container.appendChild(win);
-  openWindows[id] = true;
+  openWindows[id] = { appName, title, minimized: false, active: false };
   addToTaskbar(id, title);
   bringToFront(win);
 
@@ -1117,15 +1273,23 @@ function createWindow(id, title, width, height, contentHTML) {
   initResize(win);
 
   // Post-init hooks
-  if (id === 'terminal') initTerminal();
+  if (appName === 'terminal') initTerminal();
+  updateDockIndicators();
+  return id;
 }
 
 function bringToFront(win) {
   win.style.zIndex = ++windowZ;
   document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+  Object.values(openWindows).forEach(meta => { meta.active = false; });
   win.classList.add('focused');
   const id = win.id.replace('win-', '');
+  if (openWindows[id]) {
+    openWindows[id].minimized = false;
+    openWindows[id].active = true;
+  }
   setTaskbarActive(id);
+  updateDockIndicators();
 }
 
 // ── Taskbar helpers ──
@@ -1140,8 +1304,7 @@ function addToTaskbar(id, title) {
     const win = document.getElementById('win-' + id);
     if (!win) return;
     if (win.classList.contains('minimized')) {
-      win.classList.remove('minimized');
-      bringToFront(win);
+      restoreWindow(id);
     } else if (win.classList.contains('focused')) {
       minimizeWindow(id);
     } else {
@@ -1166,6 +1329,7 @@ function closeWindow(id) {
   const win = document.getElementById('win-' + id);
   if (win) { win.remove(); delete openWindows[id]; }
   removeFromTaskbar(id);
+  updateDockIndicators();
 }
 
 function minimizeWindow(id) {
@@ -1174,8 +1338,13 @@ function minimizeWindow(id) {
     win.classList.add('minimized');
     win.classList.remove('focused');
   }
+  if (openWindows[id]) {
+    openWindows[id].minimized = true;
+    openWindows[id].active = false;
+  }
   const btn = document.getElementById('tb-' + id);
   if (btn) btn.classList.remove('active');
+  updateDockIndicators();
 }
 
 function maximizeWindow(id) {
@@ -1237,20 +1406,20 @@ function initResize(win) {
 }
 
 // ── App launchers ──
-function openApp(name) {
+function openApp(name, options = {}) {
   switch(name) {
-    case 'filemanager': openFileManager(); break;
-    case 'terminal': openTerminal(); break;
-    case 'settings': openSettings(); break;
-    case 'browser': openBrowser(); break;
-    case 'workflow': openWorkflowHub(); break;
-    case 'automation': openAutomationStudio(); break;
-    case 'files': openFileManager(); break;
+    case 'filemanager': openFileManager(options); break;
+    case 'terminal': openTerminal(options); break;
+    case 'settings': openSettings(options); break;
+    case 'browser': openBrowser(options); break;
+    case 'workflow': openWorkflowHub(options); break;
+    case 'automation': openAutomationStudio(options); break;
+    case 'files': openFileManager(options); break;
   }
 }
 
 // ── File Manager ──
-function openFileManager() {
+function openFileManager(options = {}) {
   const files = [
     { name: 'Documents', type: 'folder' },
     { name: 'Pictures', type: 'folder' },
@@ -1282,11 +1451,11 @@ function openFileManager() {
     <div class="fm-grid">${items}</div>
   `;
 
-  createWindow('filemanager', 'File Manager', 560, 400, html);
+  createWindow('filemanager', 'File Manager', 560, 400, html, { ...options, appName: 'filemanager' });
 }
 
 // ── Terminal ──
-function openTerminal() {
+function openTerminal(options = {}) {
   const html = `
     <div class="terminal-body" id="terminal-body">
       <div class="line"><span class="prompt-color">SoengOS v1.0 — Engineering Edition</span></div>
@@ -1298,7 +1467,7 @@ function openTerminal() {
       </div>
     </div>
   `;
-  createWindow('terminal', 'Terminal', 600, 360, html);
+  createWindow('terminal', 'Terminal', 600, 360, html, { ...options, appName: 'terminal' });
 }
 
 // Terminal filesystem & commands
@@ -1520,7 +1689,7 @@ function escapeHtml(s) {
 }
 
 // ── Workflow Hub / Automation Studio (migrated from Workflow Edition) ──
-function openWorkflowHub() {
+function openWorkflowHub(options = {}) {
   const html = `
     <div style="display:flex;flex-direction:column;height:100%;">
       <div style="display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--gray-600);">
@@ -1561,10 +1730,10 @@ function openWorkflowHub() {
       </div>
     </div>
   `;
-  createWindow('workflow', 'Workflow Hub', 900, 600, html);
+  createWindow('workflow', 'Workflow Hub', 900, 600, html, { ...options, appName: 'workflow' });
 }
 
-function openAutomationStudio() {
+function openAutomationStudio(options = {}) {
   const html = `
     <div style="display:flex;flex-direction:column;height:100%;">
       <div style="display:flex;flex:1;overflow:hidden;">
@@ -1597,7 +1766,7 @@ function openAutomationStudio() {
       </div>
     </div>
   `;
-  createWindow('automation', 'Automation Studio', 900, 650, html);
+  createWindow('automation', 'Automation Studio', 900, 650, html, { ...options, appName: 'automation' });
 }
 
 function setPrompt(text) {
@@ -1710,7 +1879,7 @@ function setTaskbarVisibility(value) {
   showToast(value === 'visible' ? 'Taskbar visible' : 'Taskbar hidden');
 }
 
-function openSettings() {
+function openSettings(options = {}) {
   const html = `
     <div class="settings-body">
       <div class="settings-section">
@@ -1809,12 +1978,12 @@ function openSettings() {
       </div>
     </div>
   `;
-  createWindow('settings', 'Settings', 500, 620, html);
+  createWindow('settings', 'Settings', 500, 620, html, { ...options, appName: 'settings' });
   applyDesktopMode(desktopMode, { windowControls, dockPosition, taskbarVisible });
 }
 
 // ── Browser ──
-function openBrowser() {
+function openBrowser(options = {}) {
   const html = `
     <div class="browser-toolbar">
       <button class="nav-btn">&#9664;</button>
@@ -1836,7 +2005,7 @@ function openBrowser() {
       </div>
     </div>
   `;
-  createWindow('browser', 'Browser', 640, 440, html);
+  createWindow('browser', 'Browser', 640, 440, html, { ...options, appName: 'browser' });
 
   // URL bar navigation
   setTimeout(() => {
@@ -1866,12 +2035,12 @@ function openBrowser() {
 
 // ── Command Palette ──
 const cmdActions = [
-  { name: 'Open File Manager', action: () => openApp('filemanager'), shortcut: '' },
-  { name: 'Open Terminal', action: () => openApp('terminal'), shortcut: '' },
-  { name: 'Open Settings', action: () => openApp('settings'), shortcut: '' },
-  { name: 'Open Browser', action: () => openApp('browser'), shortcut: '' },
-  { name: 'Open Workflow Hub', action: () => openApp('workflow'), shortcut: '' },
-  { name: 'Open Automation Studio', action: () => openApp('automation'), shortcut: '' },
+  { name: 'Open File Manager', action: () => activateApp('filemanager'), shortcut: '' },
+  { name: 'Open Terminal', action: () => activateApp('terminal'), shortcut: '' },
+  { name: 'Open Settings', action: () => activateApp('settings'), shortcut: '' },
+  { name: 'Open Browser', action: () => activateApp('browser'), shortcut: '' },
+  { name: 'Open Workflow Hub', action: () => activateApp('workflow'), shortcut: '' },
+  { name: 'Open Automation Studio', action: () => activateApp('automation'), shortcut: '' },
   { name: 'Toggle Focus Mode', action: () => toggleFocus(), shortcut: 'F11' },
   { name: 'About SoengOS', action: () => toggleAbout(), shortcut: '' },
   { name: 'Close All Windows', action: () => closeAllWindows(), shortcut: '' },
