@@ -789,7 +789,13 @@
                 // Add command line
                 const cmdLine = document.createElement('div');
                 cmdLine.className = 'terminal-line';
-                cmdLine.innerHTML = `<span style="color: var(--gray-400);">user@soengos</span>:<span style="color: var(--gray-500);">~</span>$ ${input}`;
+                const userSpan = document.createElement('span');
+                userSpan.style.color = 'var(--gray-400)';
+                userSpan.textContent = 'user@soengos';
+                const pathSpan = document.createElement('span');
+                pathSpan.style.color = 'var(--gray-500)';
+                pathSpan.textContent = '~';
+                cmdLine.append(userSpan, ':', pathSpan, '$ ', document.createTextNode(input));
                 output.insertBefore(cmdLine, output.lastElementChild);
                 
                 // Process command
@@ -888,13 +894,46 @@
             tabsContainer.insertBefore(newTab, tabsContainer.lastElementChild);
         }
 
+        function getAllowedNavigationUrl(url) {
+            const trimmed = String(url || '').trim();
+            if (trimmed === 'about:blank') return 'about:blank';
+
+            try {
+                const parsed = new URL(trimmed, window.location.href);
+                if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+                    return parsed.href;
+                }
+            } catch (e) {
+                return null;
+            }
+
+            return null;
+        }
+
         function navigateTo(url) {
             const content = document.querySelector('.window:not([style*="display: none"]) #browserContent');
             if (content) {
-                if (url === 'about:blank') {
+                const safeUrl = getAllowedNavigationUrl(url);
+                if (safeUrl === 'about:blank') {
                     content.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;"><h1 style="font-size: 24px;">Blank Page</h1></div>';
+                } else if (safeUrl) {
+                    content.textContent = '';
+                    const iframe = document.createElement('iframe');
+                    iframe.src = safeUrl;
+                    iframe.style.cssText = 'width: 100%; height: 100%; border: none;';
+                    content.appendChild(iframe);
                 } else {
-                    content.innerHTML = `<iframe src="${url}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+                    content.textContent = '';
+                    const warning = document.createElement('div');
+                    warning.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 24px; text-align: center;';
+                    const title = document.createElement('h1');
+                    title.style.fontSize = '18px';
+                    title.textContent = 'Navigation blocked';
+                    const message = document.createElement('p');
+                    message.style.cssText = 'font-size: 12px; color: var(--gray-400); margin-top: 8px;';
+                    message.textContent = 'Only http:, https:, and about:blank URLs are allowed.';
+                    warning.append(title, message);
+                    content.appendChild(warning);
                 }
             }
         }
@@ -980,17 +1019,30 @@
             }
             
             // Render workflow preview
-            preview.innerHTML = steps.map((step, i) => `
-                <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid var(--gray-700);">
-                    <div style="width: 24px; height: 24px; border: 1px solid var(--gray-500); display: flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 12px;">${i + 1}</div>
-                    <div style="flex: 1; font-size: 12px;">${step.action}</div>
-                    <div style="font-size: 10px; color: var(--gray-500);">${step.status.toUpperCase()}</div>
-                </div>
-            `).join('');
+            preview.textContent = '';
+            steps.forEach((step, i) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display: flex; align-items: center; padding: 8px; border-bottom: 1px solid var(--gray-700);';
+
+                const number = document.createElement('div');
+                number.style.cssText = 'width: 24px; height: 24px; border: 1px solid var(--gray-500); display: flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 12px;';
+                number.textContent = String(i + 1);
+
+                const action = document.createElement('div');
+                action.style.cssText = 'flex: 1; font-size: 12px;';
+                action.textContent = step.action;
+
+                const status = document.createElement('div');
+                status.style.cssText = 'font-size: 10px; color: var(--gray-500);';
+                status.textContent = step.status.toUpperCase();
+
+                row.append(number, action, status);
+                preview.appendChild(row);
+            });
             
             // Add to log
             const logEntry = document.createElement('div');
-            logEntry.innerHTML = `[${timestamp}] Generated automation: ${prompt.substring(0, 50)}...`;
+            logEntry.textContent = `[${timestamp}] Generated automation: ${prompt.substring(0, 50)}...`;
             log.appendChild(logEntry);
             
             // Simulate execution
@@ -1005,7 +1057,7 @@
                 setTimeout(() => {
                     const timestamp = new Date().toLocaleTimeString();
                     const logEntry = document.createElement('div');
-                    logEntry.innerHTML = `[${timestamp}] Step ${index + 1}: ${step.action} [COMPLETED]`;
+                    logEntry.textContent = `[${timestamp}] Step ${index + 1}: ${step.action} [COMPLETED]`;
                     log.appendChild(logEntry);
                     log.scrollTop = log.scrollHeight;
                     
@@ -1028,7 +1080,7 @@
             setTimeout(() => {
                 const timestamp = new Date().toLocaleTimeString();
                 const logEntry = document.createElement('div');
-                logEntry.innerHTML = `[${timestamp}] ✓ Automation completed successfully`;
+                logEntry.textContent = `[${timestamp}] ✓ Automation completed successfully`;
                 logEntry.style.color = 'var(--white)';
                 log.appendChild(logEntry);
                 log.scrollTop = log.scrollHeight;

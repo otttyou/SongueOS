@@ -871,7 +871,7 @@ function createWindow(id, title, width, height, contentHTML) {
 
   win.innerHTML = `
     <div class="window-titlebar" data-win="${id}">
-      <span class="title">${title}</span>
+      <span class="title">${escapeHtml(title)}</span>
       <div class="controls">
         <button onclick="minimizeWindow('${id}')" title="Minimize">
           <svg viewBox="0 0 8 8"><line x1="1" y1="7" x2="7" y2="7"/></svg>
@@ -1052,7 +1052,7 @@ function openFileManager() {
     const icon = f.type === 'folder'
       ? `<svg viewBox="0 0 28 28"><path d="M3 7h9l2 2h11v14H3z"/></svg>`
       : `<svg viewBox="0 0 28 28"><rect x="5" y="2" width="18" height="24"/><line x1="9" y1="10" x2="19" y2="10"/><line x1="9" y1="14" x2="19" y2="14"/><line x1="9" y1="18" x2="15" y2="18"/></svg>`;
-    return `<div class="fm-item ${f.type}">${icon}<span>${f.name}</span></div>`;
+    return `<div class="fm-item ${escapeHtml(f.type)}">${icon}<span>${escapeHtml(f.name)}</span></div>`;
   }).join('');
 
   const html = `
@@ -1158,7 +1158,10 @@ function execCommand(raw) {
   // Echo the command
   const echo = document.createElement('div');
   echo.className = 'line';
-  echo.innerHTML = `<span class="prompt-color">user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ </span>${escapeHtml(raw)}`;
+  const prompt = document.createElement('span');
+  prompt.className = 'prompt-color';
+  prompt.textContent = `user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ `;
+  echo.append(prompt, document.createTextNode(raw));
   body.insertBefore(echo, inputLine);
 
   if (!raw) { body.scrollTop = body.scrollHeight; return; }
@@ -1298,7 +1301,12 @@ function updatePrompt() {
 }
 
 function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
 }
 
 // ── Settings ──
@@ -1409,9 +1417,11 @@ function openBrowser() {
                 <circle cx="14" cy="12" r="1.5"/>
                 <circle cx="19" cy="12" r="1.5"/>
               </svg>
-              <h2>${escapeHtml(url)}</h2>
+              <h2 id="browser-current-url"></h2>
               <p>Page loaded in sandboxed mode. External content is displayed as a placeholder in this prototype environment.</p>
             `;
+            const currentUrl = page.querySelector('#browser-current-url');
+            if (currentUrl) currentUrl.textContent = url;
           }
         }
       });
@@ -1462,12 +1472,25 @@ function renderCmdResults(query) {
   const container = document.getElementById('cmd-results');
   const filtered = cmdActions.filter(a => fuzzyMatch(a.name, query));
 
-  container.innerHTML = filtered.map((a, i) => `
-    <div class="result-item${i === 0 ? ' active' : ''}" data-idx="${i}">
-      <span>${a.name}</span>
-      ${a.shortcut ? `<span class="shortcut">${a.shortcut}</span>` : ''}
-    </div>
-  `).join('');
+  container.textContent = '';
+  filtered.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = `result-item${i === 0 ? ' active' : ''}`;
+    item.dataset.idx = String(i);
+
+    const name = document.createElement('span');
+    name.textContent = a.name;
+    item.appendChild(name);
+
+    if (a.shortcut) {
+      const shortcut = document.createElement('span');
+      shortcut.className = 'shortcut';
+      shortcut.textContent = a.shortcut;
+      item.appendChild(shortcut);
+    }
+
+    container.appendChild(item);
+  });
 
   container.querySelectorAll('.result-item').forEach((el, i) => {
     el.addEventListener('click', () => {
