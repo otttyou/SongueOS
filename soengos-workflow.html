@@ -114,6 +114,7 @@
             justify-content: center;
             border: 1px solid transparent;
             cursor: default;
+            position: relative;
             transition: border-color 150ms linear;
         }
         
@@ -123,6 +124,64 @@
         
         .dock-icon.active {
             border-color: var(--white);
+        }
+
+        .dock-icon::after {
+            content: '';
+            position: absolute;
+            right: -7px;
+            width: 4px;
+            height: 4px;
+            border: 1px solid var(--gray-500);
+            background: transparent;
+            opacity: 0;
+        }
+
+        .dock-icon.active::after {
+            background: var(--white);
+            border-color: var(--white);
+            opacity: 1;
+        }
+
+        .dock-icon.minimized::after {
+            border-color: var(--gray-300);
+            opacity: 1;
+        }
+
+        .dock-icon.multiple::before {
+            content: '';
+            position: absolute;
+            right: -7px;
+            top: 10px;
+            width: 4px;
+            height: 4px;
+            border: 1px solid var(--gray-500);
+        }
+
+        .dock-menu {
+            position: fixed;
+            min-width: 132px;
+            background: var(--black);
+            border: 1px solid var(--gray-500);
+            z-index: 20000;
+            display: none;
+        }
+
+        .dock-menu-item {
+            padding: 8px 10px;
+            font-size: 11px;
+            color: var(--gray-200);
+            border-bottom: 1px solid var(--gray-700);
+            cursor: default;
+        }
+
+        .dock-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .dock-menu-item:hover {
+            background: var(--gray-700);
+            color: var(--white);
         }
         
         .kanban-column {
@@ -308,6 +367,12 @@
         <span style="margin-left: 24px;">Automations active: <span id="automationCount">1</span></span>
     </div>
 
+    <!-- Dock Context Menu -->
+    <div id="dockMenu" class="dock-menu">
+        <div class="dock-menu-item" data-action="activate">Open / Restore</div>
+        <div class="dock-menu-item" data-action="new-window">New Window</div>
+    </div>
+
     <!-- Tooltip -->
     <div id="tooltip" class="tooltip" style="display: none;">
         <p style="font-size: 11px; color: var(--gray-300); line-height: 1.5;">Type natural language prompts in Automation Studio to create instant workflows.</p>
@@ -375,8 +440,20 @@
         document.querySelectorAll('.dock-icon').forEach(icon => {
             icon.addEventListener('click', () => {
                 const app = icon.dataset.app;
-                openApp(app);
+                hideDockMenu();
+                activateApp(app);
             });
+
+            icon.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showDockMenu(e, icon.dataset.app);
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#dockMenu')) {
+                hideDockMenu();
+            }
         });
 
         // App definitions
@@ -627,6 +704,86 @@
             }
         };
 
+        function getAppWindows(appName) {
+            return windows.filter(win => win.appName === appName);
+        }
+
+        function getMostRecentWindow(appWindows, includeMinimized = false) {
+            return appWindows
+                .filter(win => includeMinimized || !win.minimized)
+                .sort((a, b) => {
+                    const aEl = document.getElementById(a.id);
+                    const bEl = document.getElementById(b.id);
+                    return (Number(bEl?.style.zIndex) || 0) - (Number(aEl?.style.zIndex) || 0);
+                })[0];
+        }
+
+        function restoreWindow(windowId) {
+            const windowEl = document.getElementById(windowId);
+            const win = windows.find(w => w.id === windowId);
+            if (!windowEl || !win) return false;
+
+            windowEl.style.display = 'block';
+            win.minimized = false;
+            focusWindow(windowId);
+            return true;
+        }
+
+        function activateApp(appName, options = {}) {
+            const appWindows = getAppWindows(appName);
+
+            if (!options.forceNew) {
+                const minimizedWindow = getMostRecentWindow(appWindows.filter(win => win.minimized), true);
+                if (minimizedWindow && restoreWindow(minimizedWindow.id)) return;
+
+                const visibleWindow = getMostRecentWindow(appWindows);
+                if (visibleWindow) {
+                    focusWindow(visibleWindow.id);
+                    return;
+                }
+            }
+
+            openApp(appName);
+        }
+
+        function showDockMenu(e, appName) {
+            const menu = document.getElementById('dockMenu');
+            menu.dataset.app = appName;
+            menu.style.left = e.clientX + 'px';
+            menu.style.top = e.clientY + 'px';
+            menu.style.display = 'block';
+        }
+
+        function hideDockMenu() {
+            const menu = document.getElementById('dockMenu');
+            if (menu) menu.style.display = 'none';
+        }
+
+        document.querySelectorAll('#dockMenu .dock-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const menu = document.getElementById('dockMenu');
+                const appName = menu.dataset.app;
+                if (item.dataset.action === 'new-window') {
+                    openApp(appName);
+                } else {
+                    activateApp(appName);
+                }
+                hideDockMenu();
+            });
+        });
+
+        function updateDockIndicators() {
+            document.querySelectorAll('.dock-icon').forEach(icon => {
+                const appWindows = getAppWindows(icon.dataset.app);
+                const hasActiveWindow = appWindows.some(win => win.id === activeWindow && !win.minimized);
+                const hasMinimizedWindow = appWindows.some(win => win.minimized);
+
+                icon.classList.toggle('active', hasActiveWindow);
+                icon.classList.toggle('minimized', hasMinimizedWindow);
+                icon.classList.toggle('multiple', appWindows.length > 1);
+            });
+        }
+
         function openApp(appName) {
             const app = apps[appName];
             if (!app) return;
@@ -658,7 +815,7 @@
 
             windowEl.addEventListener('mousedown', () => focusWindow(windowId));
             desktop.appendChild(windowEl);
-            windows.push({ id: windowId, appName, minimized: false });
+            windows.push({ id: windowId, appName, title: app.title, minimized: false });
             focusWindow(windowId);
 
             // Initialize terminal if it's a terminal window
@@ -672,6 +829,7 @@
             if (windowEl) {
                 windowEl.style.zIndex = ++windowZIndex;
                 activeWindow = windowId;
+                updateDockIndicators();
             }
         }
 
@@ -680,6 +838,10 @@
             if (windowEl) {
                 windowEl.remove();
                 windows = windows.filter(w => w.id !== windowId);
+                if (activeWindow === windowId) {
+                    activeWindow = getMostRecentWindow(windows)?.id || null;
+                }
+                updateDockIndicators();
             }
         }
 
@@ -689,6 +851,10 @@
                 windowEl.style.display = 'none';
                 const win = windows.find(w => w.id === windowId);
                 if (win) win.minimized = true;
+                if (activeWindow === windowId) {
+                    activeWindow = getMostRecentWindow(windows)?.id || null;
+                }
+                updateDockIndicators();
             }
         }
 
@@ -1144,7 +1310,7 @@
             item.addEventListener('click', () => {
                 const action = item.dataset.action;
                 if (action && apps[action]) {
-                    openApp(action);
+                    activateApp(action);
                 }
                 document.getElementById('commandPalette').style.display = 'none';
             });
