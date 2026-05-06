@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">SoengOS icon</title>
+  <desc id="desc">A minimal monochrome SoengOS app shell mark.</desc>
+  <rect width="128" height="128" fill="#000000"/>
+  <rect x="18" y="18" width="92" height="92" fill="none" stroke="#ffffff" stroke-width="4"/>
+  <path d="M34 45h60M34 64h42M34 83h60" stroke="#cccccc" stroke-width="4" stroke-linecap="square"/>
+</svg>

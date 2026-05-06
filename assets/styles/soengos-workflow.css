@@ -1,0 +1,221 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #000000;
+            --white: #FFFFFF;
+            --gray-100: #EEEEEE;
+            --gray-200: #CCCCCC;
+            --gray-300: #AAAAAA;
+            --gray-400: #777777;
+            --gray-500: #555555;
+            --gray-600: #333333;
+            --gray-700: #222222;
+            --gray-800: #111111;
+        }
+
+        body {
+            font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono', 'Liberation Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+            background-color: var(--gray-800);
+            color: var(--white);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            cursor: default;
+        }
+
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-700);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-500);
+        }
+
+        ::selection {
+            background: var(--white);
+            color: var(--black);
+        }
+
+        input, textarea {
+            font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Segoe UI Mono', 'Roboto Mono', 'Liberation Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+        }
+
+        button {
+            cursor: default;
+        }
+
+        .window {
+            position: absolute;
+            background: var(--gray-800);
+            border: 1px solid var(--gray-600);
+            min-width: 400px;
+            min-height: 300px;
+        }
+
+        .window-header {
+            height: 32px;
+            background: var(--black);
+            border-bottom: 1px solid var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--gray-500);
+            background: transparent;
+        }
+
+        .window-control:hover {
+            background: var(--gray-600);
+        }
+
+        .dock-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            cursor: default;
+            transition: border-color 150ms linear;
+        }
+
+        .dock-icon:hover {
+            border-color: var(--gray-500);
+        }
+
+        .dock-icon.active {
+            border-color: var(--white);
+        }
+
+        .kanban-column {
+            min-width: 200px;
+            background: var(--gray-700);
+            border: 1px solid var(--gray-600);
+        }
+
+        .kanban-card {
+            background: var(--gray-800);
+            border: 1px solid var(--gray-600);
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .terminal-line {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 800ms ease-out;
+        }
+
+        .tooltip {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background: var(--black);
+            border: 1px solid var(--gray-500);
+            padding: 12px;
+            max-width: 300px;
+            z-index: 10000;
+        }
+
+        .tab {
+            padding: 4px 12px;
+            border-right: 1px solid var(--gray-600);
+            background: var(--gray-700);
+            cursor: default;
+            user-select: none;
+        }
+
+        .tab.active {
+            background: var(--gray-800);
+        }
+
+        .toggle {
+            width: 32px;
+            height: 16px;
+            border: 1px solid var(--gray-500);
+            position: relative;
+        }
+
+        .toggle.on::after {
+            content: '';
+            position: absolute;
+            right: 1px;
+            top: 1px;
+            width: 12px;
+            height: 12px;
+            background: var(--white);
+        }
+
+        .toggle.off::after {
+            content: '';
+            position: absolute;
+            left: 1px;
+            top: 1px;
+            width: 12px;
+            height: 12px;
+            background: var(--gray-500);
+        }
+
+        .file-item {
+            border: 1px solid transparent;
+            padding: 8px;
+            cursor: default;
+        }
+
+        .file-item:hover {
+            border-color: var(--gray-500);
+        }
+
+        .file-item.selected {
+            background: var(--gray-700);
+            border-color: var(--white);
+        }

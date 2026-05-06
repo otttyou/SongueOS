@@ -60,3 +60,22 @@ cd SoengOS
 
 # Create bootable image
 ./create-iso.sh
+```
+
+### Prototype Stage Offline Coverage
+
+The checked-in prototype is designed to keep the complete UI app shell available without network access:
+
+- `SoengOS.html` and `soengos-workflow.html` no longer depend on Google Fonts or the Tailwind CDN.
+- Local styles live in `assets/styles/`, and typography uses system UI/monospace fallback stacks so the UI remains readable when no web fonts are reachable.
+- PWA metadata is provided by `manifest.webmanifest`, with a local SVG icon in `assets/icons/`.
+- `service-worker.js` pre-caches the two HTML shells, local CSS, the icon, the manifest, and the font-asset placeholder so repeat visits can load the core app shell offline.
+- External quick links inside the workflow browser mock remain navigational placeholders; their remote pages are not cached and require network access.
+- Prototype data persistence is limited to in-page state unless a future build wires the documented IndexedDB layer.
+
+For local testing, serve the repository over HTTP (service workers do not register from most `file://` contexts):
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/SoengOS.html once, then reload with the network disabled.
+```
