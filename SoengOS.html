@@ -213,6 +213,7 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 8px;
     cursor: grab;
+    touch-action: none;
     flex-shrink: 0;
   }
   .window-titlebar:active { cursor: grabbing; }
@@ -254,7 +255,18 @@
     position: absolute; bottom: 0; right: 0;
     width: 20px; height: 20px;
     cursor: nwse-resize;
+    touch-action: none;
   }
+  .snap-preview {
+    position: absolute;
+    border: 1px solid var(--g7);
+    background: rgba(255,255,255,0.08);
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .snap-preview.visible { opacity: 1; }
   .window-resize::before {
     content: '';
     position: absolute; bottom: 4px; right: 4px;
@@ -894,7 +906,7 @@ function createWindow(id, title, width, height, contentHTML) {
   bringToFront(win);
 
   // Focus on click
-  win.addEventListener('mousedown', () => bringToFront(win));
+  win.addEventListener('pointerdown', () => bringToFront(win));
 
   // Drag
   initDrag(win);
@@ -966,59 +978,206 @@ function minimizeWindow(id) {
 function maximizeWindow(id) {
   const win = document.getElementById('win-' + id);
   if (!win) return;
+  win.style.transform = '';
   win.classList.toggle('maximized');
+}
+
+// ── Pointer window interactions ──
+const SNAP_EDGE = 12;
+const DRAG_VISIBLE_X = 80;
+const MIN_VISIBLE_TITLEBAR = 28;
+
+function getDesktopBounds() {
+  const desktop = document.getElementById('desktop');
+  return { desktop, rect: desktop.getBoundingClientRect(), width: desktop.clientWidth, height: desktop.clientHeight };
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function clampWindowPosition(left, top, width, height) {
+  const { width: dw, height: dh } = getDesktopBounds();
+  return {
+    left: clamp(left, Math.min(0, DRAG_VISIBLE_X - width), Math.max(0, dw - DRAG_VISIBLE_X)),
+    top: clamp(top, 0, Math.max(0, dh - MIN_VISIBLE_TITLEBAR))
+  };
+}
+
+function getSnapPreview() {
+  const { desktop } = getDesktopBounds();
+  let preview = desktop.querySelector('.snap-preview');
+  if (!preview) {
+    preview = document.createElement('div');
+    preview.className = 'snap-preview';
+    desktop.appendChild(preview);
+  }
+  return preview;
+}
+
+function getSnapTarget(e) {
+  const { rect, width, height } = getDesktopBounds();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  if (y <= SNAP_EDGE) return { left: 0, top: 0, width, height, type: 'maximized' };
+  if (x <= SNAP_EDGE) return { left: 0, top: 0, width: Math.round(width / 2), height, type: 'left' };
+  if (x >= width - SNAP_EDGE) return { left: Math.round(width / 2), top: 0, width: Math.ceil(width / 2), height, type: 'right' };
+  return null;
+}
+
+function showSnapPreview(target) {
+  const preview = getSnapPreview();
+  if (!target) {
+    preview.classList.remove('visible');
+    return;
+  }
+  preview.style.left = target.left + 'px';
+  preview.style.top = target.top + 'px';
+  preview.style.width = target.width + 'px';
+  preview.style.height = target.height + 'px';
+  preview.classList.add('visible');
+}
+
+function applySnap(win, target) {
+  win.classList.toggle('maximized', target.type === 'maximized');
+  win.style.transform = '';
+  win.style.left = target.left + 'px';
+  win.style.top = target.top + 'px';
+  win.style.width = target.width + 'px';
+  win.style.height = target.height + 'px';
+}
+
+function releasePointerCapture(el, pointerId) {
+  if (el.hasPointerCapture && el.hasPointerCapture(pointerId)) {
+    el.releasePointerCapture(pointerId);
+  }
 }
 
 // ── Drag ──
 function initDrag(win) {
   const bar = win.querySelector('.window-titlebar');
-  let dragging = false, ox, oy;
+  let dragging = false;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  let nextLeft = 0, nextTop = 0, rafId = 0, snapTarget = null;
 
-  bar.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.controls')) return;
+  function scheduleMove() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = 0;
+      win.style.transform = `translate3d(${nextLeft - startLeft}px, ${nextTop - startTop}px, 0)`;
+      showSnapPreview(snapTarget);
+    });
+  }
+
+  function finish(e) {
+    if (!dragging) return;
+    dragging = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = 0;
+    releasePointerCapture(bar, e.pointerId);
+    showSnapPreview(null);
+    if (snapTarget) {
+      applySnap(win, snapTarget);
+    } else {
+      win.style.transform = '';
+      win.style.left = nextLeft + 'px';
+      win.style.top = nextTop + 'px';
+    }
+    snapTarget = null;
+  }
+
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('.controls')) return;
+    const { rect } = getDesktopBounds();
+    const winRect = win.getBoundingClientRect();
     dragging = true;
-    ox = e.clientX - win.offsetLeft;
-    oy = e.clientY - win.offsetTop;
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = winRect.left - rect.left;
+    startTop = winRect.top - rect.top;
     win.classList.remove('maximized');
+    win.style.left = startLeft + 'px';
+    win.style.top = startTop + 'px';
+    nextLeft = startLeft;
+    nextTop = startTop;
+    bar.setPointerCapture(e.pointerId);
     bringToFront(win);
     e.preventDefault();
   });
 
-  document.addEventListener('mousemove', (e) => {
+  bar.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    win.style.left = (e.clientX - ox) + 'px';
-    win.style.top = (e.clientY - oy) + 'px';
+    const width = win.offsetWidth;
+    const height = win.offsetHeight;
+    const clamped = clampWindowPosition(startLeft + e.clientX - startX, startTop + e.clientY - startY, width, height);
+    nextLeft = clamped.left;
+    nextTop = clamped.top;
+    snapTarget = getSnapTarget(e);
+    scheduleMove();
   });
 
-  document.addEventListener('mouseup', () => { dragging = false; });
+  bar.addEventListener('pointerup', finish);
+  bar.addEventListener('pointercancel', finish);
 }
 
 // ── Resize ──
 function initResize(win) {
   const handle = win.querySelector('.window-resize');
-  let resizing = false, sw, sh, sx, sy;
+  let resizing = false;
+  let sw = 0, sh = 0, sx = 0, sy = 0, startLeft = 0, startTop = 0;
+  let nextWidth = 0, nextHeight = 0, rafId = 0;
 
-  handle.addEventListener('mousedown', (e) => {
+  function scheduleResize() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = 0;
+      win.style.width = nextWidth + 'px';
+      win.style.height = nextHeight + 'px';
+    });
+  }
+
+  function finish(e) {
+    if (!resizing) return;
+    resizing = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = 0;
+    win.style.width = nextWidth + 'px';
+    win.style.height = nextHeight + 'px';
+    releasePointerCapture(handle, e.pointerId);
+  }
+
+  handle.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const { rect, width: dw, height: dh } = getDesktopBounds();
+    const winRect = win.getBoundingClientRect();
     resizing = true;
     sw = win.offsetWidth;
     sh = win.offsetHeight;
     sx = e.clientX;
     sy = e.clientY;
+    startLeft = Math.min(Math.max(0, winRect.left - rect.left), Math.max(0, dw - 320));
+    startTop = Math.min(Math.max(0, winRect.top - rect.top), Math.max(0, dh - 200));
+    nextWidth = sw;
+    nextHeight = sh;
     win.classList.remove('maximized');
+    win.style.left = startLeft + 'px';
+    win.style.top = startTop + 'px';
+    handle.setPointerCapture(e.pointerId);
     bringToFront(win);
     e.preventDefault();
     e.stopPropagation();
   });
 
-  document.addEventListener('mousemove', (e) => {
+  handle.addEventListener('pointermove', (e) => {
     if (!resizing) return;
-    const nw = Math.max(320, sw + (e.clientX - sx));
-    const nh = Math.max(200, sh + (e.clientY - sy));
-    win.style.width = nw + 'px';
-    win.style.height = nh + 'px';
+    const { width: dw, height: dh } = getDesktopBounds();
+    nextWidth = Math.min(Math.max(320, sw + (e.clientX - sx)), Math.max(320, dw - startLeft));
+    nextHeight = Math.min(Math.max(200, sh + (e.clientY - sy)), Math.max(200, dh - startTop));
+    scheduleResize();
   });
 
-  document.addEventListener('mouseup', () => { resizing = false; });
+  handle.addEventListener('pointerup', finish);
+  handle.addEventListener('pointercancel', finish);
 }
 
 // ── App launchers ──
