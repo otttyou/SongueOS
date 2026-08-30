@@ -1308,7 +1308,10 @@ function createWindow(id, title, width, height, contentHTML, options = {}) {
   addToTaskbar(id, title);
   bringToFront(win);
 
-  win.addEventListener('mousedown', () => bringToFront(win));
+  win.addEventListener('mousedown', () => {
+    bringToFront(win);
+    if (typeof win.refreshFiles === 'function') win.refreshFiles();
+  });
   initDrag(win);
   initResize(win);
 
@@ -1540,7 +1543,8 @@ function openFileManager(options = {}) {
 
 function initFileManager(id) {
   const win = document.getElementById('win-' + id);
-  if (!win) return;
+  if (!win || win.dataset.fmReady === '1') return;
+  win.dataset.fmReady = '1';
   const state = { path: '/home/user', history: [], selected: null };
   const pathInput = win.querySelector('[data-fm-path]');
   const grid = win.querySelector('[data-fm-grid]');
@@ -1654,6 +1658,7 @@ function initFileManager(id) {
     render(state.path);
   });
 
+  win.refreshFiles = () => render(state.path);
   render('/home/user');
 }
 
@@ -1760,7 +1765,7 @@ function execCommand(raw, body = getActiveTerminalBody()) {
 
   if (!raw) { body.scrollTop = body.scrollHeight; return; }
 
-  const parts = raw.split(/\s+/);
+  const parts = parseCommandLine(raw);
   const cmd = parts[0];
   const args = parts.slice(1);
 

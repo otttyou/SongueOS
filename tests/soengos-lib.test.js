@@ -16,6 +16,7 @@ const {
   resolveFsPath,
   sanitizeEntryName,
   parseJsonArray,
+  parseCommandLine,
   createFileItemElement,
 } = lib;
 
@@ -104,6 +105,19 @@ test('parseJsonArray recovers from corrupt localStorage payloads', () => {
   assert.deepEqual(parseJsonArray('{"owned":true}'), []);
   assert.deepEqual(parseJsonArray('null', ['fallback']), ['fallback']);
   assert.deepEqual(parseJsonArray('', ['fallback']), ['fallback']);
+});
+
+test('parseCommandLine keeps quoted XSS filenames intact', () => {
+  assert.deepEqual(parseCommandLine('ls'), ['ls']);
+  assert.deepEqual(parseCommandLine('cd /etc'), ['cd', '/etc']);
+  assert.deepEqual(
+    parseCommandLine(`touch '"><img src=x onerror=alert(1)>'`),
+    ['touch', '"><img src=x onerror=alert(1)>']
+  );
+  assert.deepEqual(
+    parseCommandLine('cat "report 2026.txt"'),
+    ['cat', 'report 2026.txt']
+  );
 });
 
 test('createFileItemElement stores names as text, not HTML', () => {

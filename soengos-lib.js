@@ -92,6 +92,35 @@
     }
   }
 
+  function parseCommandLine(raw) {
+    const tokens = [];
+    let current = '';
+    let quote = null;
+    const input = String(raw || '');
+    for (let i = 0; i < input.length; i++) {
+      const ch = input[i];
+      if (quote) {
+        if (ch === quote) quote = null;
+        else current += ch;
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        quote = ch;
+        continue;
+      }
+      if (/\s/.test(ch)) {
+        if (current) {
+          tokens.push(current);
+          current = '';
+        }
+        continue;
+      }
+      current += ch;
+    }
+    if (current) tokens.push(current);
+    return tokens;
+  }
+
   function createFileItemElement(name, type, documentRef) {
     const doc = documentRef || (typeof document !== 'undefined' ? document : null);
     if (!doc) throw new Error('document is required');
@@ -114,6 +143,7 @@
     sanitizeEntryName,
     parseJsonArray,
     loadStoredJsonArray,
+    parseCommandLine,
     createFileItemElement,
   };
 });
