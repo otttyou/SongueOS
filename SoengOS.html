@@ -256,7 +256,11 @@
   #desktop-icons {
     position: absolute;
     top: 24px; left: 24px;
-    display: flex; flex-direction: column; gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 72px);
+    gap: 8px;
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
   }
   .desktop-icon {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -604,6 +608,116 @@
   .browser-page p { font-size: 12px; color: var(--g7); max-width: 400px; text-align: center; line-height: 1.6; }
   .browser-bookmarks { display:flex; gap:6px; padding:6px 8px; border-bottom:1px solid var(--g3); background:var(--g1); overflow-x:auto; }
   .browser-status { margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--g7); }
+
+  /* ── Media apps (Notes, Music, Photos, Podcast, TV) ── */
+  .media-app { display:flex; flex-direction:column; height:100%; background:var(--g1); }
+  .media-toolbar {
+    display:flex; align-items:center; gap:8px;
+    padding:8px 12px; border-bottom:1px solid var(--g3);
+    background:var(--black); font-size:10px; color:var(--ga);
+  }
+  .media-toolbar button {
+    background:none; border:1px solid var(--g3); color:var(--ga);
+    padding:4px 10px; font-family:var(--mono); font-size:10px; cursor:pointer;
+  }
+  .media-toolbar button:hover, .media-toolbar button.active {
+    border-color:var(--g5); color:var(--white); background:var(--g2);
+  }
+  .media-body { flex:1; display:flex; overflow:hidden; }
+  .media-sidebar {
+    width:180px; border-right:1px solid var(--g3); overflow-y:auto;
+    background:var(--g1); padding:8px;
+  }
+  .media-list-item {
+    padding:8px; border:1px solid transparent; cursor:pointer;
+    font-size:10px; color:var(--ga); margin-bottom:4px;
+  }
+  .media-list-item:hover { border-color:var(--g3); color:var(--white); }
+  .media-list-item.active { border-color:var(--g5); background:var(--g2); color:var(--white); }
+  .media-main { flex:1; overflow:auto; padding:16px; }
+  .notes-editor {
+    width:100%; height:100%; min-height:280px;
+    background:var(--g2); border:1px solid var(--g3); color:var(--gc);
+    padding:12px; font-family:var(--mono); font-size:12px; line-height:1.6;
+    resize:none; outline:none;
+  }
+  .notes-editor:focus { border-color:var(--g5); }
+  .music-now-playing {
+    padding:16px; border:1px solid var(--g3); background:var(--g2);
+    margin-bottom:16px;
+  }
+  .music-now-playing h3 { font-size:14px; color:var(--white); margin-bottom:4px; }
+  .music-now-playing p { font-size:11px; color:var(--g7); margin-bottom:12px; }
+  .music-progress {
+    height:4px; background:var(--g3); margin:12px 0; position:relative;
+  }
+  .music-progress-bar {
+    height:100%; background:var(--white); width:0%;
+    transition:width 200ms linear;
+  }
+  .music-track {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px; border:1px solid transparent; cursor:pointer;
+    font-size:11px; color:var(--ga);
+  }
+  .music-track:hover { border-color:var(--g3); background:rgba(255,255,255,0.03); }
+  .music-track.active { border-color:var(--g5); color:var(--white); background:var(--g2); }
+  .photo-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+    gap:10px;
+  }
+  .photo-thumb {
+    aspect-ratio:4/3; border:1px solid var(--g3); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--g2), var(--g3));
+    transition:border-color var(--transition);
+  }
+  .photo-thumb:hover, .photo-thumb.active { border-color:var(--g5); }
+  .photo-thumb svg { width:32px; height:32px; stroke:var(--g7); fill:none; }
+  .photo-thumb span { font-size:9px; color:var(--ga); margin-top:6px; text-align:center; padding:0 4px; }
+  .photo-preview {
+    margin-top:16px; padding:16px; border:1px solid var(--g3);
+    background:var(--g2); min-height:160px;
+  }
+  .photo-preview h3 { font-size:13px; color:var(--white); margin-bottom:6px; }
+  .photo-preview p { font-size:11px; color:var(--g7); line-height:1.6; }
+  .photo-preview-stage {
+    height:180px; margin-bottom:12px; border:1px solid var(--g3);
+    background:linear-gradient(160deg, #1a1a1a, #333);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .podcast-episode, .tv-channel {
+    display:flex; gap:12px; padding:12px; border:1px solid var(--g3);
+    margin-bottom:8px; cursor:pointer; background:var(--g2);
+  }
+  .podcast-episode:hover, .tv-channel:hover { border-color:var(--g5); }
+  .podcast-episode.active, .tv-channel.active { border-color:var(--white); }
+  .podcast-art, .tv-art {
+    width:56px; height:56px; border:1px solid var(--g3);
+    display:flex; align-items:center; justify-content:center;
+    background:var(--g1); flex-shrink:0;
+  }
+  .podcast-art svg, .tv-art svg { width:24px; height:24px; stroke:var(--ga); fill:none; }
+  .podcast-info, .tv-info { flex:1; }
+  .podcast-info h4, .tv-info h4 { font-size:12px; color:var(--white); margin-bottom:4px; }
+  .podcast-info p, .tv-info p { font-size:10px; color:var(--g7); line-height:1.5; }
+  .tv-screen {
+    aspect-ratio:16/9; border:1px solid var(--g3); background:#000;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    margin-bottom:16px; position:relative; overflow:hidden;
+  }
+  .tv-screen::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.8));
+  }
+  .tv-screen-label { position:relative; z-index:1; text-align:center; }
+  .tv-screen-label h2 { font-size:18px; color:var(--white); margin-bottom:6px; }
+  .tv-screen-label p { font-size:11px; color:var(--ga); }
+  .tv-live {
+    position:absolute; top:12px; right:12px; z-index:2;
+    background:#aa0000; color:var(--white); font-size:9px;
+    padding:2px 6px; letter-spacing:1px;
+  }
   .native-card { border:1px solid var(--g3); background:var(--g1); padding:10px; margin-top:8px; }
   .native-card strong { color:var(--white); font-weight:500; }
   .native-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
@@ -887,6 +1001,71 @@
       <span>Files</span>
     </div>
 
+    <!-- Notes -->
+    <div class="desktop-icon" ondblclick="openApp('notes')">
+      <svg viewBox="0 0 32 32">
+        <rect x="6" y="4" width="20" height="24"/>
+        <line x1="10" y1="10" x2="22" y2="10"/>
+        <line x1="10" y1="15" x2="22" y2="15"/>
+        <line x1="10" y1="20" x2="18" y2="20"/>
+      </svg>
+      <span>Notes</span>
+    </div>
+
+    <!-- Browser -->
+    <div class="desktop-icon" ondblclick="openApp('browser')">
+      <svg viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="12"/>
+        <ellipse cx="16" cy="16" rx="5" ry="12"/>
+        <line x1="4" y1="16" x2="28" y2="16"/>
+        <line x1="16" y1="4" x2="16" y2="28"/>
+      </svg>
+      <span>Browser</span>
+    </div>
+
+    <!-- Music -->
+    <div class="desktop-icon" ondblclick="openApp('music')">
+      <svg viewBox="0 0 32 32">
+        <circle cx="10" cy="24" r="3"/>
+        <circle cx="24" cy="20" r="3"/>
+        <line x1="13" y1="24" x2="13" y2="8"/>
+        <line x1="13" y1="8" x2="27" y2="6"/>
+        <line x1="27" y1="6" x2="27" y2="20"/>
+      </svg>
+      <span>Music</span>
+    </div>
+
+    <!-- Photos -->
+    <div class="desktop-icon" ondblclick="openApp('photos')">
+      <svg viewBox="0 0 32 32">
+        <rect x="4" y="6" width="24" height="20"/>
+        <circle cx="12" cy="14" r="3"/>
+        <path d="M4 22l8-8 6 6 4-4 6 6"/>
+      </svg>
+      <span>Photos</span>
+    </div>
+
+    <!-- Podcast -->
+    <div class="desktop-icon" ondblclick="openApp('podcast')">
+      <svg viewBox="0 0 32 32">
+        <rect x="12" y="4" width="8" height="14" rx="4"/>
+        <path d="M8 16a8 8 0 0016 0"/>
+        <line x1="16" y1="24" x2="16" y2="28"/>
+        <line x1="12" y1="28" x2="20" y2="28"/>
+      </svg>
+      <span>Podcast</span>
+    </div>
+
+    <!-- TV -->
+    <div class="desktop-icon" ondblclick="openApp('tv')">
+      <svg viewBox="0 0 32 32">
+        <rect x="4" y="6" width="24" height="16"/>
+        <line x1="16" y1="22" x2="16" y2="26"/>
+        <line x1="10" y1="26" x2="22" y2="26"/>
+      </svg>
+      <span>TV</span>
+    </div>
+
     <!-- Terminal -->
     <div class="desktop-icon" ondblclick="openApp('terminal')">
       <svg viewBox="0 0 32 32">
@@ -904,17 +1083,6 @@
         <path d="M16 4v4M16 24v4M4 16h4M24 16h4M7.5 7.5l2.8 2.8M21.7 21.7l2.8 2.8M7.5 24.5l2.8-2.8M21.7 10.3l2.8-2.8"/>
       </svg>
       <span>Settings</span>
-    </div>
-
-    <!-- Browser -->
-    <div class="desktop-icon" ondblclick="openApp('browser')">
-      <svg viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r="12"/>
-        <ellipse cx="16" cy="16" rx="5" ry="12"/>
-        <line x1="4" y1="16" x2="28" y2="16"/>
-        <line x1="16" y1="4" x2="16" y2="28"/>
-      </svg>
-      <span>Browser</span>
     </div>
 
     <!-- Workflow Hub -->
@@ -954,20 +1122,29 @@
 
 <!-- Unified Dock (Mac / Hybrid mode) -->
 <div id="desktop-dock" aria-label="Application Dock">
-  <div class="dock-icon" data-app="workflow" title="Workflow Hub">
-    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+  <div class="dock-icon" data-app="notes" title="Notes">
+    <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
   </div>
-  <div class="dock-icon" data-app="automation" title="Automation Studio">
-    <svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+  <div class="dock-icon" data-app="music" title="Music">
+    <svg viewBox="0 0 24 24"><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/><line x1="9" y1="18" x2="9" y2="6"/><line x1="9" y1="6" x2="19" y2="5"/><line x1="19" y1="5" x2="19" y2="16"/></svg>
+  </div>
+  <div class="dock-icon" data-app="photos" title="Photos">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14"/><circle cx="9" cy="11" r="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
+  </div>
+  <div class="dock-icon" data-app="podcast" title="Podcast">
+    <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="10" rx="3"/><path d="M6 13a6 6 0 0012 0"/><line x1="12" y1="19" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>
+  </div>
+  <div class="dock-icon" data-app="tv" title="TV">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12"/><line x1="12" y1="17" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
   </div>
   <div class="dock-icon" data-app="browser" title="Browser">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18"/></svg>
   </div>
-  <div class="dock-icon" data-app="terminal" title="Terminal">
-    <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="14" y1="17" x2="20" y2="17"/></svg>
-  </div>
   <div class="dock-icon" data-app="filemanager" title="Files">
     <svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/><path d="M3 7V5a2 2 0 012-2h4"/></svg>
+  </div>
+  <div class="dock-icon" data-app="terminal" title="Terminal">
+    <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="14" y1="17" x2="20" y2="17"/></svg>
   </div>
   <div class="dock-icon" data-app="settings" title="Settings">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
@@ -1007,8 +1184,13 @@
 <!-- Context Menu -->
 <div id="ctx-menu">
   <div class="ctx-item" onclick="openApp('filemanager');closeCtxMenu()">Files</div>
-  <div class="ctx-item" onclick="openApp('terminal');closeCtxMenu()">Terminal</div>
+  <div class="ctx-item" onclick="openApp('notes');closeCtxMenu()">Notes</div>
   <div class="ctx-item" onclick="openApp('browser');closeCtxMenu()">Browser</div>
+  <div class="ctx-item" onclick="openApp('music');closeCtxMenu()">Music</div>
+  <div class="ctx-item" onclick="openApp('photos');closeCtxMenu()">Photos</div>
+  <div class="ctx-item" onclick="openApp('podcast');closeCtxMenu()">Podcast</div>
+  <div class="ctx-item" onclick="openApp('tv');closeCtxMenu()">TV</div>
+  <div class="ctx-item" onclick="openApp('terminal');closeCtxMenu()">Terminal</div>
   <div class="ctx-item" onclick="openApp('workflow');closeCtxMenu()">Workflow Hub</div>
   <div class="ctx-item" onclick="openApp('automation');closeCtxMenu()">Automation Studio</div>
   <div class="ctx-item" onclick="openApp('settings');closeCtxMenu()">Settings</div>
@@ -1029,6 +1211,7 @@
   <div class="taskbar-credit">Engineering Edition &bull; v1.0</div>
 </div>
 
+<script src="soengos-lib.js"></script>
 <script>
 /* ═══════════════════════════════════════
    SoengOS — Core System
@@ -1160,7 +1343,14 @@ function applyDesktopMode(mode = desktopMode, overrides = {}) {
 
   const shortcutMod = document.getElementById('shortcut-mod');
   if (shortcutMod) {
-    shortcutMod.innerHTML = platformShortcutMod().split('/').map(key => `<kbd>${key}</kbd>`).join('/');
+    shortcutMod.textContent = '';
+    const keys = platformShortcutMod().split('/');
+    keys.forEach((key, index) => {
+      if (index) shortcutMod.appendChild(document.createTextNode('/'));
+      const kbd = document.createElement('kbd');
+      kbd.textContent = key;
+      shortcutMod.appendChild(kbd);
+    });
   }
 
   document.querySelectorAll('[data-platform-value]').forEach(el => {
@@ -1261,40 +1451,53 @@ function createWindow(id, title, width, height, contentHTML, options = {}) {
   win.id = 'win-' + id;
   win.style.cssText = `left:${x}px;top:${y}px;width:${width}px;height:${height}px;z-index:${++windowZ}`;
 
-  win.innerHTML = `
-    <div class="window-titlebar" data-win="${id}">
-      <span class="title">${title}</span>
-      <div class="controls">
-        <button onclick="minimizeWindow('${id}')" title="Minimize">
-          <svg viewBox="0 0 8 8"><line x1="1" y1="7" x2="7" y2="7"/></svg>
-        </button>
-        <button onclick="maximizeWindow('${id}')" title="Maximize">
-          <svg viewBox="0 0 8 8"><rect x="1" y="1" width="6" height="6"/></svg>
-        </button>
-        <button onclick="closeWindow('${id}')" title="Close">
-          <svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="window-content" id="wc-${id}">${contentHTML}</div>
-    <div class="window-resize" data-win="${id}"></div>
-  `;
+  const titlebar = document.createElement('div');
+  titlebar.className = 'window-titlebar';
+  titlebar.dataset.win = id;
 
+  const titleEl = document.createElement('span');
+  titleEl.className = 'title';
+  titleEl.textContent = title;
+
+  const controls = document.createElement('div');
+  controls.className = 'controls';
+  const controlDefs = [
+    { label: 'Minimize', handler: () => minimizeWindow(id), svg: '<svg viewBox="0 0 8 8"><line x1="1" y1="7" x2="7" y2="7"/></svg>' },
+    { label: 'Maximize', handler: () => maximizeWindow(id), svg: '<svg viewBox="0 0 8 8"><rect x="1" y="1" width="6" height="6"/></svg>' },
+    { label: 'Close', handler: () => closeWindow(id), svg: '<svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>' },
+  ];
+  controlDefs.forEach(({ label, handler, svg }) => {
+    const btn = document.createElement('button');
+    btn.title = label;
+    btn.innerHTML = svg;
+    btn.addEventListener('click', handler);
+    controls.appendChild(btn);
+  });
+  titlebar.append(titleEl, controls);
+
+  const content = document.createElement('div');
+  content.className = 'window-content';
+  content.id = 'wc-' + id;
+  content.innerHTML = contentHTML;
+
+  const resize = document.createElement('div');
+  resize.className = 'window-resize';
+  resize.dataset.win = id;
+
+  win.append(titlebar, content, resize);
   container.appendChild(win);
   openWindows[id] = { appName, title, minimized: false, active: false };
   addToTaskbar(id, title);
   bringToFront(win);
 
-  // Focus on click
-  win.addEventListener('mousedown', () => bringToFront(win));
-
-  // Drag
+  win.addEventListener('mousedown', () => {
+    bringToFront(win);
+    if (typeof win.refreshFiles === 'function') win.refreshFiles();
+  });
   initDrag(win);
-  // Resize
   initResize(win);
 
-  // Post-init hooks
-  if (appName === 'terminal') initTerminal();
+  if (appName === 'terminal') initTerminal(win);
   updateDockIndicators();
   return id;
 }
@@ -1429,13 +1632,18 @@ function initResize(win) {
 // ── App launchers ──
 function openApp(name, options = {}) {
   switch(name) {
-    case 'filemanager': openFileManager(options); break;
+    case 'filemanager':
+    case 'files': openFileManager(options); break;
+    case 'notes': openNotes(options); break;
+    case 'music': openMusic(options); break;
+    case 'photos': openPhotos(options); break;
+    case 'podcast': openPodcast(options); break;
+    case 'tv': openTV(options); break;
     case 'terminal': openTerminal(options); break;
     case 'settings': openSettings(options); break;
     case 'browser': openBrowser(options); break;
     case 'workflow': openWorkflowHub(options); break;
     case 'automation': openAutomationStudio(options); break;
-    case 'files': openFileManager(options); break;
   }
 }
 
@@ -1450,21 +1658,6 @@ const fileContents = {
   '/etc/passwd': 'root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:user:/home/user:/bin/bash',
   '/etc/fstab': '/dev/sda1  /      ext4  defaults  0 1\n/dev/sda2  /home  ext4  defaults  0 2',
 };
-
-function normalizePath(path) {
-  const parts = String(path || '/').split('/').filter(Boolean);
-  const stack = [];
-  parts.forEach(part => {
-    if (part === '.') return;
-    if (part === '..') stack.pop();
-    else stack.push(part);
-  });
-  return '/' + stack.join('/');
-}
-
-function joinPath(base, name) {
-  return normalizePath((base === '/' ? '' : base) + '/' + name);
-}
 
 function entryType(path) {
   if (termFS[path]) return 'folder';
@@ -1485,7 +1678,7 @@ function uniqueEntryName(path, baseName) {
 
 function createFsEntry(path, name, type) {
   if (!termFS[path]) return null;
-  const safeName = uniqueEntryName(path, name.replace(/[\\/]/g, '-'));
+  const safeName = uniqueEntryName(path, sanitizeEntryName(name));
   termFS[path].push(safeName);
   const full = joinPath(path, safeName);
   if (type === 'folder') termFS[full] = [];
@@ -1494,7 +1687,7 @@ function createFsEntry(path, name, type) {
 }
 
 function deleteFsEntry(path, name) {
-  if (!termFS[path]) return false;
+  if (!termFS[path] || !termFS[path].includes(name)) return false;
   const full = joinPath(path, name);
   termFS[path] = termFS[path].filter(entry => entry !== name);
   if (termFS[full]) {
@@ -1537,7 +1730,8 @@ function openFileManager(options = {}) {
 
 function initFileManager(id) {
   const win = document.getElementById('win-' + id);
-  if (!win) return;
+  if (!win || win.dataset.fmReady === '1') return;
+  win.dataset.fmReady = '1';
   const state = { path: '/home/user', history: [], selected: null };
   const pathInput = win.querySelector('[data-fm-path]');
   const grid = win.querySelector('[data-fm-grid]');
@@ -1560,14 +1754,43 @@ function initFileManager(id) {
       if (ta !== tb) return ta === 'folder' ? -1 : 1;
       return a.localeCompare(b);
     });
-    grid.innerHTML = entries.map(name => {
-      const full = joinPath(state.path, name);
-      const type = entryType(full) || 'file';
-      const icon = type === 'folder'
-        ? `<svg viewBox="0 0 28 28"><path d="M3 7h9l2 2h11v14H3z"/></svg>`
-        : `<svg viewBox="0 0 28 28"><rect x="5" y="2" width="18" height="24"/><line x1="9" y1="10" x2="19" y2="10"/><line x1="9" y1="14" x2="19" y2="14"/><line x1="9" y1="18" x2="15" y2="18"/></svg>`;
-      return `<div class="fm-item ${type}" data-name="${escapeHtml(name)}" data-type="${type}">${icon}<span>${escapeHtml(name)}</span></div>`;
-    }).join('') || '<div style="color:var(--g5);font-size:11px;padding:16px;">Empty folder</div>';
+    grid.textContent = '';
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:var(--g5);font-size:11px;padding:16px;';
+      empty.textContent = 'Empty folder';
+      grid.appendChild(empty);
+    } else {
+      entries.forEach(name => {
+        const full = joinPath(state.path, name);
+        const type = entryType(full) || 'file';
+        const item = createFileItemElement(name, type);
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 28 28');
+        if (type === 'folder') {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M3 7h9l2 2h11v14H3z');
+          icon.appendChild(path);
+        } else {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', '5');
+          rect.setAttribute('y', '2');
+          rect.setAttribute('width', '18');
+          rect.setAttribute('height', '24');
+          icon.appendChild(rect);
+          [['9', '10', '19', '10'], ['9', '14', '19', '14'], ['9', '18', '15', '18']].forEach(([x1, y1, x2, y2]) => {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            icon.appendChild(line);
+          });
+        }
+        item.insertBefore(icon, item.firstChild);
+        grid.appendChild(item);
+      });
+    }
     preview.textContent = `${state.path}\n${entries.length} item(s)`;
   }
 
@@ -1622,19 +1845,20 @@ function initFileManager(id) {
     render(state.path);
   });
 
+  win.refreshFiles = () => render(state.path);
   render('/home/user');
 }
 
 // ── Terminal ──
 function openTerminal(options = {}) {
   const html = `
-    <div class="terminal-body" id="terminal-body">
+    <div class="terminal-body" data-terminal-body>
       <div class="line"><span class="prompt-color">SoengOS v1.0 — Engineering Edition</span></div>
       <div class="line"><span class="prompt-color">Type 'help' for available commands.</span></div>
       <div class="line">&nbsp;</div>
       <div class="input-line">
         <span class="prompt-color">user@soeng:~$ </span>
-        <input type="text" id="terminal-input" autocomplete="off" autofocus spellcheck="false" />
+        <input type="text" data-terminal-input autocomplete="off" autofocus spellcheck="false" />
       </div>
     </div>
   `;
@@ -1647,7 +1871,7 @@ const termFS = {
   '/home': ['user'],
   '/home/user': ['Documents', 'Pictures', 'Downloads', 'Projects', 'readme.md', 'notes.txt', '.bashrc'],
   '/home/user/Documents': ['report.pdf', 'todo.txt'],
-  '/home/user/Pictures': ['wallpaper.png', 'screenshot.png'],
+  '/home/user/Pictures': ['wallpaper.png', 'screenshot.png', 'zen-garden.jpg', 'city-night.jpg'],
   '/home/user/Downloads': [],
   '/home/user/Projects': ['soengos', 'webapp'],
   '/etc': ['hosts', 'passwd', 'fstab'],
@@ -1657,16 +1881,21 @@ const termFS = {
 };
 
 let termCwd = '/home/user';
-let termHistory = JSON.parse(localStorage.getItem('soeng-term-history') || '[]');
+let termHistory = loadStoredJsonArray('soeng-term-history');
 let termHistIdx = -1;
 
-function initTerminal() {
-  const input = document.getElementById('terminal-input');
-  if (!input) return;
-  input.focus();
+function getActiveTerminalBody() {
+  return document.querySelector('.window.focused [data-terminal-body]')
+    || document.querySelector('[data-terminal-body]');
+}
 
-  // Click body to focus input
-  const tbody = document.getElementById('terminal-body');
+function initTerminal(win) {
+  const root = win || document;
+  const input = root.querySelector('[data-terminal-input]');
+  const tbody = root.querySelector('[data-terminal-body]');
+  if (!input || !tbody || tbody.dataset.ready === '1') return;
+  tbody.dataset.ready = '1';
+  input.focus();
   tbody.addEventListener('click', () => input.focus());
 
   input.addEventListener('keydown', (e) => {
@@ -1678,7 +1907,7 @@ function initTerminal() {
         termHistIdx = -1;
         try { localStorage.setItem('soeng-term-history', JSON.stringify(termHistory.slice(0, 50))); } catch(e) {}
       }
-      execCommand(cmd);
+      execCommand(cmd, tbody);
       input.value = '';
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -1699,8 +1928,8 @@ function initTerminal() {
   });
 }
 
-function termPrint(text) {
-  const body = document.getElementById('terminal-body');
+function termPrint(text, body = getActiveTerminalBody()) {
+  if (!body) return;
   const inputLine = body.querySelector('.input-line');
   const line = document.createElement('div');
   line.className = 'line';
@@ -1709,19 +1938,21 @@ function termPrint(text) {
   body.scrollTop = body.scrollHeight;
 }
 
-function execCommand(raw) {
-  const body = document.getElementById('terminal-body');
+function execCommand(raw, body = getActiveTerminalBody()) {
+  if (!body) return;
   const inputLine = body.querySelector('.input-line');
 
-  // Echo the command
   const echo = document.createElement('div');
   echo.className = 'line';
-  echo.innerHTML = `<span class="prompt-color">user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ </span>${escapeHtml(raw)}`;
+  const prompt = document.createElement('span');
+  prompt.className = 'prompt-color';
+  prompt.textContent = `user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ `;
+  echo.append(prompt, document.createTextNode(raw));
   body.insertBefore(echo, inputLine);
 
   if (!raw) { body.scrollTop = body.scrollHeight; return; }
 
-  const parts = raw.split(/\s+/);
+  const parts = parseCommandLine(raw);
   const cmd = parts[0];
   const args = parts.slice(1);
 
@@ -1736,7 +1967,7 @@ function execCommand(raw) {
       termPrint('  mkdir <dir> Create a folder');
       termPrint('  touch <f>   Create a file');
       termPrint('  rm <name>   Remove a file or folder');
-      termPrint('  open <app>  Open files, settings, browser, workflow');
+      termPrint('  open <app>  Open files, notes, music, photos, podcast, tv, browser, settings');
       termPrint('  whoami      Current user');
       termPrint('  uname       System information');
       termPrint('  date        Current date/time');
@@ -1759,21 +1990,15 @@ function execCommand(raw) {
     case 'cd':
       if (!args[0] || args[0] === '~') {
         termCwd = '/home/user';
-      } else if (args[0] === '..') {
-        const segs = termCwd.split('/').filter(Boolean);
-        segs.pop();
-        termCwd = '/' + segs.join('/');
-        if (!termCwd || termCwd === '/') termCwd = '/';
       } else {
-        const target = termCwd === '/' ? '/' + args[0] : termCwd + '/' + args[0];
+        const target = resolveFsPath(termCwd, args[0]);
         if (termFS[target]) {
           termCwd = target;
         } else {
-          termPrint(`cd: ${args[0]}: No such directory`);
+          termPrint(`cd: ${args[0]}: No such directory`, body);
         }
       }
-      // Update prompt
-      updatePrompt();
+      updatePrompt(body);
       break;
 
     case 'pwd':
@@ -1811,7 +2036,7 @@ function execCommand(raw) {
       break;
 
     case 'open':
-      if (!args[0]) { termPrint('open: choose files, terminal, settings, browser, workflow, automation, or native'); break; }
+      if (!args[0]) { termPrint('open: choose files, notes, music, photos, podcast, tv, terminal, settings, browser, workflow, automation, or native'); break; }
       const targetApp = args[0] === 'files' ? 'filemanager' : (args[0] === 'native' ? 'settings' : args[0]);
       if (args[0] === 'native') openNativeReadiness();
       else openApp(targetApp);
@@ -1860,23 +2085,18 @@ function execCommand(raw) {
       termPrint(`${cmd}: command not found. Type 'help' for available commands.`);
   }
 
-  // Update prompt display
-  updatePrompt();
+  updatePrompt(body);
   body.scrollTop = body.scrollHeight;
-  const input = document.getElementById('terminal-input');
+  const input = body.querySelector('[data-terminal-input]');
   if (input) input.focus();
 }
 
-function updatePrompt() {
-  const inputLine = document.querySelector('#terminal-body .input-line .prompt-color');
+function updatePrompt(body = getActiveTerminalBody()) {
+  const inputLine = body && body.querySelector('.input-line .prompt-color');
   if (inputLine) {
     const display = termCwd === '/home/user' ? '~' : termCwd;
     inputLine.textContent = `user@soeng:${display}$ `;
   }
-}
-
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ── Workflow Hub / Automation Studio (migrated from Workflow Edition) ──
@@ -1986,12 +2206,28 @@ function generateAutomation() {
   } else {
     steps = ['Parse automation request', 'Identify required actions', 'Configure parameters', 'Execute workflow', 'Report results'];
   }
-  preview.innerHTML = steps.map((action, i) => `
-    <div class="automation-step" style="display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--gray-700);">
-      <div style="width:24px;height:24px;border:1px solid var(--gray-500);display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:12px;">${i + 1}</div>
-      <div style="flex:1;font-size:12px;">${action}</div>
-      <div class="automation-status" style="font-size:10px;color:var(--gray-500);">PENDING</div>
-    </div>`).join('');
+  preview.textContent = '';
+  steps.forEach((action, i) => {
+    const row = document.createElement('div');
+    row.className = 'automation-step';
+    row.style.cssText = 'display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--gray-700);';
+
+    const number = document.createElement('div');
+    number.style.cssText = 'width:24px;height:24px;border:1px solid var(--gray-500);display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:12px;';
+    number.textContent = String(i + 1);
+
+    const actionEl = document.createElement('div');
+    actionEl.style.cssText = 'flex:1;font-size:12px;';
+    actionEl.textContent = action;
+
+    const status = document.createElement('div');
+    status.className = 'automation-status';
+    status.style.cssText = 'font-size:10px;color:var(--gray-500);';
+    status.textContent = 'PENDING';
+
+    row.append(number, actionEl, status);
+    preview.appendChild(row);
+  });
   const logEntry = document.createElement('div');
   logEntry.textContent = `[${timestamp}] Generated automation: ${prompt.substring(0, 50)}...`;
   log.appendChild(logEntry);
@@ -2051,6 +2287,550 @@ function pauseAllWorkflows() {
   if (count) count.textContent = '0';
 }
 function addLogEntry(message) { console.log('[Workflow]', message); }
+
+// ── Notes ──
+const defaultNotes = [
+  { id: 'welcome', title: 'Welcome', body: 'SoengOS Notes — jot ideas, tasks, and meeting minutes.\n\nChanges save automatically.' },
+  { id: 'todo', title: 'Today', body: 'TODO:\n- Review hybrid desktop layout\n- Test Notes, Music, Photos, Podcast, TV\n- Wire every visible control to an action' },
+  { id: 'ideas', title: 'Ideas', body: 'Native bridge:\n- Wayland compositor\n- Audio output for Music/Podcast\n- Photo library sync\n- Live TV stream handoff' },
+];
+
+function loadNotesStore() {
+  try {
+    const raw = localStorage.getItem('soeng-notes');
+    if (!raw) return defaultNotes.map(note => ({ ...note }));
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : defaultNotes.map(note => ({ ...note }));
+  } catch (e) {
+    return defaultNotes.map(note => ({ ...note }));
+  }
+}
+
+function saveNotesStore(notes) {
+  try { localStorage.setItem('soeng-notes', JSON.stringify(notes)); } catch (e) {}
+}
+
+function openNotes(options = {}) {
+  const html = `
+    <div class="media-app" data-notes-app>
+      <div class="media-toolbar">
+        <button data-notes-action="new">New Note</button>
+        <button data-notes-action="delete">Delete</button>
+        <span style="margin-left:auto;color:var(--g7);">Auto-save enabled</span>
+      </div>
+      <div class="media-body">
+        <div class="media-sidebar" data-notes-list></div>
+        <div class="media-main">
+          <input type="text" data-notes-title spellcheck="false" style="width:100%;background:var(--g2);border:1px solid var(--g3);color:var(--white);padding:8px 10px;font-family:var(--mono);font-size:12px;margin-bottom:10px;outline:none;" />
+          <textarea class="notes-editor" data-notes-body spellcheck="true"></textarea>
+        </div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('notes', 'Notes', 620, 460, html, { ...options, appName: 'notes' });
+  initNotes(id);
+}
+
+function initNotes(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.notesReady === '1') return;
+  win.dataset.notesReady = '1';
+  const notes = loadNotesStore();
+  let activeId = notes[0]?.id || null;
+  const list = win.querySelector('[data-notes-list]');
+  const titleInput = win.querySelector('[data-notes-title]');
+  const bodyInput = win.querySelector('[data-notes-body]');
+
+  function renderList() {
+    list.textContent = '';
+    notes.forEach(note => {
+      const item = document.createElement('div');
+      item.className = 'media-list-item' + (note.id === activeId ? ' active' : '');
+      item.textContent = note.title || 'Untitled';
+      item.addEventListener('click', () => {
+        activeId = note.id;
+        renderList();
+        renderEditor();
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function renderEditor() {
+    const note = notes.find(n => n.id === activeId);
+    if (!note) return;
+    titleInput.value = note.title || '';
+    bodyInput.value = note.body || '';
+  }
+
+  function persist() {
+    const note = notes.find(n => n.id === activeId);
+    if (!note) return;
+    note.title = titleInput.value.trim() || 'Untitled';
+    note.body = bodyInput.value;
+    saveNotesStore(notes);
+    renderList();
+  }
+
+  titleInput.addEventListener('input', persist);
+  bodyInput.addEventListener('input', persist);
+  win.querySelector('[data-notes-action="new"]').addEventListener('click', () => {
+    const note = { id: 'note-' + Date.now(), title: 'Untitled', body: '' };
+    notes.unshift(note);
+    activeId = note.id;
+    saveNotesStore(notes);
+    renderList();
+    renderEditor();
+    titleInput.focus();
+    showToast('New note created');
+  });
+  win.querySelector('[data-notes-action="delete"]').addEventListener('click', () => {
+    if (notes.length <= 1) { showToast('Keep at least one note'); return; }
+    const idx = notes.findIndex(n => n.id === activeId);
+    if (idx === -1) return;
+    notes.splice(idx, 1);
+    activeId = notes[Math.max(0, idx - 1)].id;
+    saveNotesStore(notes);
+    renderList();
+    renderEditor();
+    showToast('Note deleted');
+  });
+
+  renderList();
+  renderEditor();
+}
+
+// ── Music ──
+const musicLibrary = [
+  { id: '1', title: 'Morning Zen', artist: 'Soeng Collective', duration: 214 },
+  { id: '2', title: 'Terminal Rain', artist: 'Kernel Sound', duration: 198 },
+  { id: '3', title: 'Dock Ambient', artist: 'Hybrid Studio', duration: 256 },
+  { id: '4', title: 'Focus Mode', artist: 'Engineering Edition', duration: 302 },
+  { id: '5', title: 'Night Drive', artist: 'Soeng Collective', duration: 241 },
+];
+
+let musicState = { trackId: musicLibrary[0].id, playing: false, progress: 0, timer: null };
+
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function openMusic(options = {}) {
+  const html = `
+    <div class="media-app" data-music-app>
+      <div class="media-toolbar">
+        <button data-music-action="prev">Prev</button>
+        <button data-music-action="play">Play</button>
+        <button data-music-action="next">Next</button>
+        <span data-music-status style="margin-left:auto;color:var(--g7);">Ready</span>
+      </div>
+      <div class="media-main">
+        <div class="music-now-playing">
+          <h3 data-music-title>—</h3>
+          <p data-music-artist>—</p>
+          <div class="music-progress"><div class="music-progress-bar" data-music-bar></div></div>
+          <div style="font-size:10px;color:var(--g7);" data-music-time>0:00 / 0:00</div>
+        </div>
+        <div data-music-list></div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('music', 'Music', 520, 420, html, { ...options, appName: 'music' });
+  initMusic(id);
+}
+
+function initMusic(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.musicReady === '1') return;
+  win.dataset.musicReady = '1';
+  const list = win.querySelector('[data-music-list]');
+  const titleEl = win.querySelector('[data-music-title]');
+  const artistEl = win.querySelector('[data-music-artist]');
+  const barEl = win.querySelector('[data-music-bar]');
+  const timeEl = win.querySelector('[data-music-time]');
+  const statusEl = win.querySelector('[data-music-status]');
+  const playBtn = win.querySelector('[data-music-action="play"]');
+
+  function currentTrack() {
+    return musicLibrary.find(t => t.id === musicState.trackId) || musicLibrary[0];
+  }
+
+  function stopTimer() {
+    if (musicState.timer) {
+      clearInterval(musicState.timer);
+      musicState.timer = null;
+    }
+  }
+
+  function render() {
+    const track = currentTrack();
+    titleEl.textContent = track.title;
+    artistEl.textContent = track.artist;
+    const elapsed = Math.floor(track.duration * musicState.progress);
+    barEl.style.width = `${musicState.progress * 100}%`;
+    timeEl.textContent = `${formatDuration(elapsed)} / ${formatDuration(track.duration)}`;
+    statusEl.textContent = musicState.playing ? 'Playing' : 'Paused';
+    playBtn.textContent = musicState.playing ? 'Pause' : 'Play';
+    playBtn.classList.toggle('active', musicState.playing);
+    list.textContent = '';
+    musicLibrary.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'music-track' + (item.id === track.id ? ' active' : '');
+      const left = document.createElement('span');
+      left.textContent = `${item.title} — ${item.artist}`;
+      const right = document.createElement('span');
+      right.textContent = formatDuration(item.duration);
+      row.append(left, right);
+      row.addEventListener('click', () => {
+        musicState.trackId = item.id;
+        musicState.progress = 0;
+        render();
+        if (musicState.playing) startTimer();
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function startTimer() {
+    stopTimer();
+    musicState.playing = true;
+    musicState.timer = setInterval(() => {
+      const track = currentTrack();
+      musicState.progress += 1 / track.duration;
+      if (musicState.progress >= 1) {
+        const idx = musicLibrary.findIndex(t => t.id === track.id);
+        musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
+        musicState.progress = 0;
+      }
+      render();
+    }, 1000);
+    render();
+  }
+
+  function togglePlay() {
+    if (musicState.playing) {
+      musicState.playing = false;
+      stopTimer();
+      render();
+    } else {
+      startTimer();
+    }
+  }
+
+  win.querySelector('[data-music-action="play"]').addEventListener('click', togglePlay);
+  win.querySelector('[data-music-action="prev"]').addEventListener('click', () => {
+    const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
+    musicState.trackId = musicLibrary[(idx - 1 + musicLibrary.length) % musicLibrary.length].id;
+    musicState.progress = 0;
+    render();
+    if (musicState.playing) startTimer();
+  });
+  win.querySelector('[data-music-action="next"]').addEventListener('click', () => {
+    const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
+    musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
+    musicState.progress = 0;
+    render();
+    if (musicState.playing) startTimer();
+  });
+
+  render();
+}
+
+// ── Photos ──
+const photoMeta = {
+  '/home/user/Pictures/wallpaper.png': { caption: 'Default SoengOS wallpaper', date: '2026-04-15', gradient: 'linear-gradient(135deg, #1a1a2e, #16213e)' },
+  '/home/user/Pictures/screenshot.png': { caption: 'Desktop screenshot', date: '2026-05-01', gradient: 'linear-gradient(135deg, #2d3436, #636e72)' },
+  '/home/user/Pictures/zen-garden.jpg': { caption: 'Zen garden at dawn', date: '2026-05-10', gradient: 'linear-gradient(135deg, #2f4f4f, #556b2f)' },
+  '/home/user/Pictures/city-night.jpg': { caption: 'City skyline at night', date: '2026-05-12', gradient: 'linear-gradient(135deg, #0f0c29, #302b63)' },
+};
+
+function openPhotos(options = {}) {
+  const html = `
+    <div class="media-app" data-photos-app>
+      <div class="media-toolbar">
+        <button data-photos-action="open-folder">Open in Files</button>
+        <span data-photos-count style="margin-left:auto;color:var(--g7);"></span>
+      </div>
+      <div class="media-main">
+        <div class="photo-grid" data-photos-grid></div>
+        <div class="photo-preview" data-photos-preview>
+          <div class="photo-preview-stage" data-photos-stage></div>
+          <h3 data-photos-caption>Select a photo</h3>
+          <p data-photos-meta>Photos from ~/Pictures</p>
+        </div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('photos', 'Photos', 640, 480, html, { ...options, appName: 'photos' });
+  initPhotos(id);
+}
+
+function initPhotos(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.photosReady === '1') return;
+  win.dataset.photosReady = '1';
+  const grid = win.querySelector('[data-photos-grid]');
+  const stage = win.querySelector('[data-photos-stage]');
+  const captionEl = win.querySelector('[data-photos-caption]');
+  const metaEl = win.querySelector('[data-photos-meta]');
+  const countEl = win.querySelector('[data-photos-count]');
+  const photosPath = '/home/user/Pictures';
+  const files = (termFS[photosPath] || []).slice().sort();
+  let active = files[0] || null;
+  countEl.textContent = `${files.length} photo(s)`;
+
+  function showPhoto(name) {
+    active = name;
+    const full = joinPath(photosPath, name);
+    const meta = photoMeta[full] || { caption: name, date: 'Unknown', gradient: 'linear-gradient(135deg, #222, #444)' };
+    stage.style.background = meta.gradient;
+    stage.textContent = '';
+    const label = document.createElement('span');
+    label.style.cssText = 'font-size:11px;color:var(--ga);font-family:var(--mono);';
+    label.textContent = name;
+    stage.appendChild(label);
+    captionEl.textContent = meta.caption;
+    metaEl.textContent = `${full}\nCaptured: ${meta.date}`;
+    grid.querySelectorAll('.photo-thumb').forEach(el => {
+      el.classList.toggle('active', el.dataset.name === name);
+    });
+  }
+
+  grid.textContent = '';
+  files.forEach(name => {
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb' + (name === active ? ' active' : '');
+    thumb.dataset.name = name;
+    const full = joinPath(photosPath, name);
+    const meta = photoMeta[full];
+    if (meta) thumb.style.background = meta.gradient;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 32 32');
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', '4'); rect.setAttribute('y', '6');
+    rect.setAttribute('width', '24'); rect.setAttribute('height', '20');
+    svg.appendChild(rect);
+    const span = document.createElement('span');
+    span.textContent = name;
+    thumb.append(svg, span);
+    thumb.addEventListener('click', () => showPhoto(name));
+    grid.appendChild(thumb);
+  });
+
+  if (active) showPhoto(active);
+  win.querySelector('[data-photos-action="open-folder"]').addEventListener('click', () => {
+    openFileManager();
+    showToast('Opened Pictures in Files');
+  });
+}
+
+// ── Podcast ──
+const podcastEpisodes = [
+  { id: '1', title: 'Designing a Hybrid Desktop', show: 'SoengOS Weekly', duration: 1820, summary: 'How Mac-like polish and Linux-like power share one window manager contract.' },
+  { id: '2', title: 'From HTML Shell to Native Runtime', show: 'Engineering Minimalism', duration: 2145, summary: 'Binding the desktop contract to Wayland, portals, and system services.' },
+  { id: '3', title: 'Focus Mode and Keyboard Model', show: 'SoengOS Weekly', duration: 1560, summary: 'Command palette, shortcuts, and distraction-free workflows.' },
+  { id: '4', title: 'Media Apps on SoengOS', show: 'Prototype Lab', duration: 1680, summary: 'Notes, Music, Photos, Podcast, and TV as first-class desktop windows.' },
+];
+
+let podcastState = { episodeId: podcastEpisodes[0].id, playing: false, progress: 0, timer: null };
+
+function openPodcast(options = {}) {
+  const html = `
+    <div class="media-app" data-podcast-app>
+      <div class="media-toolbar">
+        <button data-podcast-action="play">Play</button>
+        <button data-podcast-action="stop">Stop</button>
+        <span data-podcast-status style="margin-left:auto;color:var(--g7);">Ready</span>
+      </div>
+      <div class="media-main" data-podcast-list></div>
+    </div>
+  `;
+  const id = createWindow('podcast', 'Podcast', 560, 440, html, { ...options, appName: 'podcast' });
+  initPodcast(id);
+}
+
+function initPodcast(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.podcastReady === '1') return;
+  win.dataset.podcastReady = '1';
+  const list = win.querySelector('[data-podcast-list]');
+  const statusEl = win.querySelector('[data-podcast-status]');
+  const playBtn = win.querySelector('[data-podcast-action="play"]');
+
+  function currentEpisode() {
+    return podcastEpisodes.find(e => e.id === podcastState.episodeId) || podcastEpisodes[0];
+  }
+
+  function stopTimer() {
+    if (podcastState.timer) {
+      clearInterval(podcastState.timer);
+      podcastState.timer = null;
+    }
+  }
+
+  function render() {
+    const episode = currentEpisode();
+    statusEl.textContent = podcastState.playing
+      ? `Playing — ${episode.show}`
+      : `Paused — ${formatDuration(Math.floor(episode.duration * podcastState.progress))} / ${formatDuration(episode.duration)}`;
+    playBtn.textContent = podcastState.playing ? 'Pause' : 'Play';
+    playBtn.classList.toggle('active', podcastState.playing);
+    list.textContent = '';
+    podcastEpisodes.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'podcast-episode' + (item.id === episode.id ? ' active' : '');
+      const art = document.createElement('div');
+      art.className = 'podcast-art';
+      art.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="10" rx="3"/><path d="M6 13a6 6 0 0012 0"/></svg>';
+      const info = document.createElement('div');
+      info.className = 'podcast-info';
+      const h4 = document.createElement('h4');
+      h4.textContent = item.title;
+      const p = document.createElement('p');
+      p.textContent = `${item.show} · ${formatDuration(item.duration)}\n${item.summary}`;
+      info.append(h4, p);
+      row.append(art, info);
+      row.addEventListener('click', () => {
+        podcastState.episodeId = item.id;
+        podcastState.progress = 0;
+        render();
+        if (podcastState.playing) {
+          stopTimer();
+          podcastState.timer = setInterval(tick, 1000);
+        }
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function tick() {
+    const episode = currentEpisode();
+    podcastState.progress += 1 / episode.duration;
+    if (podcastState.progress >= 1) {
+      podcastState.playing = false;
+      podcastState.progress = 1;
+      stopTimer();
+      showToast(`Finished: ${episode.title}`);
+    }
+    render();
+  }
+
+  win.querySelector('[data-podcast-action="play"]').addEventListener('click', () => {
+    if (podcastState.playing) {
+      podcastState.playing = false;
+      stopTimer();
+    } else {
+      podcastState.playing = true;
+      podcastState.timer = setInterval(tick, 1000);
+    }
+    render();
+  });
+  win.querySelector('[data-podcast-action="stop"]').addEventListener('click', () => {
+    podcastState.playing = false;
+    podcastState.progress = 0;
+    stopTimer();
+    render();
+  });
+
+  render();
+}
+
+// ── TV ──
+const tvChannels = [
+  { id: 'news', name: 'Soeng News', program: 'Engineering Brief', genre: 'News', gradient: 'linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%)' },
+  { id: 'nature', name: 'Zen Channel', program: 'Garden Walk', genre: 'Nature', gradient: 'linear-gradient(180deg, #134e4a 0%, #065f46 100%)' },
+  { id: 'tech', name: 'Dev TV', program: 'Native Runtime Deep Dive', genre: 'Technology', gradient: 'linear-gradient(180deg, #312e81 0%, #1e1b4b 100%)' },
+  { id: 'music', name: 'Soeng Music TV', program: 'Live Sessions', genre: 'Music', gradient: 'linear-gradient(180deg, #831843 0%, #500724 100%)' },
+  { id: 'classic', name: 'Archive', program: 'Classic Demos', genre: 'Retro', gradient: 'linear-gradient(180deg, #44403c 0%, #1c1917 100%)' },
+];
+
+let tvState = { channelId: tvChannels[0].id, watching: false };
+
+function openTV(options = {}) {
+  const html = `
+    <div class="media-app" data-tv-app>
+      <div class="media-toolbar">
+        <button data-tv-action="watch">Watch</button>
+        <button data-tv-action="stop">Stop</button>
+        <span data-tv-status style="margin-left:auto;color:var(--g7);">Channel guide</span>
+      </div>
+      <div class="media-main">
+        <div class="tv-screen" data-tv-screen>
+          <div class="tv-live" data-tv-live hidden>LIVE</div>
+          <div class="tv-screen-label">
+            <h2 data-tv-program>—</h2>
+            <p data-tv-channel>—</p>
+          </div>
+        </div>
+        <div data-tv-list></div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('tv', 'TV', 620, 500, html, { ...options, appName: 'tv' });
+  initTV(id);
+}
+
+function initTV(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.tvReady === '1') return;
+  win.dataset.tvReady = '1';
+  const screen = win.querySelector('[data-tv-screen]');
+  const liveEl = win.querySelector('[data-tv-live]');
+  const programEl = win.querySelector('[data-tv-program]');
+  const channelEl = win.querySelector('[data-tv-channel]');
+  const statusEl = win.querySelector('[data-tv-status]');
+  const list = win.querySelector('[data-tv-list]');
+
+  function currentChannel() {
+    return tvChannels.find(c => c.id === tvState.channelId) || tvChannels[0];
+  }
+
+  function render() {
+    const channel = currentChannel();
+    screen.style.background = channel.gradient;
+    programEl.textContent = channel.program;
+    channelEl.textContent = `${channel.name} · ${channel.genre}`;
+    liveEl.hidden = !tvState.watching;
+    statusEl.textContent = tvState.watching ? `Watching ${channel.name}` : 'Channel guide';
+    list.textContent = '';
+    tvChannels.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'tv-channel' + (item.id === channel.id ? ' active' : '');
+      const art = document.createElement('div');
+      art.className = 'tv-art';
+      art.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12"/><line x1="12" y1="17" x2="12" y2="20"/></svg>';
+      const info = document.createElement('div');
+      info.className = 'tv-info';
+      const h4 = document.createElement('h4');
+      h4.textContent = item.name;
+      const p = document.createElement('p');
+      p.textContent = `${item.program} · ${item.genre}`;
+      info.append(h4, p);
+      row.append(art, info);
+      row.addEventListener('click', () => {
+        tvState.channelId = item.id;
+        render();
+        if (tvState.watching) showToast(`Switched to ${item.name}`);
+      });
+      list.appendChild(row);
+    });
+  }
+
+  win.querySelector('[data-tv-action="watch"]').addEventListener('click', () => {
+    tvState.watching = true;
+    render();
+    showToast(`Now watching ${currentChannel().name}`);
+  });
+  win.querySelector('[data-tv-action="stop"]').addEventListener('click', () => {
+    tvState.watching = false;
+    render();
+    showToast('Playback stopped');
+  });
+
+  render();
+}
 
 // ── Settings ──
 function setDesktopMode(value) {
@@ -2253,32 +3033,59 @@ const soengPages = {
   },
 };
 
+function renderBrowserChrome(page, { title, body, status, icon }) {
+  page.textContent = '';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '48');
+  svg.setAttribute('height', '48');
+  svg.setAttribute('viewBox', '0 0 48 48');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', '#333333');
+  svg.setAttribute('stroke-width', '1');
+  svg.innerHTML = icon;
+  const heading = document.createElement('h2');
+  heading.textContent = title;
+  const copy = document.createElement('p');
+  copy.textContent = body;
+  const meta = document.createElement('div');
+  meta.className = 'browser-status';
+  meta.textContent = status;
+  page.append(svg, heading, copy, meta);
+}
+
 function renderBrowserPage(win, state, url) {
   const page = win.querySelector('[data-browser-page]');
   const urlBar = win.querySelector('[data-browser-url]');
-  const normalized = url.includes('://') ? url : `https://${url}`;
-  state.current = normalized;
-  urlBar.value = normalized;
-  const local = soengPages[normalized];
-  if (local) {
-    page.innerHTML = `
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#333333" stroke-width="1">
-        <circle cx="24" cy="24" r="20"/><ellipse cx="24" cy="24" rx="8" ry="20"/><line x1="4" y1="24" x2="44" y2="24"/><line x1="24" y1="4" x2="24" y2="44"/>
-      </svg>
-      <h2>${escapeHtml(local.title)}</h2>
-      <p>${escapeHtml(local.body)}</p>
-      <div class="browser-status">${escapeHtml(local.status)} &middot; ${escapeHtml(normalized)}</div>
-    `;
+  const safeUrl = getAllowedNavigationUrl(url);
+  if (!safeUrl) {
+    state.current = String(url || '');
+    if (urlBar) urlBar.value = state.current;
+    renderBrowserChrome(page, {
+      title: 'Navigation blocked',
+      body: 'Only http:, https:, soeng://, and about:blank URLs are allowed.',
+      status: 'Blocked protocol',
+      icon: '<rect x="8" y="8" width="32" height="32"/><line x1="14" y1="14" x2="34" y2="34"/><line x1="34" y1="14" x2="14" y2="34"/>',
+    });
     return;
   }
-  page.innerHTML = `
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#333333" stroke-width="1">
-      <rect x="8" y="8" width="32" height="32"/><line x1="8" y1="16" x2="40" y2="16"/><circle cx="14" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
-    </svg>
-    <h2>${escapeHtml(normalized)}</h2>
-    <p>External content is opened as a safe sandbox placeholder in this demo. A native build would hand this URL to the embedded browser engine or system browser service.</p>
-    <div class="browser-status">Sandboxed external page &middot; Network bridge ready</div>
-  `;
+  state.current = safeUrl;
+  if (urlBar) urlBar.value = safeUrl;
+  const local = soengPages[safeUrl];
+  if (local) {
+    renderBrowserChrome(page, {
+      title: local.title,
+      body: local.body,
+      status: `${local.status} · ${safeUrl}`,
+      icon: '<circle cx="24" cy="24" r="20"/><ellipse cx="24" cy="24" rx="8" ry="20"/><line x1="4" y1="24" x2="44" y2="24"/><line x1="24" y1="4" x2="24" y2="44"/>',
+    });
+    return;
+  }
+  renderBrowserChrome(page, {
+    title: safeUrl,
+    body: 'External content is opened as a safe sandbox placeholder in this demo. A native build would hand this URL to the embedded browser engine or system browser service.',
+    status: 'Sandboxed external page · Network bridge ready',
+    icon: '<rect x="8" y="8" width="32" height="32"/><line x1="8" y1="16" x2="40" y2="16"/><circle cx="14" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  });
 }
 
 function openBrowser(options = {}) {
@@ -2339,9 +3146,14 @@ function initBrowser(id) {
 // ── Command Palette ──
 const cmdActions = [
   { name: 'Open File Manager', action: () => activateApp('filemanager'), shortcut: '' },
+  { name: 'Open Notes', action: () => activateApp('notes'), shortcut: '' },
+  { name: 'Open Browser', action: () => activateApp('browser'), shortcut: '' },
+  { name: 'Open Music', action: () => activateApp('music'), shortcut: '' },
+  { name: 'Open Photos', action: () => activateApp('photos'), shortcut: '' },
+  { name: 'Open Podcast', action: () => activateApp('podcast'), shortcut: '' },
+  { name: 'Open TV', action: () => activateApp('tv'), shortcut: '' },
   { name: 'Open Terminal', action: () => activateApp('terminal'), shortcut: '' },
   { name: 'Open Settings', action: () => activateApp('settings'), shortcut: '' },
-  { name: 'Open Browser', action: () => activateApp('browser'), shortcut: '' },
   { name: 'Open Workflow Hub', action: () => activateApp('workflow'), shortcut: '' },
   { name: 'Open Automation Studio', action: () => activateApp('automation'), shortcut: '' },
   { name: 'Open Native Runtime Plan', action: () => openNativeReadiness(), shortcut: '' },
@@ -2385,12 +3197,22 @@ function renderCmdResults(query) {
   const container = document.getElementById('cmd-results');
   const filtered = cmdActions.filter(a => fuzzyMatch(a.name, query));
 
-  container.innerHTML = filtered.map((a, i) => `
-    <div class="result-item${i === 0 ? ' active' : ''}" data-idx="${i}">
-      <span>${a.name}</span>
-      ${a.shortcut ? `<span class="shortcut">${a.shortcut}</span>` : ''}
-    </div>
-  `).join('');
+  container.textContent = '';
+  filtered.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = `result-item${i === 0 ? ' active' : ''}`;
+    item.dataset.idx = String(i);
+    const name = document.createElement('span');
+    name.textContent = a.name;
+    item.appendChild(name);
+    if (a.shortcut) {
+      const shortcut = document.createElement('span');
+      shortcut.className = 'shortcut';
+      shortcut.textContent = a.shortcut;
+      item.appendChild(shortcut);
+    }
+    container.appendChild(item);
+  });
 
   container.querySelectorAll('.result-item').forEach((el, i) => {
     el.addEventListener('click', () => {
@@ -2581,78 +3403,5 @@ document.getElementById('cmd-palette').addEventListener('click', (e) => {
   if (e.target === document.getElementById('cmd-palette')) closeCmdPalette();
 });
 </script>
-<script data-pplx-inline-edit>
-(function(){
-  if(window===window.top)return;
-  function inlineAll(orig,clone){
-    if(orig.nodeType!==1)return;
-    try{
-      var cs=getComputedStyle(orig);
-      var t='';
-      for(var i=0;i<cs.length;i++){t+=cs[i]+':'+cs.getPropertyValue(cs[i])+';';}
-      clone.style.cssText=t;
-    }catch(e){}
-    var oc=orig.children,cc=clone.children;
-    for(var j=0;j<oc.length&&j<cc.length;j++){inlineAll(oc[j],cc[j]);}
-  }
-  function stripExternal(clone){
-    var imgs=clone.querySelectorAll('img');
-    for(var i=0;i<imgs.length;i++){
-      var s=imgs[i].getAttribute('src');
-      if(s&&!s.startsWith('data:'))imgs[i].removeAttribute('src');
-    }
-    var all=clone.querySelectorAll('*');
-    for(var i=0;i<all.length;i++){
-      var st=all[i].style.cssText;
-      if(st&&st.indexOf('url(')>=0){
-        all[i].style.cssText=st.replace(/url\(["']?(?!data:)[^)"']*["']?\)/gi,'none');
-      }
-    }
-  }
-  var scrollRaf=0;
-  function emitScroll(){
-    scrollRaf=0;
-    var x=window.scrollX||window.pageXOffset||0;
-    var y=window.scrollY||window.pageYOffset||0;
-    window.parent.postMessage({type:'INLINE_EDIT_SCROLL',scrollX:x,scrollY:y},'*');
-  }
-  window.addEventListener('scroll',function(){
-    if(scrollRaf)return;
-    scrollRaf=requestAnimationFrame(emitScroll);
-  },{passive:true,capture:true});
-  emitScroll();
-  window.addEventListener('message',function(e){
-    if(!e.data||e.data.type!=='INLINE_EDIT_CAPTURE_REQUEST')return;
-    var scrollX=window.scrollX||window.pageXOffset||0;
-    var scrollY=window.scrollY||window.pageYOffset||0;
-    var w=window.innerWidth,h=window.innerHeight;
-    try{
-      var clone=document.documentElement.cloneNode(true);
-      var rm=clone.querySelectorAll('script,link[rel="stylesheet"],style');
-      for(var i=0;i<rm.length;i++){rm[i].remove();}
-      inlineAll(document.documentElement,clone);
-      stripExternal(clone);
-      var html=new XMLSerializer().serializeToString(clone);
-      var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'">'
-        +'<foreignObject width="100%" height="100%">'
-        +'<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+w+'px;height:'+h+'px;overflow:hidden">'
-        +'<div style="transform:translate(-'+scrollX+'px,-'+scrollY+'px);transform-origin:top left">'
-        +html+'</div></div></foreignObject></svg>';
-      var svgUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
-      var img=new Image();
-      img.onload=function(){
-        var c=document.createElement('canvas');c.width=w;c.height=h;
-        c.getContext('2d').drawImage(img,0,0);
-        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:c.toDataURL('image/png'),scrollX:scrollX,scrollY:scrollY},'*');
-      };
-      img.onerror=function(){
-        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
-      };
-      img.src=svgUrl;
-    }catch(err){
-      window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
-    }
-  });
-})();
-</script></body>
+</body>
 </html>
