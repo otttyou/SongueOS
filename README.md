@@ -1,12 +1,17 @@
 # SoengOS
 
-**A native-ready Mac/Linux hybrid desktop OS concept**
+**A native-ready Mac/Linux hybrid desktop, dressed in Song quiet.**
 
-SoengOS is a lightweight Linux operating-system concept that blends the immediacy and polish of macOS-style desktop chrome with the openness, terminal-first workflow, and composability of Linux.
+SoengOS blends the immediacy and polish of macOS-style chrome with the openness, terminal-first workflow, and composability of Linux. The name **Soeng** draws from the Jyutping of 宋, written with a Portuguese-smooth spelling.
 
-The current repository contains a single-file interactive desktop prototype (`SoengOS.html`) plus a compatibility redirect (`soengos-workflow.html`). The prototype is not intended to remain "just a webpage". It is the desktop contract: the window manager, app surfaces, keyboard model, dock/taskbar behavior, command palette, file interactions, browser shell, settings, workflow hub, automation studio, power menu, and native-runtime readiness panel that a real Linux runtime can bind to system services.
+This repository now holds two sittings of the same desktop contract:
 
-The name **Soeng** draws from the Jyutping romanization of the Cantonese pronunciation of “宋”, blended with Portuguese-style orthography for a smooth, cross-cultural resonance.
+| Sitting | What it is |
+| --- | --- |
+| **v1** `SoengOS.html` | The original single-file interactive prototype: window manager, dock, Linux taskbar, hybrid/mac/linux modes, soeng-sh, Workflow Hub, Automation Studio, `soeng://` browser. |
+| **v2** React desktop | The same contract, rebuilt as a working Song-dynasty scholar's desk: rice paper, ink, celadon, plus Notes, Music, Photos, Podcasts, TV, Files, and a live `soeng://` garden. Hybrid is still the default. |
+
+v1 is not abandoned. It remains the HTML desktop contract a native Linux runtime can bind to. v2 is the same manners, with the fog painted in.
 
 ---
 
@@ -14,77 +19,106 @@ The name **Soeng** draws from the Jyutping romanization of the Cantonese pronunc
 
 SoengOS should feel like a **Mac + Linux combination**:
 
-- **Mac-like comfort**: top system bar, dock, optional left-side window dots, centered visual hierarchy, predictable restore/minimize behavior.
-- **Linux-like power**: taskbar option, right-click desktop menu, terminal, filesystem-oriented workflows, containerized apps, native service bridge.
-- **Hybrid by default**: SoengOS starts with top bar + dock + taskbar + desktop context menu so users do not have to choose between the two worlds.
-- **Usable surfaces**: every visible screen should have functional controls, not static mockup-only panels.
+- **Mac-like comfort**: top system bar, dock, centered visual hierarchy, predictable restore/minimize behavior.
+- **Linux-like power**: taskbar, right-click desktop menu, terminal, filesystem-oriented workflows.
+- **Hybrid by default**: top bar + dock + taskbar + desktop context menu, so you do not have to choose.
+- **Usable surfaces**: every visible screen has functional controls, not static mockup-only panels.
+- **Song quiet**: rice paper, ink, celadon. Show the file you asked for. Dim the rest.
 
 ---
 
-## Current Prototype Features
+## Desktop modes
 
-- **Hybrid desktop modes**: switch between Hybrid, Mac, and Linux from Settings or Command Palette.
-- **Window manager**: draggable/resizable windows with minimize, maximize, close, focus, dock indicators, and taskbar entries.
-- **File Manager**: navigable virtual folders, sidebar shortcuts, path entry, preview, create folder, create file, delete, back/up navigation.
-- **Terminal**: Linux-like shell commands including `ls`, `cd`, `pwd`, `cat`, `mkdir`, `touch`, `rm`, `open`, `neofetch`, `history`, and more.
-- **Browser shell**: back/forward/refresh/home, URL entry, bookmarks, local `soeng://` pages, and sandbox placeholders for external URLs.
-- **Settings**: desktop mode, window controls, dock position, taskbar visibility, real toggles for grid/animations/network states, font size, and UI scale.
-- **Workflow Hub**: interactive kanban cards with drag-and-drop and workflow counters.
-- **Automation Studio**: prompt-to-workflow generation with simulated execution logs.
-- **Native Runtime panel**: outlines how the web-shell contract connects to Linux services such as files, power, network, containers, portals, and app runtime.
+Switch from **Settings**, Control Center, Spotlight (`hybrid` / `mac` / `linux`), or in 墨海:
+
+```
+mode hybrid
+mode mac
+mode linux
+```
+
+| Mode | Chrome |
+| --- | --- |
+| **Hybrid** | Menu bar + dock + Linux taskbar |
+| **Mac** | Menu bar + dock (taskbar sleeps) |
+| **Linux** | Taskbar + right-click menu (no top bar, no dock) |
+
+---
+
+## Apps
+
+**From the original contract**
+
+- **Terminal (墨海)** — `soeng-sh`: `ls`, `cd`, `pwd`, `cat`, `mkdir`, `touch`, `rm`, `open`, `mode`, `neofetch`, `history`, `help`
+- **Workflow Hub (工房)** — kanban with drag-and-drop, New / Run All / Pause All
+- **Automation Studio (机心)** — prompt-to-steps, templates, run log
+- **Files (书院)** — virtual studio shelves
+- **Browser (浏览)** — `soeng://home`, `soeng://welcome`, `soeng://native`, `soeng://poetry`, `soeng://source`, plus the inner garden
+- **Settings (设置)** — desktop mode, dawn/dusk, wallpaper, dock magnification
+
+**Scholar's table (v2)**
+
+- **Notes (墨笺)** · **Photos (山水)** · **Music (丝竹)** · **Podcasts (山中对)** · **TV (观影)**
 
 ---
 
 ## Native Runtime Target
 
-The production system should bind the current desktop contract to real OS services:
+The production system should bind this desktop contract to real OS services:
 
 | Layer | Target responsibility |
 | --- | --- |
 | Linux base | boot, users, permissions, storage, networking, power |
 | Compositor shell | Wayland session, window surfaces, input, display scale |
-| Soeng desktop contract | top bar, dock, taskbar, command palette, settings, window manager |
+| Soeng desktop contract | top bar, dock, taskbar, Spotlight, settings, window manager |
 | Native bridge | filesystem, process, hardware, package, notification, portal APIs |
 | App runtime | PWAs, native Linux apps, sandboxed containers, automation workflows |
 
-The HTML prototype is useful because it makes the interaction contract easy to iterate on before wiring it to the native runtime.
-
 ---
 
-## Visual Style
+## Running
 
-- Neutral palette: black, white, gray, with restrained contrast.
-- Mac-style spatial calm plus Linux-style direct control.
-- Fine lines, small typography, clear focus states.
-- Subtle transitions that can be disabled from Settings.
-- No unnecessary decoration beyond functional affordances.
+### v1 — HTML prototype
 
----
-
-## Running the Prototype
-
-Open `SoengOS.html` directly in a modern browser, or serve it locally:
+Open `SoengOS.html` in a modern browser, or:
 
 ```bash
 python3 -m http.server 8000
 # then open http://localhost:8000/SoengOS.html
 ```
 
-Useful controls:
+A compatibility redirect lives at `soengos-workflow.html`.
 
-- `Ctrl/Cmd + K`: Command Palette
-- `F11`: Focus Mode
-- `Esc`: close top overlay or frontmost window
+### v2 — React desktop
+
+The v2 sitting is the React rewrite of this contract (TanStack Start, Song materials). Source snapshots live in `web/`. The original HTML prototype stays at the repo root so the interaction contract remains cloneable.
+
+Useful controls (both sittings):
+
+- `Ctrl/Cmd + K`: Spotlight / command palette
+- `Esc`: close overlay or frontmost window
 - Right-click desktop: Linux-style context menu
-- Dock click: open or restore app
-- Taskbar click: focus/minimize app
+- Dock click: open or restore
+- Taskbar click: focus / minimize
+
+---
+
+## Visual style (v2)
+
+- Dawn and dusk palettes: rice paper `#F3EDE1`, ink `#1A1714`, celadon, cinnabar seal **宋**
+- Noto Serif SC + Source Serif 4
+- Fine lines, generous mist, no harvest of the fog
+
+v1 keeps its original black / white / gray engineering chrome. Both are SoengOS.
 
 ---
 
 ## Roadmap
 
-1. Keep the HTML desktop contract interactive and complete.
-2. Extract shell components into a native-rendered frontend when the runtime stabilizes.
+1. Keep the HTML desktop contract interactive and complete. **(v1, done)**
+2. Extract shell components into a native-rendered frontend when the runtime stabilizes. **(v2 React sitting, this merge)**
 3. Add a Linux service bridge for filesystem, process, network, power, audio, Bluetooth, notifications, and packages.
 4. Support both web apps and native Linux apps as first-class SoengOS windows.
 5. Package a bootable image with a Wayland-based Soeng session.
+
+Apache-2.0. See `LICENSE`.
