@@ -1,0 +1,17 @@
+{
+  "name": "SoengOS",
+  "install": "node --version && python3 --version",
+  "terminals": [
+    {
+      "name": "static-server",
+      "command": "python3 -m http.server 8000 --bind 0.0.0.0",
+      "description": "Serves the SoengOS prototype. Open http://localhost:8000/SoengOS.html"
+    }
+  ],
+  "ports": [
+    {
+      "name": "SoengOS prototype",
+      "port": 8000
+    }
+  ]
+}
