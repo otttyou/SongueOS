@@ -40,7 +40,7 @@
     --shadow-soft: 0 22px 56px rgba(70, 42, 24, 0.12), 0 4px 16px rgba(70, 42, 24, 0.06);
     --shadow-float: 0 10px 28px rgba(70, 42, 24, 0.10);
     --hairline: 1px solid rgba(24, 20, 16, 0.10);
-    --radius-xl: 24px;
+    --radius-xl: 28px;
     --radius-lg: 18px;
     --radius-md: 12px;
     --radius-sm: 8px;
@@ -554,10 +554,11 @@
     font-size: 12px;
     line-height: 1.6;
     color: #f6f1e4;
-    background: #181410;
+    background: #241c16;
     overflow-y: auto;
     cursor: text;
-    border-radius: var(--radius-md);
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 1px rgba(246, 241, 228, 0.06);
   }
   .terminal-body .line { white-space: pre-wrap; word-break: break-all; }
   .terminal-body .prompt-color { color: #dea864; }
@@ -908,7 +909,7 @@
     min-height:82px;
     padding:13px;
     border:1px solid var(--g3);
-    border-radius:var(--radius-md);
+    border-radius:var(--radius-xl);
     background:var(--g1);
     color:var(--ink);
     text-align:left;
@@ -1172,8 +1173,8 @@
   .dock-icon:hover, .dock-icon.active {
     background: #fff;
     color: var(--ink);
-    transform: translateY(-8px) scale(1.12);
-    box-shadow: 0 12px 24px rgba(70, 42, 24, 0.12);
+    transform: translateY(-10px) scale(1.18);
+    box-shadow: 0 16px 28px rgba(70, 42, 24, 0.14);
   }
   .dock-icon.active::after { background: var(--espresso); border-color: var(--espresso); }
   #dock-menu { border: var(--hairline); }
@@ -1195,7 +1196,9 @@
       transparent 70%);
   }
   .desktop-icon {
-    border: 1px solid transparent;
+    border: 1px solid rgba(24, 20, 16, 0.05);
+    background: rgba(255, 252, 246, 0.42);
+    border-radius: 18px;
     transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
   }
   .desktop-icon:hover {
