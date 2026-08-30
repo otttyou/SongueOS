@@ -1,6 +1,6 @@
 {
   "name": "SoengOS",
-  "install": "node --version && python3 --version && npm test",
+  "install": "node --version && python3 --version",
   "terminals": [
     {
       "name": "static-server",
