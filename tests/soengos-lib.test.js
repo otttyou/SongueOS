@@ -188,6 +188,16 @@ test('SoengOS.html exposes media and productivity apps', () => {
   assert.match(html, /function openTV/);
 });
 
+test('SoengOS.html ships the Zen Dawn theme', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  for (const token of ['--accent: #c96f4a', '--glass:', '--radius-lg:', 'backdrop-filter']) {
+    assert.ok(html.includes(token), token);
+  }
+  assert.match(html, /Zen Dawn Edition/);
+  assert.equal(html.includes('Engineering Minimalism Edition'), false);
+  assert.match(html, /linear-gradient\(165deg, #8e7fae/);
+});
+
 test('SoengOS.html loads the shared security library', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /<script src="soengos-lib\.js"><\/script>/);

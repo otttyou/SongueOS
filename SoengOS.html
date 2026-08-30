@@ -9,23 +9,42 @@
 
   /* ── Reset ── */
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  button { border-radius: 8px; }
+  input[type="text"], textarea, select { border-radius: 8px; }
 
   :root {
-    --taskbar-h: 28px;
-    --black: #000000;
-    --white: #FFFFFF;
-    --g1: #111111;
-    --g2: #222222;
-    --g3: #333333;
-    --g5: #555555;
-    --g7: #777777;
-    --ga: #AAAAAA;
-    --gc: #CCCCCC;
-    --ge: #EEEEEE;
+    --taskbar-h: 34px;
+    /* Zen Dawn palette — warm paper surfaces, ink text, dawn accents.
+       Legacy names are kept but remapped so app code inherits the theme. */
+    --black: #fffdf9;   /* paper (was: black chrome bg) */
+    --white: #2b2430;   /* ink (was: white text) */
+    --g1: #faf4ec;      /* lightest surface */
+    --g2: #f2e9dd;      /* raised surface */
+    --g3: #e0d3c2;      /* soft border */
+    --g5: #b3a493;      /* strong border */
+    --g7: #8a7d70;      /* muted text */
+    --ga: #6b5f55;      /* secondary text */
+    --gc: #3d352e;      /* body text */
+    --ge: #2b2430;      /* near-ink */
+    --ink: #2b2430;
+    --paper: #fffdf9;
+    --accent: #c96f4a;        /* terracotta */
+    --accent-soft: #e8b39a;
+    --accent-2: #7d9d72;      /* sage */
+    --accent-3: #6a6fa8;      /* dusk indigo */
+    --glass: rgba(255, 250, 243, 0.78);
+    --glass-strong: rgba(255, 251, 245, 0.92);
+    --glass-border: rgba(120, 95, 75, 0.22);
+    --shadow-soft: 0 18px 48px rgba(70, 45, 60, 0.22);
+    --shadow-float: 0 8px 28px rgba(70, 45, 60, 0.18);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --blur: saturate(160%) blur(18px);
     --mono: 'IBM Plex Mono', monospace;
     --sans: 'Space Grotesk', system-ui, sans-serif;
-    --transition: 150ms linear;
-    --topbar-h: 32px;
+    --transition: 180ms ease;
+    --topbar-h: 34px;
     --app-font-size: 12px;
     --ui-scale: 1;
     --gray-100: var(--ge);
@@ -41,8 +60,11 @@
   html, body {
     width: 100vw; height: 100vh;
     overflow: hidden;
-    font-family: var(--mono);
-    background: var(--g1);
+    font-family: var(--sans);
+    background:
+      radial-gradient(120% 80% at 85% -10%, #f7d9b8 0%, transparent 55%),
+      radial-gradient(100% 90% at 10% 110%, #d9a08a 0%, transparent 60%),
+      linear-gradient(165deg, #8e7fae 0%, #c98d94 42%, #ecb98f 78%, #f6dcae 100%);
     color: var(--gc);
     cursor: default;
     user-select: none;
@@ -52,41 +74,46 @@
   /* ── Boot screen ── */
   #boot-screen {
     position: fixed; inset: 0; z-index: 99999;
-    background: var(--black);
+    background: linear-gradient(165deg, #6d5f92 0%, #b57e88 48%, #e8b088 100%);
     display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 12px;
+    flex-direction: column; gap: 14px;
     opacity: 1;
-    transition: opacity 800ms linear;
+    transition: opacity 800ms ease;
   }
   #boot-screen.fade-out { opacity: 0; pointer-events: none; }
   #boot-screen .boot-logo {
-    font-family: var(--mono);
-    font-size: 28px; font-weight: 400;
-    color: var(--white);
-    letter-spacing: 6px;
+    font-family: var(--sans);
+    font-size: 34px; font-weight: 600;
+    color: #fffaf2;
+    letter-spacing: 10px;
     text-transform: uppercase;
+    text-shadow: 0 4px 24px rgba(60, 35, 60, 0.4);
     opacity: 0;
-    animation: bootFadeIn 600ms 200ms linear forwards;
+    animation: bootFadeIn 600ms 200ms ease forwards;
   }
   #boot-screen .boot-sub {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--g5);
-    letter-spacing: 3px;
+    font-family: var(--sans);
+    font-size: 12px;
+    color: rgba(255, 248, 238, 0.75);
+    letter-spacing: 5px;
+    text-transform: uppercase;
     opacity: 0;
-    animation: bootFadeIn 400ms 500ms linear forwards;
+    animation: bootFadeIn 400ms 500ms ease forwards;
   }
   @keyframes bootFadeIn { to { opacity: 1; } }
 
   /* ── Keyboard hint overlay ── */
   #keyboard-hint {
     position: fixed;
-    bottom: 48px; left: 50%; transform: translateX(-50%);
+    bottom: 84px; left: 50%; transform: translateX(-50%);
     z-index: 90000;
-    background: var(--g2);
-    border: 1px solid var(--g3);
-    padding: 10px 20px;
-    font-family: var(--mono);
+    background: var(--glass-strong);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float);
+    padding: 10px 22px;
+    font-family: var(--sans);
     font-size: 11px;
     color: var(--ga);
     line-height: 1.8;
@@ -98,9 +125,10 @@
   #keyboard-hint.visible { opacity: 1; }
   #keyboard-hint kbd {
     display: inline-block;
-    background: var(--g3);
-    border: 1px solid var(--g5);
-    padding: 1px 6px;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+    border-radius: 5px;
+    padding: 1px 7px;
     font-family: var(--mono);
     font-size: 10px;
     color: var(--gc);
@@ -111,19 +139,20 @@
   #topbar {
     position: fixed; top: 0; left: 0; right: 0;
     height: var(--topbar-h);
-    background: var(--black);
-    border-bottom: 1px solid var(--g3);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    border-bottom: 1px solid var(--glass-border);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 12px;
+    padding: 0 16px;
     z-index: 10000;
     font-size: 12px;
   }
   #topbar .logo {
-    font-family: var(--mono);
-    font-weight: 500;
+    font-family: var(--sans);
+    font-weight: 600;
     font-size: 12px;
-    color: var(--white);
-    letter-spacing: 3px;
+    color: var(--ink);
+    letter-spacing: 4px;
     text-transform: uppercase;
   }
   #topbar .right {
@@ -131,21 +160,22 @@
     color: var(--ga);
     font-size: 11px;
   }
-  #topbar .right .clock { font-variant-numeric: tabular-nums; }
+  #topbar .right .clock { font-variant-numeric: tabular-nums; font-family: var(--mono); }
   #topbar .right .battery {
     display: flex; align-items: center; gap: 4px;
   }
   #topbar .right .battery svg { display: block; }
   #topbar .right .menu-btn {
     background: none; border: 1px solid var(--g5);
+    border-radius: 999px;
     color: var(--ga);
-    padding: 2px 8px;
-    font-family: var(--mono); font-size: 10px;
+    padding: 2px 12px;
+    font-family: var(--sans); font-size: 10px;
     cursor: pointer;
     transition: background var(--transition), color var(--transition);
   }
   #topbar .right .menu-btn:hover {
-    background: var(--g3); color: var(--white);
+    background: var(--accent); border-color: var(--accent); color: #fffaf2;
   }
 
 
@@ -163,92 +193,104 @@
   body[data-taskbar-visible="false"] #desktop { bottom: 0; }
   body[data-window-controls="mac"] .window-titlebar { justify-content: flex-start; gap: 10px; }
   body[data-window-controls="mac"] .window-titlebar .controls { order: -1; }
-  body[data-window-controls="mac"] .window-titlebar .controls button { border-radius: 50%; }
-  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(1) { background: #aaaaaa; }
-  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(2) { background: #777777; }
-  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(3) { background: #555555; }
   body[data-window-controls="mac"] .window-titlebar .controls button svg { display: none; }
   body[data-window-controls="linux"] .window-titlebar .controls { margin-left: auto; order: 2; }
-  body[data-window-controls="linux"] .window-titlebar .controls button { border-radius: 0; }
+  body[data-window-controls="linux"] .window-titlebar .controls button { border-radius: 5px; }
   #desktop-dock {
     position: fixed;
     z-index: 11000;
     display: flex;
-    gap: 6px;
-    padding: 7px;
-    background: rgba(0,0,0,0.86);
-    border: 1px solid var(--g3);
+    gap: 8px;
+    padding: 9px;
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    box-shadow: var(--shadow-float);
   }
   .dock-icon {
-    width: 42px; height: 42px;
+    width: 44px; height: 44px;
     display: flex; align-items: center; justify-content: center;
     border: 1px solid transparent;
+    border-radius: 14px;
     color: var(--ga);
     cursor: pointer;
     position: relative;
-    transition: border-color var(--transition), background var(--transition), color var(--transition);
+    transition: transform var(--transition), background var(--transition), color var(--transition), box-shadow var(--transition);
   }
-  .dock-icon:hover, .dock-icon.active { border-color: var(--g5); background: var(--g2); color: var(--white); }
-  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1; fill: none; }
+  .dock-icon:hover, .dock-icon.active {
+    background: rgba(255, 255, 255, 0.65);
+    color: var(--ink);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(70, 45, 60, 0.18);
+  }
+  .dock-icon[data-app="notes"]:hover    { color: var(--accent); }
+  .dock-icon[data-app="music"]:hover    { color: var(--accent-3); }
+  .dock-icon[data-app="photos"]:hover   { color: var(--accent-2); }
+  .dock-icon[data-app="podcast"]:hover  { color: #a8578a; }
+  .dock-icon[data-app="tv"]:hover       { color: #4a7d9d; }
+  .dock-icon[data-app="browser"]:hover  { color: var(--accent-3); }
+  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1.3; fill: none; }
   .dock-icon::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -6px;
     left: 50%;
-    width: 4px;
-    height: 4px;
-    border: 1px solid var(--g5);
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--accent);
     border-radius: 50%;
     opacity: 0;
     transform: translateX(-50%);
   }
-  .dock-icon.active::after { background: var(--white); border-color: var(--white); opacity: 1; }
-  .dock-icon.minimized::after { background: transparent; border-color: var(--ga); opacity: 1; }
+  .dock-icon.active::after { background: var(--accent); border-color: var(--accent); opacity: 1; }
+  .dock-icon.minimized::after { background: transparent; border-color: var(--g7); opacity: 1; }
   .dock-icon.multiple::before {
     content: '';
     position: absolute;
-    right: 4px;
-    bottom: 4px;
+    right: 5px;
+    bottom: 5px;
     width: 6px;
     height: 6px;
-    border: 1px solid var(--ga);
-    background: var(--black);
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: var(--paper);
   }
   #dock-menu {
     position: fixed;
     z-index: 20000;
-    min-width: 144px;
+    min-width: 156px;
     display: none;
-    background: var(--black);
-    border: 1px solid var(--g5);
-    box-shadow: var(--shadow-hard);
+    background: var(--glass-strong);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float);
+    overflow: hidden;
   }
   #dock-menu.open { display: block; }
   .dock-menu-item {
-    padding: 9px 12px;
+    padding: 10px 14px;
     color: var(--ga);
     font-size: 11px;
-    border-bottom: 1px solid var(--g3);
     cursor: pointer;
   }
-  .dock-menu-item:last-child { border-bottom: 0; }
-  .dock-menu-item:hover { background: var(--g2); color: var(--white); }
+  .dock-menu-item:hover { background: rgba(201, 111, 74, 0.14); color: var(--ink); }
 
   /* ── Desktop ── */
   #desktop {
     position: fixed;
     top: var(--topbar-h); left: 0; right: 0; bottom: var(--taskbar-h);
-    background: var(--g1);
+    background: transparent;
     overflow: hidden;
   }
-  /* Faint grid */
+  /* Soft dawn haze */
   #desktop::before {
     content: '';
     position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 80px 80px;
+    background:
+      radial-gradient(60% 45% at 70% 20%, rgba(255, 240, 215, 0.35) 0%, transparent 70%),
+      radial-gradient(45% 40% at 20% 80%, rgba(120, 90, 140, 0.18) 0%, transparent 70%);
     pointer-events: none;
   }
 
@@ -263,89 +305,107 @@
     overflow-y: auto;
   }
   .desktop-icon {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
     width: 72px;
-    padding: 8px 4px;
+    padding: 10px 4px;
     cursor: pointer;
     border: 1px solid transparent;
-    transition: border-color var(--transition), background var(--transition);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition), background var(--transition), transform var(--transition);
   }
   .desktop-icon:hover {
-    border-color: var(--g3);
-    background: rgba(255,255,255,0.03);
+    border-color: var(--glass-border);
+    background: rgba(255, 251, 243, 0.4);
+    backdrop-filter: blur(6px);
   }
   .desktop-icon.selected {
-    border-color: var(--g5);
-    background: rgba(255,255,255,0.05);
+    border-color: var(--accent);
+    background: rgba(255, 251, 243, 0.55);
   }
   .desktop-icon svg {
     width: 32px; height: 32px;
-    stroke: var(--ga);
-    stroke-width: 1;
+    stroke: #4a3a45;
+    stroke-width: 1.2;
     fill: none;
+    filter: drop-shadow(0 2px 4px rgba(70, 45, 60, 0.25));
   }
   .desktop-icon span {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--ga);
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 500;
+    color: #3d2f3a;
     text-align: center;
     line-height: 1.3;
+    text-shadow: 0 1px 3px rgba(255, 245, 230, 0.6);
   }
 
   /* ── Window system ── */
   .window {
     position: absolute;
     min-width: 320px; min-height: 200px;
-    border: 1px solid var(--g3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
     display: flex; flex-direction: column;
     z-index: 100;
-    transition: opacity var(--transition);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    transition: opacity var(--transition), box-shadow var(--transition);
   }
   .window.minimized { display: none; }
   .window.maximized {
     top: 0 !important; left: 0 !important;
     width: 100% !important; height: 100% !important;
+    border-radius: 0;
   }
   .window-titlebar {
-    height: 28px;
-    background: var(--black);
-    border-bottom: 1px solid var(--g3);
+    height: 34px;
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    border-bottom: 1px solid rgba(120, 95, 75, 0.14);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 8px;
+    padding: 0 12px;
     cursor: grab;
     flex-shrink: 0;
   }
   .window-titlebar:active { cursor: grabbing; }
   .window-titlebar .title {
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
     color: var(--ga);
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
   }
   .window-titlebar .controls {
-    display: flex; gap: 6px;
+    display: flex; gap: 7px;
   }
   .window-titlebar .controls button {
-    width: 12px; height: 12px;
-    background: var(--g5);
-    border: 1px solid var(--g7);
+    width: 13px; height: 13px;
+    background: #e5b96a;
+    border: none;
+    border-radius: 50%;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     padding: 0;
-    transition: background var(--transition);
+    transition: filter var(--transition);
   }
-  .window-titlebar .controls button:hover { background: var(--g7); }
+  .window-titlebar .controls button:nth-child(2) { background: #8fbc7f; }
+  .window-titlebar .controls button:nth-child(3) { background: #e08a6d; }
+  .window-titlebar .controls button:hover { filter: brightness(0.88); }
   .window-titlebar .controls button svg {
-    width: 8px; height: 8px;
-    stroke: var(--gc);
+    width: 7px; height: 7px;
+    stroke: rgba(60, 40, 30, 0.55);
     stroke-width: 1.5;
     fill: none;
+    opacity: 0;
+    transition: opacity var(--transition);
   }
+  .window-titlebar:hover .controls button svg { opacity: 1; }
   .window-content {
     flex: 1;
-    background: var(--g2);
+    background: var(--glass-strong);
+    backdrop-filter: var(--blur);
     overflow: auto;
-    font-family: var(--mono);
+    font-family: var(--sans);
     font-size: var(--app-font-size);
     color: var(--gc);
   }
@@ -362,10 +422,11 @@
   }
   .window-resize::before {
     content: '';
-    position: absolute; bottom: 4px; right: 4px;
-    width: 10px; height: 10px;
-    border-right: 1.5px solid var(--g5);
-    border-bottom: 1.5px solid var(--g5);
+    position: absolute; bottom: 6px; right: 6px;
+    width: 9px; height: 9px;
+    border-right: 2px solid var(--g5);
+    border-bottom: 2px solid var(--g5);
+    border-bottom-right-radius: 4px;
   }
 
 
@@ -466,19 +527,20 @@
   .fm-action, .browser-action, .settings-action-btn { background: none; border: 1px solid var(--g3); color: var(--ga); padding: 3px 8px; font-family: var(--mono); font-size: 10px; cursor:pointer; }
   .fm-action:hover, .browser-action:hover, .settings-action-btn:hover { border-color: var(--g5); color: var(--white); background: var(--g2); }
 
-  /* ── Terminal ── */
+  /* ── Terminal (keeps a dark pane for contrast) ── */
   .terminal-body {
-    padding: 10px;
+    padding: 12px;
     font-family: var(--mono);
     font-size: 12px;
     line-height: 1.6;
-    color: var(--gc);
+    color: #e8dfd2;
+    background: rgba(43, 33, 48, 0.96);
     height: 100%;
     overflow-y: auto;
     cursor: text;
   }
   .terminal-body .line { white-space: pre-wrap; word-break: break-all; }
-  .terminal-body .prompt-color { color: var(--ga); }
+  .terminal-body .prompt-color { color: #d9a08a; }
   .terminal-body .input-line {
     display: flex; align-items: center;
   }
@@ -487,10 +549,10 @@
     background: transparent;
     border: none;
     outline: none;
-    color: var(--gc);
+    color: #e8dfd2;
     font-family: var(--mono);
     font-size: 12px;
-    caret-color: var(--gc);
+    caret-color: #d9a08a;
   }
 
   /* ── Settings ── */
@@ -522,20 +584,23 @@
   }
   /* Toggle */
   .toggle {
-    width: 36px; height: 18px;
+    width: 38px; height: 20px;
     background: var(--g3);
     border: 1px solid var(--g5);
+    border-radius: 999px;
     position: relative;
     cursor: pointer;
-    transition: background var(--transition);
+    transition: background var(--transition), border-color var(--transition);
   }
-  .toggle.on { background: var(--g7); }
+  .toggle.on { background: var(--accent); border-color: var(--accent); }
   .toggle::after {
     content: '';
     position: absolute;
     top: 2px; left: 2px;
-    width: 12px; height: 12px;
-    background: var(--gc);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fffaf2;
+    box-shadow: 0 1px 3px rgba(70, 45, 60, 0.3);
     transition: left var(--transition);
   }
   .toggle.on::after { left: 20px; }
@@ -550,17 +615,19 @@
   }
   .settings-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px; height: 12px;
-    background: var(--gc);
-    border: 1px solid var(--g7);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid #fffaf2;
+    box-shadow: 0 1px 3px rgba(70, 45, 60, 0.3);
     cursor: pointer;
   }
   .settings-slider::-moz-range-thumb {
-    width: 12px; height: 12px;
-    background: var(--gc);
-    border: 1px solid var(--g7);
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border: 2px solid #fffaf2;
     cursor: pointer;
-    border-radius: 0;
+    border-radius: 50%;
   }
 
   /* ── Browser ── */
@@ -593,18 +660,18 @@
   .browser-toolbar .url-bar:focus { border-color: var(--g5); }
   .browser-content {
     flex: 1;
-    background: var(--ge);
+    background: var(--paper);
     display: flex; align-items: center; justify-content: center;
   }
   .browser-page {
     width: 100%; height: 100%;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 12px;
-    background: var(--white);
-    color: var(--g3);
+    background: linear-gradient(180deg, #fffdf9 0%, #f7efe3 100%);
+    color: var(--gc);
     font-family: var(--sans);
   }
-  .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--g1); }
+  .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
   .browser-page p { font-size: 12px; color: var(--g7); max-width: 400px; text-align: center; line-height: 1.6; }
   .browser-bookmarks { display:flex; gap:6px; padding:6px 8px; border-bottom:1px solid var(--g3); background:var(--g1); overflow-x:auto; }
   .browser-status { margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--g7); }
@@ -652,9 +719,10 @@
     height:4px; background:var(--g3); margin:12px 0; position:relative;
   }
   .music-progress-bar {
-    height:100%; background:var(--white); width:0%;
+    height:100%; background:var(--accent); border-radius:999px; width:0%;
     transition:width 200ms linear;
   }
+  .music-progress { border-radius:999px; overflow:hidden; }
   .music-track {
     display:flex; align-items:center; justify-content:space-between;
     padding:8px 10px; border:1px solid transparent; cursor:pointer;
@@ -727,51 +795,59 @@
   #cmd-palette {
     position: fixed;
     top: 20%; left: 50%; transform: translateX(-50%);
-    width: 440px;
-    background: var(--g1);
-    border: 1px solid var(--g3);
+    width: 460px;
+    background: var(--glass-strong);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
     z-index: 50000;
     display: none;
     flex-direction: column;
+    overflow: hidden;
   }
   #cmd-palette.open { display: flex; }
   #cmd-palette input {
-    width: 100%; height: 36px;
-    background: var(--g2);
+    width: 100%; height: 42px;
+    background: transparent;
     border: none; border-bottom: 1px solid var(--g3);
-    padding: 0 14px;
-    font-family: var(--mono); font-size: 13px;
-    color: var(--gc);
+    padding: 0 18px;
+    font-family: var(--sans); font-size: 14px;
+    color: var(--ink);
     outline: none;
   }
+  #cmd-palette input::placeholder { color: var(--g7); }
   #cmd-palette .results {
-    max-height: 240px;
+    max-height: 260px;
     overflow-y: auto;
+    padding: 6px;
   }
   #cmd-palette .result-item {
-    padding: 8px 14px;
-    font-family: var(--mono); font-size: 12px;
+    padding: 9px 14px;
+    font-family: var(--sans); font-size: 12px;
     color: var(--ga);
     cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-radius: var(--radius-sm);
     display: flex; align-items: center; gap: 10px;
     transition: background var(--transition);
   }
   #cmd-palette .result-item:hover,
   #cmd-palette .result-item.active {
-    background: var(--g2);
-    color: var(--white);
+    background: rgba(201, 111, 74, 0.14);
+    color: var(--ink);
   }
   #cmd-palette .result-item .shortcut {
     margin-left: auto;
     font-size: 10px;
-    color: var(--g5);
+    font-family: var(--mono);
+    color: var(--g7);
   }
 
   /* ── About Modal ── */
   #about-modal {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(60, 40, 65, 0.35);
+    backdrop-filter: blur(8px);
     z-index: 60000;
     display: none;
     align-items: center; justify-content: center;
@@ -779,15 +855,17 @@
   #about-modal.open { display: flex; }
   #about-modal .modal-box {
     width: 480px;
-    background: var(--g1);
-    border: 1px solid var(--g3);
-    padding: 28px;
+    background: var(--glass-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    padding: 30px;
   }
   #about-modal .modal-box h2 {
-    font-family: var(--mono);
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--white);
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
     letter-spacing: 2px;
     margin-bottom: 16px;
   }
@@ -799,50 +877,53 @@
   }
   #about-modal .modal-box .close-btn {
     margin-top: 12px;
-    background: none;
-    border: 1px solid var(--g5);
-    color: var(--ga);
-    padding: 5px 16px;
-    font-family: var(--mono); font-size: 11px;
+    background: var(--accent);
+    border: none;
+    border-radius: 999px;
+    color: #fffaf2;
+    padding: 7px 20px;
+    font-family: var(--sans); font-size: 11px;
     cursor: pointer;
-    transition: background var(--transition), color var(--transition);
+    transition: filter var(--transition);
   }
-  #about-modal .modal-box .close-btn:hover {
-    background: var(--g3); color: var(--white);
-  }
+  #about-modal .modal-box .close-btn:hover { filter: brightness(0.92); }
 
   /* ── Power menu ── */
   #power-menu {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(60, 40, 65, 0.45);
+    backdrop-filter: blur(10px);
     z-index: 60000;
     display: none;
     align-items: center; justify-content: center;
-    flex-direction: column; gap: 16px;
+    flex-direction: column; gap: 14px;
   }
   #power-menu.open { display: flex; }
   #power-menu .power-option {
-    width: 200px;
-    padding: 10px 0;
+    width: 220px;
+    padding: 12px 0;
     text-align: center;
-    font-family: var(--mono); font-size: 13px;
-    color: var(--ga);
-    border: 1px solid var(--g3);
+    font-family: var(--sans); font-size: 13px;
+    font-weight: 500;
+    color: var(--gc);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    background: var(--g1);
-    transition: background var(--transition), color var(--transition);
+    background: var(--glass-strong);
+    box-shadow: var(--shadow-float);
+    transition: background var(--transition), color var(--transition), transform var(--transition);
   }
   #power-menu .power-option:hover {
-    background: var(--g3); color: var(--white);
+    background: var(--accent); color: #fffaf2; transform: translateY(-2px);
   }
 
   /* ── Footer credit ── */
   #footer-credit {
     position: fixed;
     bottom: 6px; right: 12px;
-    font-family: var(--mono);
+    font-family: var(--sans);
     font-size: 9px;
-    color: var(--g3);
+    color: var(--g5);
     letter-spacing: 1px;
     z-index: 5;
     pointer-events: none;
@@ -855,35 +936,37 @@
   body.focus-mode #desktop { top: 0; bottom: 0; }
 
   /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--g1); }
-  ::-webkit-scrollbar-thumb { background: var(--g3); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--g5); }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--g5); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
   /* ── Selection ── */
-  ::selection { background: var(--g5); color: var(--white); }
+  ::selection { background: var(--accent-soft); color: var(--ink); }
 
   /* ── Taskbar ── */
   #taskbar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
     height: var(--taskbar-h);
-    background: var(--black);
-    border-top: 1px solid var(--g3);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    border-top: 1px solid var(--glass-border);
     z-index: 10000;
     display: flex; align-items: center;
-    padding: 0 8px;
-    gap: 4px;
+    padding: 0 10px;
+    gap: 6px;
     overflow: hidden;
   }
   .taskbar-win {
-    height: 20px;
-    padding: 0 10px;
-    font-family: var(--mono);
+    height: 22px;
+    padding: 0 12px;
+    font-family: var(--sans);
     font-size: 10px;
     color: var(--g7);
     background: none;
     border: 1px solid var(--g3);
+    border-radius: 999px;
     cursor: pointer;
     display: flex; align-items: center;
     transition: background var(--transition), color var(--transition), border-color var(--transition);
@@ -892,13 +975,13 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-  .taskbar-win:hover { background: var(--g3); color: var(--gc); border-color: var(--g5); }
-  .taskbar-win.active { background: var(--g2); color: var(--white); border-color: var(--g5); }
+  .taskbar-win:hover { background: rgba(255,255,255,0.55); color: var(--gc); border-color: var(--g5); }
+  .taskbar-win.active { background: var(--accent); color: #fffaf2; border-color: var(--accent); }
   .taskbar-spacer { flex: 1; }
   .taskbar-credit {
-    font-family: var(--mono);
+    font-family: var(--sans);
     font-size: 9px;
-    color: var(--g3);
+    color: var(--g7);
     letter-spacing: 1px;
     pointer-events: none;
     padding-right: 4px;
@@ -908,53 +991,60 @@
   /* ── Toast notifications ── */
   #toast-container {
     position: fixed;
-    bottom: calc(var(--taskbar-h) + 8px);
-    right: 12px;
+    bottom: calc(var(--taskbar-h) + 10px);
+    right: 14px;
     z-index: 70000;
     display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
     pointer-events: none;
   }
   .toast {
-    background: var(--g2);
-    border: 1px solid var(--g5);
-    padding: 7px 14px;
-    font-family: var(--mono);
+    background: var(--glass-strong);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-float);
+    padding: 8px 16px;
+    font-family: var(--sans);
     font-size: 11px;
     color: var(--gc);
     opacity: 0;
     transform: translateX(20px);
-    transition: opacity 200ms linear, transform 200ms linear;
+    transition: opacity 200ms ease, transform 200ms ease;
   }
   .toast.show { opacity: 1; transform: translateX(0); }
 
   /* ── Context Menu ── */
   #ctx-menu {
     position: fixed;
-    background: var(--g1);
-    border: 1px solid var(--g3);
+    background: var(--glass-strong);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float);
     z-index: 80000;
     display: none;
     flex-direction: column;
-    min-width: 160px;
+    min-width: 168px;
+    overflow: hidden;
+    padding: 4px;
   }
   #ctx-menu.open { display: flex; }
   .ctx-item {
-    padding: 7px 14px;
-    font-family: var(--mono);
+    padding: 8px 14px;
+    font-family: var(--sans);
     font-size: 11px;
     color: var(--ga);
     cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-radius: var(--radius-sm);
     transition: background var(--transition), color var(--transition);
   }
-  .ctx-item:last-child { border-bottom: none; }
-  .ctx-item:hover { background: var(--g2); color: var(--white); }
-  .ctx-sep { height: 1px; background: var(--g3); }
+  .ctx-item:hover { background: rgba(201, 111, 74, 0.14); color: var(--ink); }
+  .ctx-sep { height: 1px; background: var(--g3); margin: 4px 8px; }
 
   /* ── Window focus indicator ── */
-  .window.focused { border-color: var(--g5); }
-  .window.focused .window-titlebar { background: var(--g1); }
-  .window.focused .window-titlebar .title { color: var(--gc); }
+  .window.focused { border-color: rgba(201, 111, 74, 0.45); box-shadow: 0 24px 60px rgba(70, 45, 60, 0.3); }
+  .window.focused .window-titlebar .title { color: var(--ink); }
 </style>
 </head>
 <body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
@@ -962,7 +1052,7 @@
 <!-- Boot Screen -->
 <div id="boot-screen">
   <div class="boot-logo">SoengOS</div>
-  <div class="boot-sub">Engineering Edition</div>
+  <div class="boot-sub">Zen Dawn Edition</div>
 </div>
 
 <!-- Keyboard Hint -->
@@ -978,10 +1068,10 @@
   <div class="right">
     <div class="clock" id="clock">00:00</div>
     <div class="battery">
-      <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="#AAAAAA" stroke-width="1">
-        <rect x="0.5" y="0.5" width="14" height="9" />
-        <rect x="2" y="2" width="9" height="5" fill="#777777" stroke="none" />
-        <rect x="15" y="3" width="2" height="4" />
+      <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="#6b5f55" stroke-width="1">
+        <rect x="0.5" y="0.5" width="14" height="9" rx="2" />
+        <rect x="2" y="2" width="9" height="5" rx="1" fill="#7d9d72" stroke="none" />
+        <rect x="15" y="3" width="2" height="4" rx="1" />
       </svg>
       <span style="font-size:9px">87%</span>
     </div>
@@ -1169,7 +1259,7 @@
     <h2>About SoengOS</h2>
     <p>SoengOS is a web-enabled Linux operating system concept inspired by Zen minimalism. It embodies the philosophy of "less is more" — extreme focus, no distractions, and precise engineering aesthetics.</p>
     <p>Built as a single-file browser prototype using vanilla JavaScript and CSS. All applications run entirely within the browser. No external dependencies, no frameworks, no runtime.</p>
-    <p style="color:#555555; font-size:10px; margin-top:8px;">Engineering Minimalism Edition &middot; Black/White/Gray only &middot; v1.0</p>
+    <p style="color:var(--g7); font-size:10px; margin-top:8px;">Zen Dawn Edition &middot; Dawn / Paper / Ink palette &middot; v1.1</p>
     <button class="close-btn" onclick="toggleAbout()">CLOSE</button>
   </div>
 </div>
@@ -1208,7 +1298,7 @@
   <div class="taskbar-spacer"></div>
   <div class="workflow-status">Workflows: <span id="workflowCount">2</span></div>
   <div class="workflow-status">Automations: <span id="automationCount">1</span></div>
-  <div class="taskbar-credit">Engineering Edition &bull; v1.0</div>
+  <div class="taskbar-credit">Zen Dawn &bull; v1.1</div>
 </div>
 
 <script src="soengos-lib.js"></script>
@@ -1853,7 +1943,7 @@ function initFileManager(id) {
 function openTerminal(options = {}) {
   const html = `
     <div class="terminal-body" data-terminal-body>
-      <div class="line"><span class="prompt-color">SoengOS v1.0 — Engineering Edition</span></div>
+      <div class="line"><span class="prompt-color">SoengOS v1.1 — Zen Dawn Edition</span></div>
       <div class="line"><span class="prompt-color">Type 'help' for available commands.</span></div>
       <div class="line">&nbsp;</div>
       <div class="input-line">
@@ -2069,7 +2159,7 @@ function execCommand(raw, body = getActiveTerminalBody()) {
         '       │          │      Shell: soeng-sh',
         '       └──────────┘      Resolution: ' + window.innerWidth + 'x' + window.innerHeight,
         '                         WM: SoengWM',
-        '                         Theme: Engineering Minimal',
+        '                         Theme: Zen Dawn',
         '                         Terminal: SoengTerm',
       ];
       neoLines.forEach(l => termPrint(l));
@@ -2869,7 +2959,7 @@ function setSystemToggle(key, el) {
   if (key === 'darkMode' && !systemToggles[key]) {
     systemToggles[key] = true;
     if (el) el.classList.add('on');
-    showToast('Engineering Edition keeps dark mode enabled');
+    showToast('Zen Dawn keeps its tuned dawn theme enabled');
     return;
   }
   showToast(`${key.replace(/([A-Z])/g, ' $1')} ${systemToggles[key] ? 'enabled' : 'disabled'}`);
@@ -2947,7 +3037,7 @@ function openSettings(options = {}) {
       <div class="settings-section">
         <h3>Appearance</h3>
         <div class="settings-row">
-          <div><label>Dark Mode</label><div class="sublabel">Always enabled in Engineering Edition</div></div>
+          <div><label>Dawn Theme</label><div class="sublabel">Always enabled in Zen Dawn Edition</div></div>
           <div class="toggle on" onclick="setSystemToggle('darkMode', this)"></div>
         </div>
         <div class="settings-row">
@@ -2997,9 +3087,9 @@ function openSettings(options = {}) {
         <h3>About</h3>
         <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
           <label>SoengOS v1.0.0</label>
-          <div class="sublabel">Engineering Minimalism Edition</div>
+          <div class="sublabel">Zen Dawn Edition</div>
           <div class="sublabel">Kernel: Web/JS &middot; WM: SoengWM &middot; Shell: soeng-sh</div>
-          <div class="sublabel">License: MIT &middot; Palette: Black/White/Gray</div>
+          <div class="sublabel">License: MIT &middot; Palette: Dawn / Paper / Ink</div>
           <button class="settings-action-btn" onclick="openNativeReadiness()">Open Native Runtime Plan</button>
         </div>
       </div>
