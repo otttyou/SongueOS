@@ -103,13 +103,16 @@ Useful controls (both sittings):
 
 ---
 
-## Visual style (v2)
+## Visual style
 
-- Dawn and dusk palettes: rice paper `#F3EDE1`, ink `#1A1714`, celadon, cinnabar seal **宋**
-- Noto Serif SC + Source Serif 4
-- Fine lines, generous mist, no harvest of the fog
+v1 Fable sitting is a **paper studio**, not a black terminal room:
 
-v1 keeps its original black / white / gray engineering chrome. Both are SoengOS.
+- Wall: warm paper `#f3ebe0` with peach mist — same light field as [Kengo Fable](https://www.kengoworks.com/fable)
+- Ink: espresso `#181410` for type and wells, not the desktop
+- Chrome: hairline borders, 18–24px radii, pill dock / top bar / taskbar
+- Motion: 420ms ease, windows lift in, dock icons float
+
+v2 still points at rice paper, celadon, and the Song desk. Both sittings stay SoengOS.
 
 ---
 
