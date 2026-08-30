@@ -5,27 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SoengOS – A Web-Enabled Linux OS Inspired by Zen Minimalism</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@400;500;600&display=swap');
 
   /* ── Reset ── */
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  button { border-radius: 0; }
+  input[type="text"], textarea, select { border-radius: 0; }
 
   :root {
-    --taskbar-h: 28px;
-    --black: #000000;
-    --white: #FFFFFF;
-    --g1: #111111;
-    --g2: #222222;
-    --g3: #333333;
-    --g5: #555555;
-    --g7: #777777;
-    --ga: #AAAAAA;
-    --gc: #CCCCCC;
-    --ge: #EEEEEE;
+    --taskbar-h: 34px;
+    /* Fable palette — warm espresso field, cream surfaces, ink type.
+       Two tones only; legacy names are remapped so apps inherit the theme. */
+    --espresso: #181410;
+    --cream: #f6f1e4;
+    --black: #f6f1e4;   /* chrome surface (cream) */
+    --white: #181410;   /* primary ink */
+    --g1: #f0ead9;      /* lightest raised surface */
+    --g2: #e8e0cb;      /* raised surface */
+    --g3: #d4c9ad;      /* soft border */
+    --g5: #a99c7f;      /* strong border */
+    --g7: #7d735d;      /* muted text */
+    --ga: #55503f;      /* secondary text */
+    --gc: #262019;      /* body text */
+    --ge: #181410;      /* ink */
+    --ink: #181410;
+    --paper: #f6f1e4;
+    --accent: #181410;        /* Fable inverts: accent is ink on cream */
+    --accent-soft: rgba(24, 20, 16, 0.14);
+    --accent-2: #181410;
+    --accent-3: #181410;
+    --glass: rgba(246, 241, 228, 0.97);
+    --glass-strong: #f6f1e4;
+    --glass-border: rgba(24, 20, 16, 0.9);
+    --shadow-soft: 0 22px 56px rgba(0, 0, 0, 0.45);
+    --shadow-float: 0 10px 32px rgba(0, 0, 0, 0.4);
+    --radius-lg: 0px;
+    --radius-md: 0px;
+    --radius-sm: 0px;
+    --blur: none;
     --mono: 'IBM Plex Mono', monospace;
-    --sans: 'Space Grotesk', system-ui, sans-serif;
-    --transition: 150ms linear;
-    --topbar-h: 32px;
+    --sans: "Helvetica Neue", Helvetica, 'Inter', "Segoe UI", system-ui, sans-serif;
+    --transition: 200ms ease;
+    --topbar-h: 34px;
     --app-font-size: 12px;
     --ui-scale: 1;
     --gray-100: var(--ge);
@@ -41,8 +62,12 @@
   html, body {
     width: 100vw; height: 100vh;
     overflow: hidden;
-    font-family: var(--mono);
-    background: var(--g1);
+    font-family: var(--sans);
+    letter-spacing: -0.015em;
+    background:
+      radial-gradient(55% 45% at 72% 12%, rgba(222, 168, 100, 0.13) 0%, transparent 70%),
+      radial-gradient(50% 50% at 18% 88%, rgba(200, 130, 105, 0.10) 0%, transparent 70%),
+      #181410;
     color: var(--gc);
     cursor: default;
     user-select: none;
@@ -52,41 +77,44 @@
   /* ── Boot screen ── */
   #boot-screen {
     position: fixed; inset: 0; z-index: 99999;
-    background: var(--black);
+    background:
+      radial-gradient(60% 50% at 50% 45%, rgba(222, 168, 100, 0.12) 0%, transparent 70%),
+      #181410;
     display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 12px;
+    flex-direction: column; gap: 16px;
     opacity: 1;
-    transition: opacity 800ms linear;
+    transition: opacity 800ms ease;
   }
   #boot-screen.fade-out { opacity: 0; pointer-events: none; }
   #boot-screen .boot-logo {
-    font-family: var(--mono);
-    font-size: 28px; font-weight: 400;
-    color: var(--white);
-    letter-spacing: 6px;
-    text-transform: uppercase;
+    font-family: var(--sans);
+    font-size: 36px; font-weight: 400;
+    color: #f6f1e4;
+    letter-spacing: -0.015em;
     opacity: 0;
-    animation: bootFadeIn 600ms 200ms linear forwards;
+    animation: bootFadeIn 600ms 200ms ease forwards;
   }
   #boot-screen .boot-sub {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--g5);
-    letter-spacing: 3px;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: rgba(246, 241, 228, 0.55);
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
     opacity: 0;
-    animation: bootFadeIn 400ms 500ms linear forwards;
+    animation: bootFadeIn 400ms 500ms ease forwards;
   }
   @keyframes bootFadeIn { to { opacity: 1; } }
 
   /* ── Keyboard hint overlay ── */
   #keyboard-hint {
     position: fixed;
-    bottom: 48px; left: 50%; transform: translateX(-50%);
+    bottom: 84px; left: 50%; transform: translateX(-50%);
     z-index: 90000;
-    background: var(--g2);
-    border: 1px solid var(--g3);
-    padding: 10px 20px;
-    font-family: var(--mono);
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    padding: 10px 22px;
+    font-family: var(--sans);
     font-size: 11px;
     color: var(--ga);
     line-height: 1.8;
@@ -98,12 +126,12 @@
   #keyboard-hint.visible { opacity: 1; }
   #keyboard-hint kbd {
     display: inline-block;
-    background: var(--g3);
-    border: 1px solid var(--g5);
-    padding: 1px 6px;
+    background: var(--espresso);
+    border: none;
+    padding: 2px 8px;
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--gc);
+    color: var(--cream);
     margin: 0 2px;
   }
 
@@ -111,41 +139,41 @@
   #topbar {
     position: fixed; top: 0; left: 0; right: 0;
     height: var(--topbar-h);
-    background: var(--black);
-    border-bottom: 1px solid var(--g3);
+    background: var(--cream);
+    border-bottom: 2px solid var(--espresso);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 12px;
+    padding: 0 16px;
     z-index: 10000;
     font-size: 12px;
   }
   #topbar .logo {
-    font-family: var(--mono);
-    font-weight: 500;
-    font-size: 12px;
-    color: var(--white);
-    letter-spacing: 3px;
-    text-transform: uppercase;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    text-transform: lowercase;
   }
   #topbar .right {
     display: flex; align-items: center; gap: 14px;
     color: var(--ga);
     font-size: 11px;
   }
-  #topbar .right .clock { font-variant-numeric: tabular-nums; }
+  #topbar .right .clock { font-variant-numeric: tabular-nums; font-family: var(--mono); }
   #topbar .right .battery {
     display: flex; align-items: center; gap: 4px;
   }
   #topbar .right .battery svg { display: block; }
   #topbar .right .menu-btn {
-    background: none; border: 1px solid var(--g5);
-    color: var(--ga);
-    padding: 2px 8px;
-    font-family: var(--mono); font-size: 10px;
+    background: var(--espresso); border: 2px solid var(--espresso);
+    color: var(--cream);
+    padding: 2px 12px;
+    font-family: var(--sans); font-size: 10px;
     cursor: pointer;
     transition: background var(--transition), color var(--transition);
   }
   #topbar .right .menu-btn:hover {
-    background: var(--g3); color: var(--white);
+    background: var(--cream); color: var(--espresso);
   }
 
 
@@ -163,47 +191,49 @@
   body[data-taskbar-visible="false"] #desktop { bottom: 0; }
   body[data-window-controls="mac"] .window-titlebar { justify-content: flex-start; gap: 10px; }
   body[data-window-controls="mac"] .window-titlebar .controls { order: -1; }
-  body[data-window-controls="mac"] .window-titlebar .controls button { border-radius: 50%; }
-  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(1) { background: #aaaaaa; }
-  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(2) { background: #777777; }
-  body[data-window-controls="mac"] .window-titlebar .controls button:nth-child(3) { background: #555555; }
   body[data-window-controls="mac"] .window-titlebar .controls button svg { display: none; }
   body[data-window-controls="linux"] .window-titlebar .controls { margin-left: auto; order: 2; }
   body[data-window-controls="linux"] .window-titlebar .controls button { border-radius: 0; }
+  body[data-window-controls="mac"] .window-titlebar .controls button { border-radius: 50%; }
   #desktop-dock {
     position: fixed;
     z-index: 11000;
     display: flex;
-    gap: 6px;
-    padding: 7px;
-    background: rgba(0,0,0,0.86);
-    border: 1px solid var(--g3);
+    gap: 8px;
+    padding: 8px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
   }
   .dock-icon {
-    width: 42px; height: 42px;
+    width: 44px; height: 44px;
     display: flex; align-items: center; justify-content: center;
-    border: 1px solid transparent;
-    color: var(--ga);
+    border: none;
+    color: var(--ink);
     cursor: pointer;
     position: relative;
-    transition: border-color var(--transition), background var(--transition), color var(--transition);
+    transition: transform var(--transition), background var(--transition), color var(--transition);
   }
-  .dock-icon:hover, .dock-icon.active { border-color: var(--g5); background: var(--g2); color: var(--white); }
-  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1; fill: none; }
+  .dock-icon:hover, .dock-icon.active {
+    background: var(--espresso);
+    color: var(--cream);
+    transform: translateY(-3px);
+  }
+  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1.3; fill: none; }
   .dock-icon::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -6px;
     left: 50%;
-    width: 4px;
-    height: 4px;
-    border: 1px solid var(--g5);
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--espresso);
     border-radius: 50%;
     opacity: 0;
     transform: translateX(-50%);
   }
-  .dock-icon.active::after { background: var(--white); border-color: var(--white); opacity: 1; }
-  .dock-icon.minimized::after { background: transparent; border-color: var(--ga); opacity: 1; }
+  .dock-icon.active::after { background: var(--espresso); opacity: 1; }
+  .dock-icon.minimized::after { background: transparent; opacity: 1; }
   .dock-icon.multiple::before {
     content: '';
     position: absolute;
@@ -211,45 +241,50 @@
     bottom: 4px;
     width: 6px;
     height: 6px;
-    border: 1px solid var(--ga);
-    background: var(--black);
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    background: transparent;
   }
   #dock-menu {
     position: fixed;
     z-index: 20000;
-    min-width: 144px;
+    min-width: 156px;
     display: none;
-    background: var(--black);
-    border: 1px solid var(--g5);
-    box-shadow: var(--shadow-hard);
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    overflow: hidden;
   }
   #dock-menu.open { display: block; }
   .dock-menu-item {
-    padding: 9px 12px;
+    padding: 10px 14px;
     color: var(--ga);
     font-size: 11px;
-    border-bottom: 1px solid var(--g3);
     cursor: pointer;
+    transition: background var(--transition), color var(--transition);
   }
-  .dock-menu-item:last-child { border-bottom: 0; }
-  .dock-menu-item:hover { background: var(--g2); color: var(--white); }
+  .dock-menu-item:hover { background: var(--espresso); color: var(--cream); }
 
   /* ── Desktop ── */
   #desktop {
     position: fixed;
     top: var(--topbar-h); left: 0; right: 0; bottom: var(--taskbar-h);
-    background: var(--g1);
+    background: transparent;
     overflow: hidden;
   }
-  /* Faint grid */
-  #desktop::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 80px 80px;
+  /* Radiant pointer glow (canvas-wall aura) */
+  #radiant-glow {
+    position: fixed;
+    left: 50%; top: 40%;
+    width: 620px; height: 620px;
+    margin: -310px 0 0 -310px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(238, 190, 120, 0.14) 0%,
+      rgba(238, 190, 120, 0.05) 42%,
+      transparent 70%);
     pointer-events: none;
+    z-index: 0;
   }
 
   /* ── Desktop icons ── */
@@ -263,31 +298,34 @@
     overflow-y: auto;
   }
   .desktop-icon {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
     width: 72px;
-    padding: 8px 4px;
+    padding: 10px 4px;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     transition: border-color var(--transition), background var(--transition);
   }
   .desktop-icon:hover {
-    border-color: var(--g3);
-    background: rgba(255,255,255,0.03);
+    border-color: rgba(246, 241, 228, 0.5);
+    background: rgba(246, 241, 228, 0.08);
   }
   .desktop-icon.selected {
-    border-color: var(--g5);
-    background: rgba(255,255,255,0.05);
+    border-color: var(--cream);
+    background: var(--cream);
   }
+  .desktop-icon.selected svg { stroke: var(--espresso); }
+  .desktop-icon.selected span { color: var(--espresso); }
   .desktop-icon svg {
     width: 32px; height: 32px;
-    stroke: var(--ga);
-    stroke-width: 1;
+    stroke: var(--cream);
+    stroke-width: 1.2;
     fill: none;
   }
   .desktop-icon span {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--ga);
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(246, 241, 228, 0.85);
     text-align: center;
     line-height: 1.3;
   }
@@ -296,10 +334,12 @@
   .window {
     position: absolute;
     min-width: 320px; min-height: 200px;
-    border: 1px solid var(--g3);
+    border: 2px solid var(--espresso);
     display: flex; flex-direction: column;
     z-index: 100;
-    transition: opacity var(--transition);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    transition: opacity var(--transition), box-shadow var(--transition);
   }
   .window.minimized { display: none; }
   .window.maximized {
@@ -307,45 +347,48 @@
     width: 100% !important; height: 100% !important;
   }
   .window-titlebar {
-    height: 28px;
-    background: var(--black);
-    border-bottom: 1px solid var(--g3);
+    height: 34px;
+    background: var(--cream);
+    border-bottom: 2px solid var(--espresso);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 8px;
+    padding: 0 12px;
     cursor: grab;
     flex-shrink: 0;
   }
   .window-titlebar:active { cursor: grabbing; }
   .window-titlebar .title {
-    font-family: var(--mono);
-    font-size: 11px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
     color: var(--ga);
-    letter-spacing: 1px;
+    letter-spacing: -0.015em;
   }
   .window-titlebar .controls {
     display: flex; gap: 6px;
   }
   .window-titlebar .controls button {
-    width: 12px; height: 12px;
-    background: var(--g5);
-    border: 1px solid var(--g7);
+    width: 16px; height: 16px;
+    background: var(--cream);
+    border: 1.5px solid var(--espresso);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     padding: 0;
     transition: background var(--transition);
   }
-  .window-titlebar .controls button:hover { background: var(--g7); }
+  .window-titlebar .controls button:hover { background: var(--espresso); }
   .window-titlebar .controls button svg {
     width: 8px; height: 8px;
-    stroke: var(--gc);
+    stroke: var(--espresso);
     stroke-width: 1.5;
     fill: none;
+    transition: stroke var(--transition);
   }
+  .window-titlebar .controls button:hover svg { stroke: var(--cream); }
   .window-content {
     flex: 1;
-    background: var(--g2);
+    background: var(--cream);
     overflow: auto;
-    font-family: var(--mono);
+    font-family: var(--sans);
     font-size: var(--app-font-size);
     color: var(--gc);
   }
@@ -362,10 +405,10 @@
   }
   .window-resize::before {
     content: '';
-    position: absolute; bottom: 4px; right: 4px;
-    width: 10px; height: 10px;
-    border-right: 1.5px solid var(--g5);
-    border-bottom: 1.5px solid var(--g5);
+    position: absolute; bottom: 5px; right: 5px;
+    width: 9px; height: 9px;
+    border-right: 2px solid var(--espresso);
+    border-bottom: 2px solid var(--espresso);
   }
 
 
@@ -466,19 +509,20 @@
   .fm-action, .browser-action, .settings-action-btn { background: none; border: 1px solid var(--g3); color: var(--ga); padding: 3px 8px; font-family: var(--mono); font-size: 10px; cursor:pointer; }
   .fm-action:hover, .browser-action:hover, .settings-action-btn:hover { border-color: var(--g5); color: var(--white); background: var(--g2); }
 
-  /* ── Terminal ── */
+  /* ── Terminal (espresso pane, cream type) ── */
   .terminal-body {
-    padding: 10px;
+    padding: 12px;
     font-family: var(--mono);
     font-size: 12px;
     line-height: 1.6;
-    color: var(--gc);
+    color: #f6f1e4;
+    background: #181410;
     height: 100%;
     overflow-y: auto;
     cursor: text;
   }
   .terminal-body .line { white-space: pre-wrap; word-break: break-all; }
-  .terminal-body .prompt-color { color: var(--ga); }
+  .terminal-body .prompt-color { color: #dea864; }
   .terminal-body .input-line {
     display: flex; align-items: center;
   }
@@ -487,10 +531,10 @@
     background: transparent;
     border: none;
     outline: none;
-    color: var(--gc);
+    color: #f6f1e4;
     font-family: var(--mono);
     font-size: 12px;
-    caret-color: var(--gc);
+    caret-color: #dea864;
   }
 
   /* ── Settings ── */
@@ -522,23 +566,23 @@
   }
   /* Toggle */
   .toggle {
-    width: 36px; height: 18px;
-    background: var(--g3);
-    border: 1px solid var(--g5);
+    width: 38px; height: 20px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
     position: relative;
     cursor: pointer;
     transition: background var(--transition);
   }
-  .toggle.on { background: var(--g7); }
+  .toggle.on { background: var(--espresso); }
   .toggle::after {
     content: '';
     position: absolute;
     top: 2px; left: 2px;
     width: 12px; height: 12px;
-    background: var(--gc);
-    transition: left var(--transition);
+    background: var(--espresso);
+    transition: left var(--transition), background var(--transition);
   }
-  .toggle.on::after { left: 20px; }
+  .toggle.on::after { left: 20px; background: var(--cream); }
   /* Slider */
   .settings-slider {
     -webkit-appearance: none;
@@ -550,15 +594,15 @@
   }
   .settings-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px; height: 12px;
-    background: var(--gc);
-    border: 1px solid var(--g7);
+    width: 14px; height: 14px;
+    background: var(--espresso);
+    border: 2px solid var(--cream);
     cursor: pointer;
   }
   .settings-slider::-moz-range-thumb {
-    width: 12px; height: 12px;
-    background: var(--gc);
-    border: 1px solid var(--g7);
+    width: 14px; height: 14px;
+    background: var(--espresso);
+    border: 2px solid var(--cream);
     cursor: pointer;
     border-radius: 0;
   }
@@ -593,18 +637,18 @@
   .browser-toolbar .url-bar:focus { border-color: var(--g5); }
   .browser-content {
     flex: 1;
-    background: var(--ge);
+    background: var(--paper);
     display: flex; align-items: center; justify-content: center;
   }
   .browser-page {
     width: 100%; height: 100%;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 12px;
-    background: var(--white);
-    color: var(--g3);
+    background: var(--cream);
+    color: var(--gc);
     font-family: var(--sans);
   }
-  .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--g1); }
+  .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
   .browser-page p { font-size: 12px; color: var(--g7); max-width: 400px; text-align: center; line-height: 1.6; }
   .browser-bookmarks { display:flex; gap:6px; padding:6px 8px; border-bottom:1px solid var(--g3); background:var(--g1); overflow-x:auto; }
   .browser-status { margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--g7); }
@@ -652,7 +696,7 @@
     height:4px; background:var(--g3); margin:12px 0; position:relative;
   }
   .music-progress-bar {
-    height:100%; background:var(--white); width:0%;
+    height:100%; background:var(--espresso); width:0%;
     transition:width 200ms linear;
   }
   .music-track {
@@ -715,8 +759,8 @@
   .tv-screen-label p { font-size:11px; color:var(--ga); }
   .tv-live {
     position:absolute; top:12px; right:12px; z-index:2;
-    background:#aa0000; color:var(--white); font-size:9px;
-    padding:2px 6px; letter-spacing:1px;
+    background:#f6f1e4; color:#181410; font-size:9px;
+    padding:2px 8px; letter-spacing:1px; font-weight:600;
   }
   .native-card { border:1px solid var(--g3); background:var(--g1); padding:10px; margin-top:8px; }
   .native-card strong { color:var(--white); font-weight:500; }
@@ -727,51 +771,56 @@
   #cmd-palette {
     position: fixed;
     top: 20%; left: 50%; transform: translateX(-50%);
-    width: 440px;
-    background: var(--g1);
-    border: 1px solid var(--g3);
+    width: 460px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-soft);
     z-index: 50000;
     display: none;
     flex-direction: column;
+    overflow: hidden;
   }
   #cmd-palette.open { display: flex; }
   #cmd-palette input {
-    width: 100%; height: 36px;
-    background: var(--g2);
-    border: none; border-bottom: 1px solid var(--g3);
-    padding: 0 14px;
-    font-family: var(--mono); font-size: 13px;
-    color: var(--gc);
+    width: 100%; height: 44px;
+    background: transparent;
+    border: none; border-bottom: 2px solid var(--espresso);
+    padding: 0 18px;
+    font-family: var(--sans); font-size: 15px;
+    letter-spacing: -0.015em;
+    color: var(--ink);
     outline: none;
   }
+  #cmd-palette input::placeholder { color: var(--g7); }
   #cmd-palette .results {
-    max-height: 240px;
+    max-height: 260px;
     overflow-y: auto;
   }
   #cmd-palette .result-item {
-    padding: 8px 14px;
-    font-family: var(--mono); font-size: 12px;
+    padding: 10px 18px;
+    font-family: var(--sans); font-size: 12px;
     color: var(--ga);
     cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
     display: flex; align-items: center; gap: 10px;
-    transition: background var(--transition);
+    transition: background var(--transition), color var(--transition);
   }
   #cmd-palette .result-item:hover,
   #cmd-palette .result-item.active {
-    background: var(--g2);
-    color: var(--white);
+    background: var(--espresso);
+    color: var(--cream);
   }
   #cmd-palette .result-item .shortcut {
     margin-left: auto;
     font-size: 10px;
-    color: var(--g5);
+    font-family: var(--mono);
+    color: inherit;
+    opacity: 0.6;
   }
 
   /* ── About Modal ── */
   #about-modal {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(24, 20, 16, 0.72);
     z-index: 60000;
     display: none;
     align-items: center; justify-content: center;
@@ -779,16 +828,17 @@
   #about-modal.open { display: flex; }
   #about-modal .modal-box {
     width: 480px;
-    background: var(--g1);
-    border: 1px solid var(--g3);
-    padding: 28px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-soft);
+    padding: 30px;
   }
   #about-modal .modal-box h2 {
-    font-family: var(--mono);
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--white);
-    letter-spacing: 2px;
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.015em;
     margin-bottom: 16px;
   }
   #about-modal .modal-box p {
@@ -799,51 +849,50 @@
   }
   #about-modal .modal-box .close-btn {
     margin-top: 12px;
-    background: none;
-    border: 1px solid var(--g5);
-    color: var(--ga);
-    padding: 5px 16px;
-    font-family: var(--mono); font-size: 11px;
+    background: var(--espresso);
+    border: 2px solid var(--espresso);
+    color: var(--cream);
+    padding: 8px 22px;
+    font-family: var(--sans); font-size: 11px;
     cursor: pointer;
     transition: background var(--transition), color var(--transition);
   }
-  #about-modal .modal-box .close-btn:hover {
-    background: var(--g3); color: var(--white);
-  }
+  #about-modal .modal-box .close-btn:hover { background: var(--cream); color: var(--espresso); }
 
   /* ── Power menu ── */
   #power-menu {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(24, 20, 16, 0.85);
     z-index: 60000;
     display: none;
     align-items: center; justify-content: center;
-    flex-direction: column; gap: 16px;
+    flex-direction: column; gap: 14px;
   }
   #power-menu.open { display: flex; }
   #power-menu .power-option {
-    width: 200px;
-    padding: 10px 0;
+    width: 220px;
+    padding: 13px 0;
     text-align: center;
-    font-family: var(--mono); font-size: 13px;
-    color: var(--ga);
-    border: 1px solid var(--g3);
+    font-family: var(--sans); font-size: 13px;
+    font-weight: 400;
+    color: var(--espresso);
+    border: 2px solid var(--cream);
     cursor: pointer;
-    background: var(--g1);
+    background: var(--cream);
     transition: background var(--transition), color var(--transition);
   }
   #power-menu .power-option:hover {
-    background: var(--g3); color: var(--white);
+    background: transparent; color: var(--cream);
   }
 
   /* ── Footer credit ── */
   #footer-credit {
     position: fixed;
     bottom: 6px; right: 12px;
-    font-family: var(--mono);
+    font-family: var(--sans);
     font-size: 9px;
-    color: var(--g3);
-    letter-spacing: 1px;
+    color: rgba(246, 241, 228, 0.35);
+    letter-spacing: 0.04em;
     z-index: 5;
     pointer-events: none;
   }
@@ -854,52 +903,52 @@
   body.focus-mode #taskbar { display: none; }
   body.focus-mode #desktop { top: 0; bottom: 0; }
 
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--g1); }
-  ::-webkit-scrollbar-thumb { background: var(--g3); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--g5); }
+  /* ── Scrollbar (near-invisible, Fable hides them) ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(24, 20, 16, 0.25); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(24, 20, 16, 0.5); }
 
   /* ── Selection ── */
-  ::selection { background: var(--g5); color: var(--white); }
+  ::selection { background: var(--espresso); color: var(--cream); }
 
   /* ── Taskbar ── */
   #taskbar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
     height: var(--taskbar-h);
-    background: var(--black);
-    border-top: 1px solid var(--g3);
+    background: var(--cream);
+    border-top: 2px solid var(--espresso);
     z-index: 10000;
     display: flex; align-items: center;
-    padding: 0 8px;
-    gap: 4px;
+    padding: 0 10px;
+    gap: 6px;
     overflow: hidden;
   }
   .taskbar-win {
-    height: 20px;
-    padding: 0 10px;
-    font-family: var(--mono);
+    height: 22px;
+    padding: 0 12px;
+    font-family: var(--sans);
     font-size: 10px;
-    color: var(--g7);
+    color: var(--ga);
     background: none;
-    border: 1px solid var(--g3);
+    border: 1.5px solid var(--espresso);
     cursor: pointer;
     display: flex; align-items: center;
-    transition: background var(--transition), color var(--transition), border-color var(--transition);
+    transition: background var(--transition), color var(--transition);
     max-width: 140px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-  .taskbar-win:hover { background: var(--g3); color: var(--gc); border-color: var(--g5); }
-  .taskbar-win.active { background: var(--g2); color: var(--white); border-color: var(--g5); }
+  .taskbar-win:hover { background: rgba(24, 20, 16, 0.08); color: var(--ink); }
+  .taskbar-win.active { background: var(--espresso); color: var(--cream); }
   .taskbar-spacer { flex: 1; }
   .taskbar-credit {
-    font-family: var(--mono);
+    font-family: var(--sans);
     font-size: 9px;
-    color: var(--g3);
-    letter-spacing: 1px;
+    color: var(--g7);
+    letter-spacing: 0.04em;
     pointer-events: none;
     padding-right: 4px;
     white-space: nowrap;
@@ -908,53 +957,53 @@
   /* ── Toast notifications ── */
   #toast-container {
     position: fixed;
-    bottom: calc(var(--taskbar-h) + 8px);
-    right: 12px;
+    bottom: calc(var(--taskbar-h) + 10px);
+    right: 14px;
     z-index: 70000;
     display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
     pointer-events: none;
   }
   .toast {
-    background: var(--g2);
-    border: 1px solid var(--g5);
-    padding: 7px 14px;
-    font-family: var(--mono);
+    background: var(--espresso);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    padding: 9px 16px;
+    font-family: var(--sans);
     font-size: 11px;
-    color: var(--gc);
+    color: var(--cream);
     opacity: 0;
     transform: translateX(20px);
-    transition: opacity 200ms linear, transform 200ms linear;
+    transition: opacity 200ms ease, transform 200ms ease;
   }
   .toast.show { opacity: 1; transform: translateX(0); }
 
   /* ── Context Menu ── */
   #ctx-menu {
     position: fixed;
-    background: var(--g1);
-    border: 1px solid var(--g3);
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
     z-index: 80000;
     display: none;
     flex-direction: column;
-    min-width: 160px;
+    min-width: 168px;
+    overflow: hidden;
   }
   #ctx-menu.open { display: flex; }
   .ctx-item {
-    padding: 7px 14px;
-    font-family: var(--mono);
+    padding: 9px 14px;
+    font-family: var(--sans);
     font-size: 11px;
     color: var(--ga);
     cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
     transition: background var(--transition), color var(--transition);
   }
-  .ctx-item:last-child { border-bottom: none; }
-  .ctx-item:hover { background: var(--g2); color: var(--white); }
-  .ctx-sep { height: 1px; background: var(--g3); }
+  .ctx-item:hover { background: var(--espresso); color: var(--cream); }
+  .ctx-sep { height: 2px; background: var(--espresso); margin: 2px 0; }
 
   /* ── Window focus indicator ── */
-  .window.focused { border-color: var(--g5); }
-  .window.focused .window-titlebar { background: var(--g1); }
-  .window.focused .window-titlebar .title { color: var(--gc); }
+  .window.focused { box-shadow: 0 0 0 4px rgba(246, 241, 228, 0.28), var(--shadow-soft); }
+  .window.focused .window-titlebar .title { color: var(--ink); }
 </style>
 </head>
 <body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
@@ -962,7 +1011,7 @@
 <!-- Boot Screen -->
 <div id="boot-screen">
   <div class="boot-logo">SoengOS</div>
-  <div class="boot-sub">Engineering Edition</div>
+  <div class="boot-sub">fable edition</div>
 </div>
 
 <!-- Keyboard Hint -->
@@ -978,10 +1027,10 @@
   <div class="right">
     <div class="clock" id="clock">00:00</div>
     <div class="battery">
-      <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="#AAAAAA" stroke-width="1">
-        <rect x="0.5" y="0.5" width="14" height="9" />
-        <rect x="2" y="2" width="9" height="5" fill="#777777" stroke="none" />
-        <rect x="15" y="3" width="2" height="4" />
+      <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="#6b5f55" stroke-width="1">
+        <rect x="0.5" y="0.5" width="14" height="9" rx="2" />
+        <rect x="2" y="2" width="9" height="5" rx="1" fill="#7d9d72" stroke="none" />
+        <rect x="15" y="3" width="2" height="4" rx="1" />
       </svg>
       <span style="font-size:9px">87%</span>
     </div>
@@ -991,6 +1040,7 @@
 
 <!-- Desktop -->
 <div id="desktop">
+  <div id="radiant-glow"></div>
   <div id="desktop-icons">
 
     <!-- File Manager -->
@@ -1169,7 +1219,7 @@
     <h2>About SoengOS</h2>
     <p>SoengOS is a web-enabled Linux operating system concept inspired by Zen minimalism. It embodies the philosophy of "less is more" — extreme focus, no distractions, and precise engineering aesthetics.</p>
     <p>Built as a single-file browser prototype using vanilla JavaScript and CSS. All applications run entirely within the browser. No external dependencies, no frameworks, no runtime.</p>
-    <p style="color:#555555; font-size:10px; margin-top:8px;">Engineering Minimalism Edition &middot; Black/White/Gray only &middot; v1.0</p>
+    <p style="color:var(--g7); font-size:10px; margin-top:8px;">Fable Edition &middot; Espresso / Cream palette &middot; v1.2</p>
     <button class="close-btn" onclick="toggleAbout()">CLOSE</button>
   </div>
 </div>
@@ -1208,7 +1258,7 @@
   <div class="taskbar-spacer"></div>
   <div class="workflow-status">Workflows: <span id="workflowCount">2</span></div>
   <div class="workflow-status">Automations: <span id="automationCount">1</span></div>
-  <div class="taskbar-credit">Engineering Edition &bull; v1.0</div>
+  <div class="taskbar-credit">Fable &bull; v1.2</div>
 </div>
 
 <script src="soengos-lib.js"></script>
@@ -1230,6 +1280,16 @@ window.addEventListener('load', () => {
     }, 800);
   }, 800);
 });
+
+// ── Radiant pointer glow ──
+const radiantGlow = document.getElementById('radiant-glow');
+if (radiantGlow) {
+  document.addEventListener('pointermove', (e) => {
+    radiantGlow.style.left = e.clientX + 'px';
+    radiantGlow.style.top = e.clientY + 'px';
+    radiantGlow.style.margin = '-310px 0 0 -310px';
+  }, { passive: true });
+}
 
 // ── Clock ──
 function updateClock() {
@@ -1853,7 +1913,7 @@ function initFileManager(id) {
 function openTerminal(options = {}) {
   const html = `
     <div class="terminal-body" data-terminal-body>
-      <div class="line"><span class="prompt-color">SoengOS v1.0 — Engineering Edition</span></div>
+      <div class="line"><span class="prompt-color">SoengOS v1.2 — Fable Edition</span></div>
       <div class="line"><span class="prompt-color">Type 'help' for available commands.</span></div>
       <div class="line">&nbsp;</div>
       <div class="input-line">
@@ -2069,7 +2129,7 @@ function execCommand(raw, body = getActiveTerminalBody()) {
         '       │          │      Shell: soeng-sh',
         '       └──────────┘      Resolution: ' + window.innerWidth + 'x' + window.innerHeight,
         '                         WM: SoengWM',
-        '                         Theme: Engineering Minimal',
+        '                         Theme: Fable',
         '                         Terminal: SoengTerm',
       ];
       neoLines.forEach(l => termPrint(l));
@@ -2869,7 +2929,7 @@ function setSystemToggle(key, el) {
   if (key === 'darkMode' && !systemToggles[key]) {
     systemToggles[key] = true;
     if (el) el.classList.add('on');
-    showToast('Engineering Edition keeps dark mode enabled');
+    showToast('Fable Edition keeps its tuned espresso theme enabled');
     return;
   }
   showToast(`${key.replace(/([A-Z])/g, ' $1')} ${systemToggles[key] ? 'enabled' : 'disabled'}`);
@@ -2947,7 +3007,7 @@ function openSettings(options = {}) {
       <div class="settings-section">
         <h3>Appearance</h3>
         <div class="settings-row">
-          <div><label>Dark Mode</label><div class="sublabel">Always enabled in Engineering Edition</div></div>
+          <div><label>Fable Theme</label><div class="sublabel">Always enabled in Fable Edition</div></div>
           <div class="toggle on" onclick="setSystemToggle('darkMode', this)"></div>
         </div>
         <div class="settings-row">
@@ -2997,9 +3057,9 @@ function openSettings(options = {}) {
         <h3>About</h3>
         <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
           <label>SoengOS v1.0.0</label>
-          <div class="sublabel">Engineering Minimalism Edition</div>
+          <div class="sublabel">Fable Edition</div>
           <div class="sublabel">Kernel: Web/JS &middot; WM: SoengWM &middot; Shell: soeng-sh</div>
-          <div class="sublabel">License: MIT &middot; Palette: Black/White/Gray</div>
+          <div class="sublabel">License: MIT &middot; Palette: Espresso / Cream</div>
           <button class="settings-action-btn" onclick="openNativeReadiness()">Open Native Runtime Plan</button>
         </div>
       </div>

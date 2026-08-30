@@ -188,6 +188,16 @@ test('SoengOS.html exposes media and productivity apps', () => {
   assert.match(html, /function openTV/);
 });
 
+test('SoengOS.html ships the Fable theme', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  for (const token of ['--espresso: #181410', '--cream: #f6f1e4', 'id="radiant-glow"', '"Helvetica Neue"']) {
+    assert.ok(html.includes(token), token);
+  }
+  assert.match(html, /Fable Edition/i);
+  assert.equal(html.includes('Zen Dawn'), false);
+  assert.equal(html.includes('Engineering Minimalism Edition'), false);
+});
+
 test('SoengOS.html loads the shared security library', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /<script src="soengos-lib\.js"><\/script>/);
