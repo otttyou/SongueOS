@@ -194,6 +194,7 @@ test('SoengOS.html ships the Fable theme', () => {
     assert.ok(html.includes(token), token);
   }
   assert.match(html, /Fable Edition/i);
+  assert.ok(html.includes('#f3ebe0'), 'paper studio field');
   assert.equal(html.includes('Zen Dawn'), false);
   assert.equal(html.includes('Engineering Minimalism Edition'), false);
 });
