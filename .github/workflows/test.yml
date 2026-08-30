@@ -1,0 +1,31 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run SoengOS security and regression tests
+        run: npm test
+      - name: Parse HTML shells
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class Parser(HTMLParser):
+              pass
+
+          for name in ('SoengOS.html', 'soengos-workflow.html'):
+              Parser().feed(Path(name).read_text(encoding='utf-8'))
+              print(f'OK {name}')
+          PY

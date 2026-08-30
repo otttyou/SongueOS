@@ -1029,6 +1029,7 @@
   <div class="taskbar-credit">Engineering Edition &bull; v1.0</div>
 </div>
 
+<script src="soengos-lib.js"></script>
 <script>
 /* ═══════════════════════════════════════
    SoengOS — Core System
@@ -1160,7 +1161,14 @@ function applyDesktopMode(mode = desktopMode, overrides = {}) {
 
   const shortcutMod = document.getElementById('shortcut-mod');
   if (shortcutMod) {
-    shortcutMod.innerHTML = platformShortcutMod().split('/').map(key => `<kbd>${key}</kbd>`).join('/');
+    shortcutMod.textContent = '';
+    const keys = platformShortcutMod().split('/');
+    keys.forEach((key, index) => {
+      if (index) shortcutMod.appendChild(document.createTextNode('/'));
+      const kbd = document.createElement('kbd');
+      kbd.textContent = key;
+      shortcutMod.appendChild(kbd);
+    });
   }
 
   document.querySelectorAll('[data-platform-value]').forEach(el => {
@@ -1261,40 +1269,50 @@ function createWindow(id, title, width, height, contentHTML, options = {}) {
   win.id = 'win-' + id;
   win.style.cssText = `left:${x}px;top:${y}px;width:${width}px;height:${height}px;z-index:${++windowZ}`;
 
-  win.innerHTML = `
-    <div class="window-titlebar" data-win="${id}">
-      <span class="title">${title}</span>
-      <div class="controls">
-        <button onclick="minimizeWindow('${id}')" title="Minimize">
-          <svg viewBox="0 0 8 8"><line x1="1" y1="7" x2="7" y2="7"/></svg>
-        </button>
-        <button onclick="maximizeWindow('${id}')" title="Maximize">
-          <svg viewBox="0 0 8 8"><rect x="1" y="1" width="6" height="6"/></svg>
-        </button>
-        <button onclick="closeWindow('${id}')" title="Close">
-          <svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="window-content" id="wc-${id}">${contentHTML}</div>
-    <div class="window-resize" data-win="${id}"></div>
-  `;
+  const titlebar = document.createElement('div');
+  titlebar.className = 'window-titlebar';
+  titlebar.dataset.win = id;
 
+  const titleEl = document.createElement('span');
+  titleEl.className = 'title';
+  titleEl.textContent = title;
+
+  const controls = document.createElement('div');
+  controls.className = 'controls';
+  const controlDefs = [
+    { label: 'Minimize', handler: () => minimizeWindow(id), svg: '<svg viewBox="0 0 8 8"><line x1="1" y1="7" x2="7" y2="7"/></svg>' },
+    { label: 'Maximize', handler: () => maximizeWindow(id), svg: '<svg viewBox="0 0 8 8"><rect x="1" y="1" width="6" height="6"/></svg>' },
+    { label: 'Close', handler: () => closeWindow(id), svg: '<svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>' },
+  ];
+  controlDefs.forEach(({ label, handler, svg }) => {
+    const btn = document.createElement('button');
+    btn.title = label;
+    btn.innerHTML = svg;
+    btn.addEventListener('click', handler);
+    controls.appendChild(btn);
+  });
+  titlebar.append(titleEl, controls);
+
+  const content = document.createElement('div');
+  content.className = 'window-content';
+  content.id = 'wc-' + id;
+  content.innerHTML = contentHTML;
+
+  const resize = document.createElement('div');
+  resize.className = 'window-resize';
+  resize.dataset.win = id;
+
+  win.append(titlebar, content, resize);
   container.appendChild(win);
   openWindows[id] = { appName, title, minimized: false, active: false };
   addToTaskbar(id, title);
   bringToFront(win);
 
-  // Focus on click
   win.addEventListener('mousedown', () => bringToFront(win));
-
-  // Drag
   initDrag(win);
-  // Resize
   initResize(win);
 
-  // Post-init hooks
-  if (appName === 'terminal') initTerminal();
+  if (appName === 'terminal') initTerminal(win);
   updateDockIndicators();
   return id;
 }
@@ -1451,21 +1469,6 @@ const fileContents = {
   '/etc/fstab': '/dev/sda1  /      ext4  defaults  0 1\n/dev/sda2  /home  ext4  defaults  0 2',
 };
 
-function normalizePath(path) {
-  const parts = String(path || '/').split('/').filter(Boolean);
-  const stack = [];
-  parts.forEach(part => {
-    if (part === '.') return;
-    if (part === '..') stack.pop();
-    else stack.push(part);
-  });
-  return '/' + stack.join('/');
-}
-
-function joinPath(base, name) {
-  return normalizePath((base === '/' ? '' : base) + '/' + name);
-}
-
 function entryType(path) {
   if (termFS[path]) return 'folder';
   if (fileContents[path] !== undefined) return 'file';
@@ -1485,7 +1488,7 @@ function uniqueEntryName(path, baseName) {
 
 function createFsEntry(path, name, type) {
   if (!termFS[path]) return null;
-  const safeName = uniqueEntryName(path, name.replace(/[\\/]/g, '-'));
+  const safeName = uniqueEntryName(path, sanitizeEntryName(name));
   termFS[path].push(safeName);
   const full = joinPath(path, safeName);
   if (type === 'folder') termFS[full] = [];
@@ -1494,7 +1497,7 @@ function createFsEntry(path, name, type) {
 }
 
 function deleteFsEntry(path, name) {
-  if (!termFS[path]) return false;
+  if (!termFS[path] || !termFS[path].includes(name)) return false;
   const full = joinPath(path, name);
   termFS[path] = termFS[path].filter(entry => entry !== name);
   if (termFS[full]) {
@@ -1560,14 +1563,43 @@ function initFileManager(id) {
       if (ta !== tb) return ta === 'folder' ? -1 : 1;
       return a.localeCompare(b);
     });
-    grid.innerHTML = entries.map(name => {
-      const full = joinPath(state.path, name);
-      const type = entryType(full) || 'file';
-      const icon = type === 'folder'
-        ? `<svg viewBox="0 0 28 28"><path d="M3 7h9l2 2h11v14H3z"/></svg>`
-        : `<svg viewBox="0 0 28 28"><rect x="5" y="2" width="18" height="24"/><line x1="9" y1="10" x2="19" y2="10"/><line x1="9" y1="14" x2="19" y2="14"/><line x1="9" y1="18" x2="15" y2="18"/></svg>`;
-      return `<div class="fm-item ${type}" data-name="${escapeHtml(name)}" data-type="${type}">${icon}<span>${escapeHtml(name)}</span></div>`;
-    }).join('') || '<div style="color:var(--g5);font-size:11px;padding:16px;">Empty folder</div>';
+    grid.textContent = '';
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:var(--g5);font-size:11px;padding:16px;';
+      empty.textContent = 'Empty folder';
+      grid.appendChild(empty);
+    } else {
+      entries.forEach(name => {
+        const full = joinPath(state.path, name);
+        const type = entryType(full) || 'file';
+        const item = createFileItemElement(name, type);
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 28 28');
+        if (type === 'folder') {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M3 7h9l2 2h11v14H3z');
+          icon.appendChild(path);
+        } else {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', '5');
+          rect.setAttribute('y', '2');
+          rect.setAttribute('width', '18');
+          rect.setAttribute('height', '24');
+          icon.appendChild(rect);
+          [['9', '10', '19', '10'], ['9', '14', '19', '14'], ['9', '18', '15', '18']].forEach(([x1, y1, x2, y2]) => {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            icon.appendChild(line);
+          });
+        }
+        item.insertBefore(icon, item.firstChild);
+        grid.appendChild(item);
+      });
+    }
     preview.textContent = `${state.path}\n${entries.length} item(s)`;
   }
 
@@ -1628,13 +1660,13 @@ function initFileManager(id) {
 // ── Terminal ──
 function openTerminal(options = {}) {
   const html = `
-    <div class="terminal-body" id="terminal-body">
+    <div class="terminal-body" data-terminal-body>
       <div class="line"><span class="prompt-color">SoengOS v1.0 — Engineering Edition</span></div>
       <div class="line"><span class="prompt-color">Type 'help' for available commands.</span></div>
       <div class="line">&nbsp;</div>
       <div class="input-line">
         <span class="prompt-color">user@soeng:~$ </span>
-        <input type="text" id="terminal-input" autocomplete="off" autofocus spellcheck="false" />
+        <input type="text" data-terminal-input autocomplete="off" autofocus spellcheck="false" />
       </div>
     </div>
   `;
@@ -1657,16 +1689,21 @@ const termFS = {
 };
 
 let termCwd = '/home/user';
-let termHistory = JSON.parse(localStorage.getItem('soeng-term-history') || '[]');
+let termHistory = loadStoredJsonArray('soeng-term-history');
 let termHistIdx = -1;
 
-function initTerminal() {
-  const input = document.getElementById('terminal-input');
-  if (!input) return;
-  input.focus();
+function getActiveTerminalBody() {
+  return document.querySelector('.window.focused [data-terminal-body]')
+    || document.querySelector('[data-terminal-body]');
+}
 
-  // Click body to focus input
-  const tbody = document.getElementById('terminal-body');
+function initTerminal(win) {
+  const root = win || document;
+  const input = root.querySelector('[data-terminal-input]');
+  const tbody = root.querySelector('[data-terminal-body]');
+  if (!input || !tbody || tbody.dataset.ready === '1') return;
+  tbody.dataset.ready = '1';
+  input.focus();
   tbody.addEventListener('click', () => input.focus());
 
   input.addEventListener('keydown', (e) => {
@@ -1678,7 +1715,7 @@ function initTerminal() {
         termHistIdx = -1;
         try { localStorage.setItem('soeng-term-history', JSON.stringify(termHistory.slice(0, 50))); } catch(e) {}
       }
-      execCommand(cmd);
+      execCommand(cmd, tbody);
       input.value = '';
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -1699,8 +1736,8 @@ function initTerminal() {
   });
 }
 
-function termPrint(text) {
-  const body = document.getElementById('terminal-body');
+function termPrint(text, body = getActiveTerminalBody()) {
+  if (!body) return;
   const inputLine = body.querySelector('.input-line');
   const line = document.createElement('div');
   line.className = 'line';
@@ -1709,14 +1746,16 @@ function termPrint(text) {
   body.scrollTop = body.scrollHeight;
 }
 
-function execCommand(raw) {
-  const body = document.getElementById('terminal-body');
+function execCommand(raw, body = getActiveTerminalBody()) {
+  if (!body) return;
   const inputLine = body.querySelector('.input-line');
 
-  // Echo the command
   const echo = document.createElement('div');
   echo.className = 'line';
-  echo.innerHTML = `<span class="prompt-color">user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ </span>${escapeHtml(raw)}`;
+  const prompt = document.createElement('span');
+  prompt.className = 'prompt-color';
+  prompt.textContent = `user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ `;
+  echo.append(prompt, document.createTextNode(raw));
   body.insertBefore(echo, inputLine);
 
   if (!raw) { body.scrollTop = body.scrollHeight; return; }
@@ -1759,21 +1798,15 @@ function execCommand(raw) {
     case 'cd':
       if (!args[0] || args[0] === '~') {
         termCwd = '/home/user';
-      } else if (args[0] === '..') {
-        const segs = termCwd.split('/').filter(Boolean);
-        segs.pop();
-        termCwd = '/' + segs.join('/');
-        if (!termCwd || termCwd === '/') termCwd = '/';
       } else {
-        const target = termCwd === '/' ? '/' + args[0] : termCwd + '/' + args[0];
+        const target = resolveFsPath(termCwd, args[0]);
         if (termFS[target]) {
           termCwd = target;
         } else {
-          termPrint(`cd: ${args[0]}: No such directory`);
+          termPrint(`cd: ${args[0]}: No such directory`, body);
         }
       }
-      // Update prompt
-      updatePrompt();
+      updatePrompt(body);
       break;
 
     case 'pwd':
@@ -1860,23 +1893,18 @@ function execCommand(raw) {
       termPrint(`${cmd}: command not found. Type 'help' for available commands.`);
   }
 
-  // Update prompt display
-  updatePrompt();
+  updatePrompt(body);
   body.scrollTop = body.scrollHeight;
-  const input = document.getElementById('terminal-input');
+  const input = body.querySelector('[data-terminal-input]');
   if (input) input.focus();
 }
 
-function updatePrompt() {
-  const inputLine = document.querySelector('#terminal-body .input-line .prompt-color');
+function updatePrompt(body = getActiveTerminalBody()) {
+  const inputLine = body && body.querySelector('.input-line .prompt-color');
   if (inputLine) {
     const display = termCwd === '/home/user' ? '~' : termCwd;
     inputLine.textContent = `user@soeng:${display}$ `;
   }
-}
-
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ── Workflow Hub / Automation Studio (migrated from Workflow Edition) ──
@@ -1986,12 +2014,28 @@ function generateAutomation() {
   } else {
     steps = ['Parse automation request', 'Identify required actions', 'Configure parameters', 'Execute workflow', 'Report results'];
   }
-  preview.innerHTML = steps.map((action, i) => `
-    <div class="automation-step" style="display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--gray-700);">
-      <div style="width:24px;height:24px;border:1px solid var(--gray-500);display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:12px;">${i + 1}</div>
-      <div style="flex:1;font-size:12px;">${action}</div>
-      <div class="automation-status" style="font-size:10px;color:var(--gray-500);">PENDING</div>
-    </div>`).join('');
+  preview.textContent = '';
+  steps.forEach((action, i) => {
+    const row = document.createElement('div');
+    row.className = 'automation-step';
+    row.style.cssText = 'display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--gray-700);';
+
+    const number = document.createElement('div');
+    number.style.cssText = 'width:24px;height:24px;border:1px solid var(--gray-500);display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:12px;';
+    number.textContent = String(i + 1);
+
+    const actionEl = document.createElement('div');
+    actionEl.style.cssText = 'flex:1;font-size:12px;';
+    actionEl.textContent = action;
+
+    const status = document.createElement('div');
+    status.className = 'automation-status';
+    status.style.cssText = 'font-size:10px;color:var(--gray-500);';
+    status.textContent = 'PENDING';
+
+    row.append(number, actionEl, status);
+    preview.appendChild(row);
+  });
   const logEntry = document.createElement('div');
   logEntry.textContent = `[${timestamp}] Generated automation: ${prompt.substring(0, 50)}...`;
   log.appendChild(logEntry);
@@ -2253,32 +2297,59 @@ const soengPages = {
   },
 };
 
+function renderBrowserChrome(page, { title, body, status, icon }) {
+  page.textContent = '';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '48');
+  svg.setAttribute('height', '48');
+  svg.setAttribute('viewBox', '0 0 48 48');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', '#333333');
+  svg.setAttribute('stroke-width', '1');
+  svg.innerHTML = icon;
+  const heading = document.createElement('h2');
+  heading.textContent = title;
+  const copy = document.createElement('p');
+  copy.textContent = body;
+  const meta = document.createElement('div');
+  meta.className = 'browser-status';
+  meta.textContent = status;
+  page.append(svg, heading, copy, meta);
+}
+
 function renderBrowserPage(win, state, url) {
   const page = win.querySelector('[data-browser-page]');
   const urlBar = win.querySelector('[data-browser-url]');
-  const normalized = url.includes('://') ? url : `https://${url}`;
-  state.current = normalized;
-  urlBar.value = normalized;
-  const local = soengPages[normalized];
-  if (local) {
-    page.innerHTML = `
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#333333" stroke-width="1">
-        <circle cx="24" cy="24" r="20"/><ellipse cx="24" cy="24" rx="8" ry="20"/><line x1="4" y1="24" x2="44" y2="24"/><line x1="24" y1="4" x2="24" y2="44"/>
-      </svg>
-      <h2>${escapeHtml(local.title)}</h2>
-      <p>${escapeHtml(local.body)}</p>
-      <div class="browser-status">${escapeHtml(local.status)} &middot; ${escapeHtml(normalized)}</div>
-    `;
+  const safeUrl = getAllowedNavigationUrl(url);
+  if (!safeUrl) {
+    state.current = String(url || '');
+    if (urlBar) urlBar.value = state.current;
+    renderBrowserChrome(page, {
+      title: 'Navigation blocked',
+      body: 'Only http:, https:, soeng://, and about:blank URLs are allowed.',
+      status: 'Blocked protocol',
+      icon: '<rect x="8" y="8" width="32" height="32"/><line x1="14" y1="14" x2="34" y2="34"/><line x1="34" y1="14" x2="14" y2="34"/>',
+    });
     return;
   }
-  page.innerHTML = `
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#333333" stroke-width="1">
-      <rect x="8" y="8" width="32" height="32"/><line x1="8" y1="16" x2="40" y2="16"/><circle cx="14" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
-    </svg>
-    <h2>${escapeHtml(normalized)}</h2>
-    <p>External content is opened as a safe sandbox placeholder in this demo. A native build would hand this URL to the embedded browser engine or system browser service.</p>
-    <div class="browser-status">Sandboxed external page &middot; Network bridge ready</div>
-  `;
+  state.current = safeUrl;
+  if (urlBar) urlBar.value = safeUrl;
+  const local = soengPages[safeUrl];
+  if (local) {
+    renderBrowserChrome(page, {
+      title: local.title,
+      body: local.body,
+      status: `${local.status} · ${safeUrl}`,
+      icon: '<circle cx="24" cy="24" r="20"/><ellipse cx="24" cy="24" rx="8" ry="20"/><line x1="4" y1="24" x2="44" y2="24"/><line x1="24" y1="4" x2="24" y2="44"/>',
+    });
+    return;
+  }
+  renderBrowserChrome(page, {
+    title: safeUrl,
+    body: 'External content is opened as a safe sandbox placeholder in this demo. A native build would hand this URL to the embedded browser engine or system browser service.',
+    status: 'Sandboxed external page · Network bridge ready',
+    icon: '<rect x="8" y="8" width="32" height="32"/><line x1="8" y1="16" x2="40" y2="16"/><circle cx="14" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  });
 }
 
 function openBrowser(options = {}) {
@@ -2385,12 +2456,22 @@ function renderCmdResults(query) {
   const container = document.getElementById('cmd-results');
   const filtered = cmdActions.filter(a => fuzzyMatch(a.name, query));
 
-  container.innerHTML = filtered.map((a, i) => `
-    <div class="result-item${i === 0 ? ' active' : ''}" data-idx="${i}">
-      <span>${a.name}</span>
-      ${a.shortcut ? `<span class="shortcut">${a.shortcut}</span>` : ''}
-    </div>
-  `).join('');
+  container.textContent = '';
+  filtered.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = `result-item${i === 0 ? ' active' : ''}`;
+    item.dataset.idx = String(i);
+    const name = document.createElement('span');
+    name.textContent = a.name;
+    item.appendChild(name);
+    if (a.shortcut) {
+      const shortcut = document.createElement('span');
+      shortcut.className = 'shortcut';
+      shortcut.textContent = a.shortcut;
+      item.appendChild(shortcut);
+    }
+    container.appendChild(item);
+  });
 
   container.querySelectorAll('.result-item').forEach((el, i) => {
     el.addEventListener('click', () => {
@@ -2581,78 +2662,5 @@ document.getElementById('cmd-palette').addEventListener('click', (e) => {
   if (e.target === document.getElementById('cmd-palette')) closeCmdPalette();
 });
 </script>
-<script data-pplx-inline-edit>
-(function(){
-  if(window===window.top)return;
-  function inlineAll(orig,clone){
-    if(orig.nodeType!==1)return;
-    try{
-      var cs=getComputedStyle(orig);
-      var t='';
-      for(var i=0;i<cs.length;i++){t+=cs[i]+':'+cs.getPropertyValue(cs[i])+';';}
-      clone.style.cssText=t;
-    }catch(e){}
-    var oc=orig.children,cc=clone.children;
-    for(var j=0;j<oc.length&&j<cc.length;j++){inlineAll(oc[j],cc[j]);}
-  }
-  function stripExternal(clone){
-    var imgs=clone.querySelectorAll('img');
-    for(var i=0;i<imgs.length;i++){
-      var s=imgs[i].getAttribute('src');
-      if(s&&!s.startsWith('data:'))imgs[i].removeAttribute('src');
-    }
-    var all=clone.querySelectorAll('*');
-    for(var i=0;i<all.length;i++){
-      var st=all[i].style.cssText;
-      if(st&&st.indexOf('url(')>=0){
-        all[i].style.cssText=st.replace(/url\(["']?(?!data:)[^)"']*["']?\)/gi,'none');
-      }
-    }
-  }
-  var scrollRaf=0;
-  function emitScroll(){
-    scrollRaf=0;
-    var x=window.scrollX||window.pageXOffset||0;
-    var y=window.scrollY||window.pageYOffset||0;
-    window.parent.postMessage({type:'INLINE_EDIT_SCROLL',scrollX:x,scrollY:y},'*');
-  }
-  window.addEventListener('scroll',function(){
-    if(scrollRaf)return;
-    scrollRaf=requestAnimationFrame(emitScroll);
-  },{passive:true,capture:true});
-  emitScroll();
-  window.addEventListener('message',function(e){
-    if(!e.data||e.data.type!=='INLINE_EDIT_CAPTURE_REQUEST')return;
-    var scrollX=window.scrollX||window.pageXOffset||0;
-    var scrollY=window.scrollY||window.pageYOffset||0;
-    var w=window.innerWidth,h=window.innerHeight;
-    try{
-      var clone=document.documentElement.cloneNode(true);
-      var rm=clone.querySelectorAll('script,link[rel="stylesheet"],style');
-      for(var i=0;i<rm.length;i++){rm[i].remove();}
-      inlineAll(document.documentElement,clone);
-      stripExternal(clone);
-      var html=new XMLSerializer().serializeToString(clone);
-      var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'">'
-        +'<foreignObject width="100%" height="100%">'
-        +'<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+w+'px;height:'+h+'px;overflow:hidden">'
-        +'<div style="transform:translate(-'+scrollX+'px,-'+scrollY+'px);transform-origin:top left">'
-        +html+'</div></div></foreignObject></svg>';
-      var svgUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
-      var img=new Image();
-      img.onload=function(){
-        var c=document.createElement('canvas');c.width=w;c.height=h;
-        c.getContext('2d').drawImage(img,0,0);
-        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:c.toDataURL('image/png'),scrollX:scrollX,scrollY:scrollY},'*');
-      };
-      img.onerror=function(){
-        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
-      };
-      img.src=svgUrl;
-    }catch(err){
-      window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
-    }
-  });
-})();
-</script></body>
+</body>
 </html>
