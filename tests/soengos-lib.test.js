@@ -173,6 +173,21 @@ test('inline SoengOS script is valid JavaScript', () => {
   }
 });
 
+test('SoengOS.html exposes media and productivity apps', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  const requiredApps = ['notes', 'music', 'photos', 'podcast', 'tv', 'browser', 'filemanager'];
+  for (const app of requiredApps) {
+    assert.match(html, new RegExp(`openApp\\('${app}'\\)`), app);
+    assert.match(html, new RegExp(`data-app="${app}"`), app);
+    assert.match(html, new RegExp(`case '${app}'`), app);
+  }
+  assert.match(html, /function openNotes/);
+  assert.match(html, /function openMusic/);
+  assert.match(html, /function openPhotos/);
+  assert.match(html, /function openPodcast/);
+  assert.match(html, /function openTV/);
+});
+
 test('SoengOS.html loads the shared security library', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /<script src="soengos-lib\.js"><\/script>/);
