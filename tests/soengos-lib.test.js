@@ -198,6 +198,17 @@ test('SoengOS.html ships the Fable theme', () => {
   assert.equal(html.includes('Engineering Minimalism Edition'), false);
 });
 
+test('SoengOS.html exposes the practical app launcher and curved motion system', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  for (const token of ['--radius-lg: 18px', '--radius-pill: 999px', 'id="app-launcher"', 'function launchFromLauncher']) {
+    assert.ok(html.includes(token), token);
+  }
+  for (const app of ['filemanager', 'notes', 'browser', 'music', 'photos', 'podcast', 'tv', 'terminal', 'workflow', 'automation', 'settings']) {
+    assert.match(html, new RegExp(`launchFromLauncher\\('${app}'\\)`), app);
+  }
+  assert.match(html, /function newWorkflow\(\) \{[\s\S]*kanban-card/);
+});
+
 test('SoengOS.html loads the shared security library', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /<script src="soengos-lib\.js"><\/script>/);
