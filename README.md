@@ -56,6 +56,14 @@ mode linux
 - **Browser (浏览)** — `soeng://home`, `soeng://welcome`, `soeng://native`, `soeng://poetry`, `soeng://source`, plus the inner garden
 - **Settings (设置)** — desktop mode, dawn/dusk, wallpaper, dock magnification
 
+**Kengo Galleries (v1)** — exhibition viewers inspired by [Fable](https://www.kengoworks.com/fable) and related work:
+
+- **Galleries** — index of all exhibitions with live previews
+- **Fable Wall** — scrollable generative ink tiles, peach trail, graph grid, stripe bands
+- **Cool S** — graph-paper doodle desk with wandering S curves
+- **Self Portraits** — oval frames, blush washes, vertical stripes
+- **Hugging Face Incident** — dark explainer frame with horizontal stripes
+
 **Scholar's table (v2)**
 
 - **Notes (墨笺)** · **Photos (山水)** · **Music (丝竹)** · **Podcasts (山中对)** · **TV (观影)**
