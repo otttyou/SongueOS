@@ -219,18 +219,19 @@ test('SoengOS.html exposes media and productivity apps', () => {
   assert.match(html, /function openTV/);
 });
 
-test('SoengOS.html ships Kengo paper studio tokens', () => {
+test('SoengOS.html ships Song quiet + wabi paper studio tokens', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
-  assert.match(html, /--wall: #f3ebe0/);
-  assert.match(html, /data-tint="peach"/);
+  assert.match(html, /--wall: #e8e4da/);
+  assert.match(html, /--celadon:/);
+  assert.match(html, /--song:/);
+  assert.match(html, /Noto Serif SC/);
   assert.match(html, /boot-mark/);
-  assert.match(html, /logo-sub/);
-  assert.match(html, /kengoMist/);
-  for (const token of ['--espresso: #181410', '--cream: #f6f1e4', 'id="radiant-glow"', '"Helvetica Neue"']) {
+  assert.match(html, /songMist/);
+  for (const token of ['--ink: #2c2824', '--cream: #f5f1ea', 'id="radiant-glow"', 'body::before']) {
     assert.ok(html.includes(token), token);
   }
-  assert.match(html, /Fable Edition/i);
-  assert.ok(html.includes('#f3ebe0'), 'paper studio field');
+  assert.match(html, /宋韵/);
+  assert.ok(html.includes('#e8e4da'), 'xuan paper field');
   assert.equal(html.includes('Zen Dawn'), false);
   assert.equal(html.includes('Engineering Minimalism Edition'), false);
 });
