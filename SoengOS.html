@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f3ebe0">
-<title>SoengOS – A Web-Enabled Linux OS Inspired by Zen Minimalism</title>
+<meta name="theme-color" content="#e8e4da">
+<title>SoengOS – Song Quiet · Wabi Paper Desktop</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@400;500&display=swap');
 
   /* ── Reset ── */
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -18,41 +18,47 @@
     --chrome-bar-h: 42px;
     --topbar-h: calc(var(--chrome-gap) + var(--chrome-bar-h));
     --taskbar-h: calc(var(--chrome-gap) + var(--chrome-bar-h));
-    /* Fable palette — paper field, cream surfaces, espresso ink.
-       The wall is light, like kengoworks.com/fable. Ink is for type, not the room. */
-    --espresso: #181410;
-    --cream: #f6f1e4;
-    --black: #f6f1e4;   /* chrome surface (cream) */
-    --white: #181410;   /* primary ink */
-    --g1: #f0ead9;      /* lightest raised surface */
-    --g2: #e8e0cb;      /* raised surface */
-    --g3: #d4c9ad;      /* soft border */
-    --g5: #a99c7f;      /* strong border */
-    --g7: #7d735d;      /* muted text */
-    --ga: #55503f;      /* secondary text */
-    --gc: #262019;      /* body text */
-    --ge: #181410;      /* ink */
-    --ink: #181410;
-    --paper: #f6f1e4;
-    --wall: #f3ebe0;
-    --peach: #e8a878;
-    --clay: #ac8054;
-    --sage: #7d9d72;
-    --rose: #c4847a;
-    --blush: #edd8c8;
-    --seal: #c45c4a;
-    --ochre: #b08432;
-    --slate: #8898b8;
-    --accent: #181410;        /* Fable inverts: accent is ink on cream */
-    --accent-soft: rgba(24, 20, 16, 0.14);
-    --accent-2: #181410;
-    --accent-3: #181410;
-    --glass: rgba(255, 251, 244, 0.74);
-    --glass-strong: rgba(246, 241, 228, 0.92);
-    --glass-border: rgba(24, 20, 16, 0.08);
-    --shadow-soft: 0 22px 56px rgba(70, 42, 24, 0.12), 0 4px 16px rgba(70, 42, 24, 0.06);
-    --shadow-float: 0 10px 28px rgba(70, 42, 24, 0.10);
-    --hairline: 1px solid rgba(24, 20, 16, 0.10);
+    /* Song quiet + wabi-sabi — aged xuan paper, sumi ink, celadon mist.
+       Less peach warmth; more 留白, stone grey, and Song celadon. */
+    --espresso: #2c2824;
+    --cream: #f5f1ea;
+    --black: #f5f1ea;
+    --white: #2c2824;
+    --g1: #eeeadf;
+    --g2: #e4dfd3;
+    --g3: #cfc9bb;
+    --g5: #a39a8c;
+    --g7: #7a7268;
+    --ga: #5c564e;
+    --gc: #34302a;
+    --ge: #2c2824;
+    --ink: #2c2824;
+    --paper: #f2eee6;
+    --wall: #e8e4da;
+    --xuan: #ece8df;
+    --wabi-stone: #d4cdc2;
+    --wabi-ash: #b8b0a4;
+    --celadon: #7a9088;
+    --celadon-mist: #9aab9f;
+    --celadon-deep: #5f7268;
+    --peach: #c9a882;
+    --clay: #9a7d5c;
+    --sage: #7a9088;
+    --rose: #a8847c;
+    --blush: #e2d8cc;
+    --seal: #8b5e4a;
+    --ochre: #9a7d48;
+    --slate: #8a96a8;
+    --accent: #2c2824;
+    --accent-soft: rgba(44, 40, 36, 0.1);
+    --accent-2: #2c2824;
+    --accent-3: #5f7268;
+    --glass: rgba(252, 249, 244, 0.72);
+    --glass-strong: rgba(245, 241, 234, 0.9);
+    --glass-border: rgba(44, 40, 36, 0.07);
+    --shadow-soft: 0 20px 48px rgba(60, 52, 44, 0.08), 0 3px 12px rgba(60, 52, 44, 0.04);
+    --shadow-float: 0 8px 22px rgba(60, 52, 44, 0.07);
+    --hairline: 1px solid rgba(44, 40, 36, 0.08);
     --radius-xl: 28px;
     --radius-lg: 18px;
     --radius-md: 12px;
@@ -62,7 +68,8 @@
     --mono: 'IBM Plex Mono', monospace;
     --sans: "Helvetica Neue", Helvetica, 'Inter', "Segoe UI", system-ui, sans-serif;
     --transition: 420ms cubic-bezier(0.22, 1, 0.36, 1);
-    --display: "Fraunces", "Helvetica Neue", Georgia, serif;
+    --display: "Fraunces", "Noto Serif SC", "Songti SC", Georgia, serif;
+    --song: "Noto Serif SC", "Songti SC", "Fraunces", serif;
     --app-font-size: 12px;
     --ui-scale: 1;
     --gray-100: var(--ge);
@@ -79,24 +86,35 @@
     width: 100vw; height: 100vh;
     overflow: hidden;
     font-family: var(--sans);
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
     background:
-      radial-gradient(55% 45% at 78% 6%, rgba(232, 168, 120, 0.28) 0%, transparent 62%),
-      radial-gradient(48% 42% at 10% 92%, rgba(212, 140, 150, 0.16) 0%, transparent 65%),
-      radial-gradient(40% 36% at 48% 38%, rgba(255, 252, 246, 0.85) 0%, transparent 70%),
-      #f3ebe0;
+      radial-gradient(48% 42% at 14% 10%, rgba(122, 144, 136, 0.14) 0%, transparent 62%),
+      radial-gradient(44% 38% at 86% 92%, rgba(184, 176, 164, 0.16) 0%, transparent 66%),
+      radial-gradient(38% 34% at 52% 48%, rgba(252, 249, 244, 0.55) 0%, transparent 72%),
+      var(--wall);
     color: var(--gc);
     cursor: default;
     user-select: none;
     -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.35;
+    background-image:
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    mix-blend-mode: multiply;
   }
 
   /* ── Boot screen ── */
   #boot-screen {
     position: fixed; inset: 0; z-index: 99999;
     background:
-      radial-gradient(60% 50% at 50% 45%, rgba(232, 168, 120, 0.20) 0%, transparent 70%),
-      #f3ebe0;
+      radial-gradient(55% 48% at 50% 42%, rgba(122, 144, 136, 0.14) 0%, transparent 68%),
+      var(--wall);
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; gap: 16px;
     opacity: 1;
@@ -106,17 +124,16 @@
   #boot-screen .boot-logo {
     font-family: var(--display);
     font-size: 40px; font-weight: 400;
-    color: #181410;
-    letter-spacing: -0.015em;
+    color: var(--ink);
+    letter-spacing: 0.06em;
     opacity: 0;
     animation: bootFadeIn 600ms 200ms ease forwards;
   }
   #boot-screen .boot-sub {
-    font-family: var(--sans);
+    font-family: var(--song);
     font-size: 13px;
-    color: rgba(24, 20, 16, 0.45);
-    letter-spacing: 0.08em;
-    text-transform: lowercase;
+    color: rgba(44, 40, 36, 0.42);
+    letter-spacing: 0.14em;
     opacity: 0;
     animation: bootFadeIn 400ms 500ms ease forwards;
   }
@@ -251,10 +268,11 @@
     padding-left: 6px;
   }
   .menu-apple-sub {
-    font-family: var(--sans);
+    font-family: var(--song);
     font-size: 10px;
-    color: rgba(24, 20, 16, 0.42);
-    margin-left: 4px;
+    color: rgba(44, 40, 36, 0.38);
+    margin-left: 6px;
+    letter-spacing: 0.12em;
   }
   #menu-dropdown {
     position: fixed;
@@ -521,12 +539,11 @@
   }
   .desktop-section-label {
     grid-column: 1 / -1;
-    font-family: var(--sans);
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    text-transform: lowercase;
-    color: rgba(24, 20, 16, 0.38);
-    padding: 4px 4px 2px;
+    font-family: var(--song);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: rgba(44, 40, 36, 0.34);
+    padding: 6px 4px 2px;
     text-align: left;
     width: 100%;
   }
@@ -1147,7 +1164,7 @@
     flex-direction: column;
     height: 100%;
     min-height: 280px;
-    background: var(--wall, #f3ebe0);
+    background: var(--wall);
   }
   .exhibit-toolbar {
     display: flex;
@@ -1286,10 +1303,10 @@
   #cmd-palette .result-category {
     padding: 6px 18px 4px;
     font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: lowercase;
+    letter-spacing: 0.14em;
+    font-family: var(--song);
     color: var(--g7);
-    border-top: 1px solid rgba(24, 20, 16, 0.06);
+    border-top: 1px solid rgba(44, 40, 36, 0.06);
   }
   #cmd-palette .result-category:first-child { border-top: none; }
   #cmd-palette .result-item .shortcut {
@@ -1614,10 +1631,10 @@
     background: rgba(24, 20, 16, 0.04);
   }
   .dock-icon:hover, .dock-icon.active {
-    background: #fff;
-    color: var(--ink);
+    background: rgba(252, 249, 244, 0.95);
+    color: var(--celadon-deep);
     transform: translateY(-10px) scale(1.18);
-    box-shadow: 0 16px 28px rgba(70, 42, 24, 0.14);
+    box-shadow: 0 12px 24px rgba(60, 52, 44, 0.1);
   }
   body[data-dock-magnify="true"] .dock-icon:hover,
   body[data-dock-magnify="true"] .dock-icon.active {
@@ -1631,16 +1648,16 @@
     content: '';
     position: absolute; inset: 0;
     background-image:
-      linear-gradient(rgba(24, 20, 16, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(24, 20, 16, 0.035) 1px, transparent 1px);
-    background-size: 32px 32px;
+      linear-gradient(rgba(44, 40, 36, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(44, 40, 36, 0.022) 1px, transparent 1px);
+    background-size: 40px 40px;
     pointer-events: none;
-    opacity: 0.55;
+    opacity: 0.38;
   }
   #radiant-glow {
     background: radial-gradient(circle,
-      rgba(232, 168, 120, 0.32) 0%,
-      rgba(212, 115, 94, 0.10) 42%,
+      rgba(122, 144, 136, 0.18) 0%,
+      rgba(184, 176, 164, 0.08) 42%,
       transparent 70%);
   }
   .desktop-icon {
@@ -1762,7 +1779,7 @@
     transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* ── Kengo Works aesthetic pass (Fable / Cool S / portraits / incident) ── */
+  /* ── Song quiet + wabi atmosphere (celadon mist, stone wash) ── */
   html::before,
   html::after {
     content: '';
@@ -1772,16 +1789,16 @@
     z-index: 0;
   }
   html::before {
-    background: radial-gradient(42% 38% at 14% 16%, rgba(232, 168, 120, 0.24) 0%, transparent 68%);
-    animation: kengoMist 30s ease-in-out infinite;
+    background: radial-gradient(40% 36% at 16% 14%, rgba(122, 144, 136, 0.16) 0%, transparent 68%);
+    animation: songMist 34s ease-in-out infinite;
   }
   html::after {
-    background: radial-gradient(36% 32% at 86% 82%, rgba(196, 130, 122, 0.16) 0%, transparent 72%);
-    animation: kengoMist 36s ease-in-out infinite reverse;
+    background: radial-gradient(34% 30% at 84% 86%, rgba(184, 176, 164, 0.14) 0%, transparent 72%);
+    animation: songMist 40s ease-in-out infinite reverse;
   }
-  @keyframes kengoMist {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(1.5%, -1.2%, 0) scale(1.03); }
+  @keyframes songMist {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+    50% { transform: translate3d(1.2%, -0.8%, 0) scale(1.02); opacity: 0.92; }
   }
   #desktop { z-index: 1; }
   #topbar { z-index: 10000; }
@@ -1791,29 +1808,31 @@
   #cmd-palette { z-index: 50000; }
   #desktop::before {
     background-image:
-      linear-gradient(rgba(24, 20, 16, 0.028) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(24, 20, 16, 0.028) 1px, transparent 1px),
-      linear-gradient(rgba(24, 20, 16, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(24, 20, 16, 0.05) 1px, transparent 1px);
-    background-size: 16px 16px, 16px 16px, 80px 80px, 80px 80px;
-    opacity: 0.42;
+      linear-gradient(rgba(44, 40, 36, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(44, 40, 36, 0.018) 1px, transparent 1px),
+      linear-gradient(rgba(44, 40, 36, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(44, 40, 36, 0.035) 1px, transparent 1px);
+    background-size: 20px 20px, 20px 20px, 96px 96px, 96px 96px;
+    opacity: 0.32;
   }
   .icon-well[data-tint="blush"],
-  .launcher-icon-well[data-tint="blush"] { background: rgba(237, 216, 200, 0.55); border-color: rgba(172, 128, 84, 0.12); }
+  .launcher-icon-well[data-tint="blush"] { background: rgba(226, 216, 204, 0.45); border-color: rgba(154, 125, 92, 0.1); }
   .icon-well[data-tint="sage"],
-  .launcher-icon-well[data-tint="sage"] { background: rgba(104, 126, 86, 0.14); border-color: rgba(104, 126, 86, 0.18); }
+  .launcher-icon-well[data-tint="sage"] { background: rgba(122, 144, 136, 0.12); border-color: rgba(95, 114, 104, 0.16); }
   .icon-well[data-tint="peach"],
-  .launcher-icon-well[data-tint="peach"] { background: rgba(232, 168, 120, 0.2); border-color: rgba(232, 168, 120, 0.22); }
+  .launcher-icon-well[data-tint="peach"] { background: rgba(201, 168, 130, 0.14); border-color: rgba(154, 125, 92, 0.14); }
   .icon-well[data-tint="rose"],
-  .launcher-icon-well[data-tint="rose"] { background: rgba(196, 130, 122, 0.16); border-color: rgba(196, 130, 122, 0.2); }
+  .launcher-icon-well[data-tint="rose"] { background: rgba(168, 132, 124, 0.12); border-color: rgba(168, 132, 124, 0.14); }
   .icon-well[data-tint="slate"],
-  .launcher-icon-well[data-tint="slate"] { background: rgba(136, 152, 184, 0.14); border-color: rgba(136, 152, 184, 0.18); }
+  .launcher-icon-well[data-tint="slate"] { background: rgba(138, 150, 168, 0.1); border-color: rgba(138, 150, 168, 0.14); }
   .icon-well[data-tint="clay"],
-  .launcher-icon-well[data-tint="clay"] { background: rgba(172, 128, 84, 0.14); border-color: rgba(172, 128, 84, 0.18); }
+  .launcher-icon-well[data-tint="clay"] { background: rgba(154, 125, 92, 0.1); border-color: rgba(154, 125, 92, 0.14); }
   .icon-well[data-tint="ochre"],
-  .launcher-icon-well[data-tint="ochre"] { background: rgba(176, 132, 50, 0.14); border-color: rgba(176, 132, 50, 0.18); }
+  .launcher-icon-well[data-tint="ochre"] { background: rgba(154, 125, 72, 0.1); border-color: rgba(154, 125, 72, 0.14); }
   .icon-well[data-tint="ink"],
-  .launcher-icon-well[data-tint="ink"] { background: rgba(24, 20, 16, 0.06); border-color: rgba(24, 20, 16, 0.1); }
+  .launcher-icon-well[data-tint="ink"] { background: rgba(44, 40, 36, 0.05); border-color: rgba(44, 40, 36, 0.08); }
+  .icon-well[data-tint="celadon"],
+  .launcher-icon-well[data-tint="celadon"] { background: rgba(122, 144, 136, 0.14); border-color: rgba(95, 114, 104, 0.18); }
   .app-launcher-head h2 {
     font-family: var(--display);
     font-size: 22px;
@@ -1848,12 +1867,12 @@
 <div id="boot-screen">
   <div class="boot-mark" aria-hidden="true">
     <svg viewBox="0 0 120 120" width="92" height="92" fill="none">
-      <circle cx="60" cy="60" r="44" stroke="#181410" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="1 7" opacity="0.85"/>
+      <circle cx="60" cy="60" r="44" stroke="var(--celadon-deep)" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="1 8" opacity="0.7"/>
       <circle cx="60" cy="60" r="3.2" fill="var(--seal)"/>
     </svg>
   </div>
   <div class="boot-logo">soengos</div>
-  <div class="boot-sub">fable edition — paper studio</div>
+  <div class="boot-sub">宋韵 · 诧寂纸场</div>
 </div>
 
 <!-- Keyboard Hint -->
@@ -1866,7 +1885,7 @@
 <!-- Top Bar -->
 <div id="topbar">
   <nav class="menubar" aria-label="Application menu">
-    <button type="button" class="menu-trigger menu-apple" id="menu-apple" aria-haspopup="true">soengos<span class="menu-apple-sub">— paper studio</span></button>
+    <button type="button" class="menu-trigger menu-apple" id="menu-apple" aria-haspopup="true">soengos<span class="menu-apple-sub">宋纸 · 诧寂</span></button>
     <button type="button" class="menu-trigger" data-menu="file">File</button>
     <button type="button" class="menu-trigger" data-menu="view">View</button>
     <button type="button" class="menu-trigger" data-menu="go">Go</button>
@@ -2035,8 +2054,8 @@
   <div class="app-launcher-panel">
     <div class="app-launcher-head">
       <div>
-        <h2 id="app-launcher-title">applications</h2>
-        <p>Pick a desk on the paper wall. Your open windows stay exactly where you left them — warm field, hairline chrome, ink only in the content.</p>
+        <h2 id="app-launcher-title">应用</h2>
+        <p>宣纸为场，墨色为字。开窗不扰静 — 宋式留白，诧寂灰调，青瓷薄雾。</p>
       </div>
       <button class="app-launcher-close" onclick="toggleAppLauncher(false)" aria-label="Close application launcher">&times;</button>
     </div>
@@ -2069,9 +2088,9 @@
 <div id="about-modal">
   <div class="modal-box">
     <h2>About SoengOS</h2>
-    <p>SoengOS is a web-enabled Linux desktop contract. The Fable sitting is a paper studio: warm wall, espresso ink, and the same quiet motion as a Kengo wall — Fable, Cool S, portraits — not a black terminal room.</p>
+    <p>SoengOS 是 Web 与 Linux 共用的桌面契约。这一席以宋纸、墨色、青瓷雾与诧寂灰调为场 — 留白多于装饰，静多于喧。</p>
     <p>Built as a single-file browser prototype using vanilla JavaScript and CSS. All applications run entirely within the browser. No external dependencies, no frameworks, no runtime.</p>
-    <p style="color:var(--g7); font-size:10px; margin-top:8px;">Fable Edition &middot; Paper / espresso ink &middot; v1.2</p>
+    <p style="color:var(--g7); font-size:10px; margin-top:8px;">宋韵诧寂席 &middot; 宣纸 / 墨色 / 青瓷 &middot; v1.3</p>
     <button class="close-btn" onclick="toggleAbout()">CLOSE</button>
   </div>
 </div>
@@ -2116,7 +2135,7 @@
   <div class="taskbar-spacer"></div>
   <div class="workflow-status">Workflows: <span id="workflowCount">2</span></div>
   <div class="workflow-status">Automations: <span id="automationCount">1</span></div>
-  <div class="taskbar-credit">Fable &bull; v1.2</div>
+  <div class="taskbar-credit">宋韵 &bull; v1.3</div>
 </div>
 
 <script src="soengos-lib.js"></script>
@@ -3167,7 +3186,7 @@ function initFileManager(id) {
 function openTerminal(options = {}) {
   const html = `
     <div class="terminal-body" data-terminal-body>
-      <div class="line"><span class="prompt-color">SoengOS v1.2 — Fable Edition</span></div>
+      <div class="line"><span class="prompt-color">SoengOS v1.3 — 宋韵诧寂席</span></div>
       <div class="line"><span class="prompt-color">Type 'help' for available commands.</span></div>
       <div class="line">&nbsp;</div>
       <div class="input-line">
@@ -4572,7 +4591,7 @@ function setSystemToggle(key, el) {
   if (key === 'darkMode' && !systemToggles[key]) {
     systemToggles[key] = true;
     if (el) el.classList.add('on');
-    showToast('Paper studio stays light — espresso is for ink, not the wall');
+    showToast('宋纸场保持浅色 — 墨色用于字，不用于墙');
     return;
   }
   syncControlCenter();
@@ -4655,7 +4674,7 @@ function openSettings(options = {}) {
       <div class="settings-section">
         <h3>Appearance</h3>
         <div class="settings-row">
-          <div><label>Fable Theme</label><div class="sublabel">Paper studio — always light, like the Fable wall</div></div>
+          <div><label>Fable Theme</label><div class="sublabel">宋纸诧寂 — light xuan field, sumi ink in content</div></div>
           <div class="toggle on" onclick="setSystemToggle('darkMode', this)"></div>
         </div>
         <div class="settings-row">
@@ -4709,7 +4728,7 @@ function openSettings(options = {}) {
         <h3>About</h3>
         <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
           <label>SoengOS v1.0.0</label>
-          <div class="sublabel">Fable Edition</div>
+          <div class="sublabel">宋韵诧寂席</div>
           <div class="sublabel">Kernel: Web/JS &middot; WM: SoengWM &middot; Shell: soeng-sh</div>
           <div class="sublabel">License: MIT &middot; Palette: Paper field / espresso ink</div>
           <button class="settings-action-btn" onclick="openNativeReadiness()">Open Native Runtime Plan</button>
