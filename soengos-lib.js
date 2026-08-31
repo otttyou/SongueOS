@@ -186,6 +186,57 @@
     return item;
   }
 
+  const SOENG_ICON_PATHS = {
+    filemanager:
+      '<path d="M5.5 9.2V7.5c0-1.1.9-2 2-2h4.2c.5 0 1 .2 1.4.5l1.5 1.5H18c1.1 0 2 .9 2 2v8.5c0 1.1-.9 2-2 2H7.5c-1.1 0-2-.9-2-2V9.2z"/>',
+    file:
+      '<path d="M8 5.2h6.8l2.2 2.2H19c.8 0 1.4.6 1.4 1.4v11.6c0 .8-.6 1.4-1.4 1.4H8c-.8 0-1.4-.6-1.4-1.4V5.2z"/><path d="M10.2 10.8h7.2M10.2 14h7.2M10.2 17.2h4.8"/>',
+    notes:
+      '<path d="M8 4.8h8c.9 0 1.6.7 1.6 1.6v13.2c0 .9-.7 1.6-1.6 1.6H8c-.9 0-1.6-.7-1.6-1.6V6.4c0-.9.7-1.6 1.6-1.6z"/><path d="M10 10h6M10 13.2h6M10 16.4h4.2"/>',
+    browser:
+      '<circle cx="12" cy="12" r="8.2"/><path d="M12 3.8c2.2 2.5 3.5 5.2 3.5 8.2s-1.3 5.7-3.5 8.2M12 3.8c-2.2 2.5-3.5 5.2-3.5 8.2s1.3 5.7 3.5 8.2"/><path d="M4 12h16"/>',
+    music:
+      '<circle cx="8.2" cy="17.2" r="2"/><circle cx="17" cy="15.2" r="2"/><path d="M10.2 17.2V8.5c0-.3.2-.5.5-.5h7.8c.3 0 .5.2.5.5v6.7"/>',
+    photos:
+      '<path d="M5.2 7.8c0-.9.7-1.6 1.6-1.6h11.6c.9 0 1.6.7 1.6 1.6v8.4c0 .9-.7 1.6-1.6 1.6H6.8c-.9 0-1.6-.7-1.6-1.6V7.8z"/><circle cx="9.5" cy="10.8" r="1.8"/><path d="M5.2 16.2l4.8-4.2 3.2 3 2.8-2.5 4.8 4.5"/>',
+    podcast:
+      '<path d="M10.2 5.5c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8v5.4c0 1-.8 1.8-1.8 1.8s-1.8-.8-1.8-1.8V5.5z"/><path d="M7.8 13.2c0 2.3 1.9 4.2 4.2 4.2s4.2-1.9 4.2-4.2"/><path d="M12 17.5v1.8M9.6 19.3h4.8"/>',
+    tv:
+      '<path d="M4.8 7.5c0-.9.7-1.6 1.6-1.6h12.4c.9 0 1.6.7 1.6 1.6v7.8c0 .9-.7 1.6-1.6 1.6H6.4c-.9 0-1.6-.7-1.6-1.6V7.5z"/><path d="M12 16.8v2"/><path d="M9.2 18.8h5.6"/>',
+    terminal:
+      '<path d="M5.5 5.8h13c.9 0 1.6.7 1.6 1.6v10.4c0 .9-.7 1.6-1.6 1.6h-13c-.9 0-1.6-.7-1.6-1.6V7.4c0-.9.7-1.6 1.6-1.6z"/><path d="M8.8 12.2l2.8 2.8-2.8 2.8"/><path d="M13.2 15.8h5"/>',
+    settings:
+      '<path d="M6.5 9.8h11"/><circle cx="9.5" cy="9.8" r="2"/><path d="M6.5 14.2h11"/><circle cx="14.5" cy="14.2" r="2"/>',
+    workflow:
+      '<rect x="4.5" y="4.5" width="6.8" height="6.8" rx="2.2"/><rect x="14.7" y="4.5" width="6.8" height="6.8" rx="2.2"/><rect x="4.5" y="14.7" width="6.8" height="6.8" rx="2.2"/><rect x="14.7" y="14.7" width="6.8" height="6.8" rx="2.2"/>',
+    automation:
+      '<circle cx="12" cy="12" r="2.6"/><path d="M12 5.5v2.2M12 16.3v2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M5.5 12h2.2M16.3 12h2.2M6.1 17.9l1.6-1.6M16.3 6.1l1.6-1.6"/>',
+    power:
+      '<path d="M12 6v5.5"/><path d="M8.5 8.8a5.2 5.2 0 1 0 7 0"/>',
+  };
+
+  function getSoengIconSvg(id, size) {
+    const paths = SOENG_ICON_PATHS[id];
+    if (!paths) return '';
+    const px = Number(size) > 0 ? Number(size) : 24;
+    const strokeWidth = px >= 30 ? 1.15 : 1.35;
+    return (
+      '<svg viewBox="0 0 24 24" width="' + px + '" height="' + px + '" fill="none" stroke="currentColor" stroke-width="' + strokeWidth + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      paths +
+      '</svg>'
+    );
+  }
+
+  function mountSoengIcons(root) {
+    const scope = root || (typeof document !== 'undefined' ? document : null);
+    if (!scope) return;
+    scope.querySelectorAll('[data-soeng-icon]').forEach((el) => {
+      const id = el.getAttribute('data-soeng-icon');
+      const size = el.getAttribute('data-icon-size') || 24;
+      el.innerHTML = getSoengIconSvg(id, size);
+    });
+  }
+
   return {
     escapeHtml,
     getAllowedNavigationUrl,
@@ -200,5 +251,8 @@
     loadStoredJsonArray,
     parseCommandLine,
     createFileItemElement,
+    SOENG_ICON_PATHS,
+    getSoengIconSvg,
+    mountSoengIcons,
   };
 });

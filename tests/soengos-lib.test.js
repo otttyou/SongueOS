@@ -265,6 +265,23 @@ test('SoengOS.html loads the shared security library', () => {
   assert.match(html, /getAllowedNavigationUrl/);
 });
 
+test('getSoengIconSvg returns rounded stroke icons', () => {
+  const { getSoengIconSvg } = lib;
+  const svg = getSoengIconSvg('notes', 24);
+  assert.match(svg, /stroke-linecap="round"/);
+  assert.match(svg, /stroke-linejoin="round"/);
+  assert.match(svg, /viewBox="0 0 24 24"/);
+  assert.equal(getSoengIconSvg('missing'), '');
+  assert.match(getSoengIconSvg('workflow', 32), /rx="2\.2"/);
+});
+
+test('mountSoengIcons is wired in the desktop shell', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  assert.match(html, /mountSoengIcons\(\)/);
+  assert.match(html, /data-soeng-icon="notes"/);
+  assert.match(html, /getSoengIconSvg\('podcast'/);
+});
+
 test('soengos-lib.js has valid syntax', () => {
   const result = spawnSync(process.execPath, ['--check', path.join(__dirname, '..', 'soengos-lib.js')], {
     encoding: 'utf8',
