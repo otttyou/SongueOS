@@ -679,10 +679,12 @@
     border-radius: var(--radius-sm);
   }
   .browser-toolbar .url-bar:focus { border-color: var(--g5); }
+  .browser-app { display:flex; flex-direction:column; height:100%; min-height:0; }
   .browser-content {
     flex: 1;
+    min-height: 0;
     background: var(--paper);
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: stretch; justify-content: center;
   }
   .browser-page {
     width: 100%; height: 100%;
@@ -691,11 +693,21 @@
     background: var(--cream);
     color: var(--gc);
     font-family: var(--sans);
+    overflow: auto;
   }
+  .browser-page.live { align-items: stretch; justify-content: stretch; padding: 0; gap: 0; background: #fff; }
+  .browser-page.wiki { align-items: flex-start; justify-content: flex-start; padding: 22px 26px; }
   .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
   .browser-page p { font-size: 12px; color: var(--g7); max-width: 400px; text-align: center; line-height: 1.6; }
+  .browser-page.wiki h2, .browser-page.wiki p { text-align: left; max-width: 52rem; }
+  .browser-page.wiki p { font-size: 13px; line-height: 1.7; color: var(--gc); }
+  .browser-frame { width: 100%; height: 100%; border: 0; background: #fff; }
   .browser-bookmarks { display:flex; gap:6px; padding:6px 8px; border-bottom:1px solid var(--g3); background:var(--g1); overflow-x:auto; }
   .browser-status { margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--g7); }
+  .tv-url { flex:1; min-width:120px; height:22px; background:var(--g2); border:1px solid var(--g3); color:var(--gc); padding:0 8px; font-family:var(--mono); font-size:10px; outline:none; border-radius:var(--radius-sm); }
+  .tv-screen.has-player { background: #120e0b !important; }
+  .tv-screen.has-player::before, .tv-screen.has-player .tv-screen-label { display: none; }
+  .tv-frame { position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:inherit; }
 
   /* ── Media apps (Notes, Music, Photos, Podcast, TV) ── */
   .media-app { display:flex; flex-direction:column; height:100%; background:var(--g1); }
@@ -1901,6 +1913,7 @@ function setTaskbarActive(id) {
 
 function closeWindow(id) {
   const win = document.getElementById('win-' + id);
+  if (win?.querySelector('[data-music-app], [data-podcast-app]')) soengTone.stop();
   if (win) { win.remove(); delete openWindows[id]; }
   removeFromTaskbar(id);
   updateDockIndicators();
@@ -2771,16 +2784,173 @@ function initNotes(id) {
   renderEditor();
 }
 
+// ── Live tone desk (Web Audio — no fake progress) ──
+const soengTone = (() => {
+  let ctx = null;
+  const live = [];
+  let ticker = null;
+
+  function context() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ctx) ctx = new AC();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function keep(node) {
+    live.push(node);
+    return node;
+  }
+
+  function silence() {
+    live.splice(0).forEach(node => {
+      try { node.stop?.(); } catch (e) {}
+      try { node.disconnect?.(); } catch (e) {}
+    });
+    if (ticker) {
+      clearInterval(ticker);
+      ticker = null;
+    }
+  }
+
+  function patches(name, c, dest) {
+    if (name === 'rain') {
+      const buffer = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const noise = keep(c.createBufferSource());
+      noise.buffer = buffer;
+      noise.loop = true;
+      const filter = keep(c.createBiquadFilter());
+      filter.type = 'highpass';
+      filter.frequency.value = 1400;
+      const g = keep(c.createGain());
+      g.gain.value = 0.05;
+      noise.connect(filter);
+      filter.connect(g);
+      g.connect(dest);
+      noise.start();
+      const pad = keep(c.createOscillator());
+      pad.type = 'triangle';
+      pad.frequency.value = 110;
+      const pg = keep(c.createGain());
+      pg.gain.value = 0.03;
+      pad.connect(pg);
+      pg.connect(dest);
+      pad.start();
+      return;
+    }
+    if (name === 'drive') {
+      const kick = keep(c.createOscillator());
+      kick.type = 'sine';
+      kick.frequency.value = 52;
+      const kg = keep(c.createGain());
+      kg.gain.value = 0.08;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 1.6;
+      const lg = keep(c.createGain());
+      lg.gain.value = 0.05;
+      lfo.connect(lg);
+      lg.connect(kg.gain);
+      kick.connect(kg);
+      kg.connect(dest);
+      kick.start();
+      lfo.start();
+      const lead = keep(c.createOscillator());
+      lead.type = 'sawtooth';
+      lead.frequency.value = 196;
+      const lp = keep(c.createBiquadFilter());
+      lp.type = 'lowpass';
+      lp.frequency.value = 720;
+      const lg2 = keep(c.createGain());
+      lg2.gain.value = 0.025;
+      lead.connect(lp);
+      lp.connect(lg2);
+      lg2.connect(dest);
+      lead.start();
+      return;
+    }
+    if (name === 'voice') {
+      const osc = keep(c.createOscillator());
+      osc.type = 'sawtooth';
+      osc.frequency.value = 148;
+      const filter = keep(c.createBiquadFilter());
+      filter.type = 'bandpass';
+      filter.frequency.value = 620;
+      filter.Q.value = 4;
+      const g = keep(c.createGain());
+      g.gain.value = 0.035;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 2.4;
+      const lg = keep(c.createGain());
+      lg.gain.value = 80;
+      lfo.connect(lg);
+      lg.connect(filter.frequency);
+      osc.connect(filter);
+      filter.connect(g);
+      g.connect(dest);
+      osc.start();
+      lfo.start();
+      return;
+    }
+    const notes = name === 'focus' ? [196, 247, 294] : name === 'dock' ? [131, 196, 262] : [220, 247, 277, 330];
+    notes.forEach((freq, i) => {
+      const osc = keep(c.createOscillator());
+      osc.type = name === 'focus' ? 'square' : 'sine';
+      osc.frequency.value = freq;
+      const g = keep(c.createGain());
+      g.gain.value = 0;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 0.07 + i * 0.04;
+      const lg = keep(c.createGain());
+      lg.gain.value = name === 'focus' ? 0.018 : 0.035;
+      lfo.connect(lg);
+      lg.connect(g.gain);
+      osc.connect(g);
+      g.connect(dest);
+      osc.start();
+      lfo.start();
+    });
+  }
+
+  function play(name, seconds, onProgress) {
+    const c = context();
+    if (!c) {
+      onProgress?.(0, 0, false);
+      return false;
+    }
+    silence();
+    const dest = keep(c.createGain());
+    dest.gain.value = 0.95;
+    dest.connect(c.destination);
+    patches(name, c, dest);
+    const startedAt = c.currentTime;
+    ticker = setInterval(() => {
+      const elapsed = Math.min(seconds, c.currentTime - startedAt);
+      const progress = seconds ? elapsed / seconds : 0;
+      onProgress?.(progress, elapsed, true);
+      if (progress >= 1) {
+        silence();
+        onProgress?.(1, seconds, false);
+      }
+    }, 200);
+    return true;
+  }
+
+  return { play, stop: silence };
+})();
+
 // ── Music ──
 const musicLibrary = [
-  { id: '1', title: 'Morning Zen', artist: 'Soeng Collective', duration: 214 },
-  { id: '2', title: 'Terminal Rain', artist: 'Kernel Sound', duration: 198 },
-  { id: '3', title: 'Dock Ambient', artist: 'Hybrid Studio', duration: 256 },
-  { id: '4', title: 'Focus Mode', artist: 'Engineering Edition', duration: 302 },
-  { id: '5', title: 'Night Drive', artist: 'Soeng Collective', duration: 241 },
+  { id: '1', title: 'Morning Zen', artist: 'Soeng Collective', duration: 214, patch: 'zen' },
+  { id: '2', title: 'Terminal Rain', artist: 'Kernel Sound', duration: 198, patch: 'rain' },
+  { id: '3', title: 'Dock Ambient', artist: 'Hybrid Studio', duration: 256, patch: 'dock' },
+  { id: '4', title: 'Focus Mode', artist: 'Engineering Edition', duration: 302, patch: 'focus' },
+  { id: '5', title: 'Night Drive', artist: 'Soeng Collective', duration: 241, patch: 'drive' },
 ];
 
-let musicState = { trackId: musicLibrary[0].id, playing: false, progress: 0, timer: null };
+let musicState = { trackId: musicLibrary[0].id, playing: false, progress: 0 };
 
 function formatDuration(seconds) {
   const m = Math.floor(seconds / 60);
@@ -2828,13 +2998,6 @@ function initMusic(id) {
     return musicLibrary.find(t => t.id === musicState.trackId) || musicLibrary[0];
   }
 
-  function stopTimer() {
-    if (musicState.timer) {
-      clearInterval(musicState.timer);
-      musicState.timer = null;
-    }
-  }
-
   function render() {
     const track = currentTrack();
     titleEl.textContent = track.title;
@@ -2842,7 +3005,7 @@ function initMusic(id) {
     const elapsed = Math.floor(track.duration * musicState.progress);
     barEl.style.width = `${musicState.progress * 100}%`;
     timeEl.textContent = `${formatDuration(elapsed)} / ${formatDuration(track.duration)}`;
-    statusEl.textContent = musicState.playing ? 'Playing' : 'Paused';
+    statusEl.textContent = musicState.playing ? 'Playing through speakers' : 'Paused';
     playBtn.textContent = musicState.playing ? 'Pause' : 'Play';
     playBtn.classList.toggle('active', musicState.playing);
     list.textContent = '';
@@ -2857,36 +3020,43 @@ function initMusic(id) {
       row.addEventListener('click', () => {
         musicState.trackId = item.id;
         musicState.progress = 0;
-        render();
-        if (musicState.playing) startTimer();
+        if (musicState.playing) startPlayback();
+        else render();
       });
       list.appendChild(row);
     });
   }
 
-  function startTimer() {
-    stopTimer();
+  function startPlayback() {
+    const track = currentTrack();
     musicState.playing = true;
-    musicState.timer = setInterval(() => {
-      const track = currentTrack();
-      musicState.progress += 1 / track.duration;
-      if (musicState.progress >= 1) {
+    const started = soengTone.play(track.patch, track.duration, (progress, elapsed, alive) => {
+      if (musicState.trackId !== track.id) return;
+      musicState.progress = progress;
+      if (!alive && progress >= 1) {
         const idx = musicLibrary.findIndex(t => t.id === track.id);
         musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
         musicState.progress = 0;
+        startPlayback();
+        return;
       }
+      musicState.playing = alive;
       render();
-    }, 1000);
+    });
+    if (!started) {
+      musicState.playing = false;
+      showToast('This browser blocked audio. Click Play again after a gesture.');
+    }
     render();
   }
 
   function togglePlay() {
     if (musicState.playing) {
       musicState.playing = false;
-      stopTimer();
+      soengTone.stop();
       render();
     } else {
-      startTimer();
+      startPlayback();
     }
   }
 
@@ -2895,15 +3065,15 @@ function initMusic(id) {
     const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
     musicState.trackId = musicLibrary[(idx - 1 + musicLibrary.length) % musicLibrary.length].id;
     musicState.progress = 0;
-    render();
-    if (musicState.playing) startTimer();
+    if (musicState.playing) startPlayback();
+    else render();
   });
   win.querySelector('[data-music-action="next"]').addEventListener('click', () => {
     const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
     musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
     musicState.progress = 0;
-    render();
-    if (musicState.playing) startTimer();
+    if (musicState.playing) startPlayback();
+    else render();
   });
 
   render();
@@ -2999,13 +3169,13 @@ function initPhotos(id) {
 
 // ── Podcast ──
 const podcastEpisodes = [
-  { id: '1', title: 'Designing a Hybrid Desktop', show: 'SoengOS Weekly', duration: 1820, summary: 'How Mac-like polish and Linux-like power share one window manager contract.' },
-  { id: '2', title: 'From HTML Shell to Native Runtime', show: 'Engineering Minimalism', duration: 2145, summary: 'Binding the desktop contract to Wayland, portals, and system services.' },
-  { id: '3', title: 'Focus Mode and Keyboard Model', show: 'SoengOS Weekly', duration: 1560, summary: 'Command palette, shortcuts, and distraction-free workflows.' },
-  { id: '4', title: 'Media Apps on SoengOS', show: 'Prototype Lab', duration: 1680, summary: 'Notes, Music, Photos, Podcast, and TV as first-class desktop windows.' },
+  { id: '1', title: 'Designing a Hybrid Desktop', show: 'SoengOS Weekly', duration: 1820, summary: 'How Mac-like polish and Linux-like power share one window manager contract.', patch: 'voice' },
+  { id: '2', title: 'From HTML Shell to Native Runtime', show: 'Engineering Minimalism', duration: 2145, summary: 'Binding the desktop contract to Wayland, portals, and system services.', patch: 'dock' },
+  { id: '3', title: 'Focus Mode and Keyboard Model', show: 'SoengOS Weekly', duration: 1560, summary: 'Command palette, shortcuts, and distraction-free workflows.', patch: 'focus' },
+  { id: '4', title: 'Media Apps on SoengOS', show: 'Prototype Lab', duration: 1680, summary: 'Notes, Music, Photos, Podcast, and TV as first-class desktop windows.', patch: 'zen' },
 ];
 
-let podcastState = { episodeId: podcastEpisodes[0].id, playing: false, progress: 0, timer: null };
+let podcastState = { episodeId: podcastEpisodes[0].id, playing: false, progress: 0 };
 
 function openPodcast(options = {}) {
   const html = `
@@ -3034,17 +3204,10 @@ function initPodcast(id) {
     return podcastEpisodes.find(e => e.id === podcastState.episodeId) || podcastEpisodes[0];
   }
 
-  function stopTimer() {
-    if (podcastState.timer) {
-      clearInterval(podcastState.timer);
-      podcastState.timer = null;
-    }
-  }
-
   function render() {
     const episode = currentEpisode();
     statusEl.textContent = podcastState.playing
-      ? `Playing — ${episode.show}`
+      ? `On air — ${episode.show}`
       : `Paused — ${formatDuration(Math.floor(episode.duration * podcastState.progress))} / ${formatDuration(episode.duration)}`;
     playBtn.textContent = podcastState.playing ? 'Pause' : 'Play';
     playBtn.classList.toggle('active', podcastState.playing);
@@ -3066,24 +3229,26 @@ function initPodcast(id) {
       row.addEventListener('click', () => {
         podcastState.episodeId = item.id;
         podcastState.progress = 0;
-        render();
-        if (podcastState.playing) {
-          stopTimer();
-          podcastState.timer = setInterval(tick, 1000);
-        }
+        if (podcastState.playing) startEpisode();
+        else render();
       });
       list.appendChild(row);
     });
   }
 
-  function tick() {
+  function startEpisode() {
     const episode = currentEpisode();
-    podcastState.progress += 1 / episode.duration;
-    if (podcastState.progress >= 1) {
+    podcastState.playing = true;
+    const started = soengTone.play(episode.patch, episode.duration, (progress, elapsed, alive) => {
+      if (podcastState.episodeId !== episode.id) return;
+      podcastState.progress = progress;
+      podcastState.playing = alive && progress < 1;
+      if (!alive && progress >= 1) showToast(`Finished: ${episode.title}`);
+      render();
+    });
+    if (!started) {
       podcastState.playing = false;
-      podcastState.progress = 1;
-      stopTimer();
-      showToast(`Finished: ${episode.title}`);
+      showToast('This browser blocked audio. Click Play again after a gesture.');
     }
     render();
   }
@@ -3091,17 +3256,16 @@ function initPodcast(id) {
   win.querySelector('[data-podcast-action="play"]').addEventListener('click', () => {
     if (podcastState.playing) {
       podcastState.playing = false;
-      stopTimer();
+      soengTone.stop();
+      render();
     } else {
-      podcastState.playing = true;
-      podcastState.timer = setInterval(tick, 1000);
+      startEpisode();
     }
-    render();
   });
   win.querySelector('[data-podcast-action="stop"]').addEventListener('click', () => {
     podcastState.playing = false;
     podcastState.progress = 0;
-    stopTimer();
+    soengTone.stop();
     render();
   });
 
@@ -3110,14 +3274,14 @@ function initPodcast(id) {
 
 // ── TV ──
 const tvChannels = [
-  { id: 'news', name: 'Soeng News', program: 'Engineering Brief', genre: 'News', gradient: 'linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%)' },
-  { id: 'nature', name: 'Zen Channel', program: 'Garden Walk', genre: 'Nature', gradient: 'linear-gradient(180deg, #134e4a 0%, #065f46 100%)' },
-  { id: 'tech', name: 'Dev TV', program: 'Native Runtime Deep Dive', genre: 'Technology', gradient: 'linear-gradient(180deg, #312e81 0%, #1e1b4b 100%)' },
-  { id: 'music', name: 'Soeng Music TV', program: 'Live Sessions', genre: 'Music', gradient: 'linear-gradient(180deg, #831843 0%, #500724 100%)' },
-  { id: 'classic', name: 'Archive', program: 'Classic Demos', genre: 'Retro', gradient: 'linear-gradient(180deg, #44403c 0%, #1c1917 100%)' },
+  { id: 'bunny', name: 'Open Cinema', program: 'Big Buck Bunny', genre: 'Film', youtubeId: 'aqz-KE-bpKQ', gradient: 'linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%)' },
+  { id: 'sintel', name: 'Sintel', program: 'Sintel — Blender', genre: 'Film', youtubeId: 'eRsGyueVLvQ', gradient: 'linear-gradient(180deg, #134e4a 0%, #065f46 100%)' },
+  { id: 'tears', name: 'Tears of Steel', program: 'Tears of Steel', genre: 'Film', youtubeId: 'R6MlUcmOul8', gradient: 'linear-gradient(180deg, #312e81 0%, #1e1b4b 100%)' },
+  { id: 'lofi', name: 'Lofi Desk', program: 'lofi hip hop radio', genre: 'Music', youtubeId: 'jfKfPfyJRdk', gradient: 'linear-gradient(180deg, #831843 0%, #500724 100%)' },
+  { id: 'earth', name: 'Earth Desk', program: 'ISS Earth views', genre: 'Live', youtubeId: '21X5lGlDOfg', gradient: 'linear-gradient(180deg, #44403c 0%, #1c1917 100%)' },
 ];
 
-let tvState = { channelId: tvChannels[0].id, watching: false };
+let tvState = { channelId: tvChannels[0].id, watching: false, customId: '' };
 
 function openTV(options = {}) {
   const html = `
@@ -3125,6 +3289,8 @@ function openTV(options = {}) {
       <div class="media-toolbar">
         <button data-tv-action="watch">Watch</button>
         <button data-tv-action="stop">Stop</button>
+        <input class="tv-url" data-tv-url placeholder="Paste a YouTube URL…" spellcheck="false" />
+        <button data-tv-action="tune">Tune</button>
         <span data-tv-status style="margin-left:auto;color:var(--g7);">Channel guide</span>
       </div>
       <div class="media-main">
@@ -3139,7 +3305,7 @@ function openTV(options = {}) {
       </div>
     </div>
   `;
-  const id = createWindow('tv', 'TV', 620, 500, html, { ...options, appName: 'tv' });
+  const id = createWindow('tv', 'TV', 680, 560, html, { ...options, appName: 'tv' });
   initTV(id);
 }
 
@@ -3153,22 +3319,46 @@ function initTV(id) {
   const channelEl = win.querySelector('[data-tv-channel]');
   const statusEl = win.querySelector('[data-tv-status]');
   const list = win.querySelector('[data-tv-list]');
+  const urlInput = win.querySelector('[data-tv-url]');
 
   function currentChannel() {
     return tvChannels.find(c => c.id === tvState.channelId) || tvChannels[0];
   }
 
+  function currentVideoId() {
+    return tvState.customId || currentChannel().youtubeId;
+  }
+
+  function mountPlayer(autoplay) {
+    screen.querySelector('.tv-frame')?.remove();
+    const embed = getYoutubeEmbedUrl(currentVideoId());
+    if (!embed) return;
+    const frame = document.createElement('iframe');
+    frame.className = 'tv-frame';
+    frame.title = currentChannel().program;
+    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.src = `${embed}?rel=0&modestbranding=1${autoplay ? '&autoplay=1' : ''}`;
+    screen.appendChild(frame);
+  }
+
   function render() {
     const channel = currentChannel();
     screen.style.background = channel.gradient;
-    programEl.textContent = channel.program;
-    channelEl.textContent = `${channel.name} · ${channel.genre}`;
+    programEl.textContent = tvState.customId ? 'Tuned YouTube' : channel.program;
+    channelEl.textContent = tvState.customId
+      ? `youtube-nocookie · ${tvState.customId}`
+      : `${channel.name} · ${channel.genre}`;
     liveEl.hidden = !tvState.watching;
-    statusEl.textContent = tvState.watching ? `Watching ${channel.name}` : 'Channel guide';
+    screen.classList.toggle('has-player', tvState.watching);
+    statusEl.textContent = tvState.watching ? `Watching ${programEl.textContent}` : 'Paste a YouTube URL or pick a desk';
+    if (tvState.watching) mountPlayer(true);
+    else screen.querySelector('.tv-frame')?.remove();
     list.textContent = '';
     tvChannels.forEach(item => {
       const row = document.createElement('div');
-      row.className = 'tv-channel' + (item.id === channel.id ? ' active' : '');
+      row.className = 'tv-channel' + (item.id === channel.id && !tvState.customId ? ' active' : '');
       const art = document.createElement('div');
       art.className = 'tv-art';
       art.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12"/><line x1="12" y1="17" x2="12" y2="20"/></svg>';
@@ -3182,23 +3372,42 @@ function initTV(id) {
       row.append(art, info);
       row.addEventListener('click', () => {
         tvState.channelId = item.id;
+        tvState.customId = '';
+        if (urlInput) urlInput.value = `https://www.youtube.com/watch?v=${item.youtubeId}`;
         render();
-        if (tvState.watching) showToast(`Switched to ${item.name}`);
+        if (tvState.watching) showToast(`Tuned ${item.name}`);
       });
       list.appendChild(row);
     });
   }
 
+  function tuneFromInput() {
+    const id = parseYoutubeVideoId(urlInput.value);
+    if (!id) {
+      showToast('Need a YouTube watch, youtu.be, shorts, or embed URL');
+      return;
+    }
+    tvState.customId = id;
+    tvState.watching = true;
+    render();
+    showToast('Tuned YouTube');
+  }
+
   win.querySelector('[data-tv-action="watch"]').addEventListener('click', () => {
     tvState.watching = true;
     render();
-    showToast(`Now watching ${currentChannel().name}`);
+    showToast(`Now watching ${programEl.textContent}`);
   });
   win.querySelector('[data-tv-action="stop"]').addEventListener('click', () => {
     tvState.watching = false;
     render();
     showToast('Playback stopped');
   });
+  win.querySelector('[data-tv-action="tune"]').addEventListener('click', tuneFromInput);
+  urlInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') tuneFromInput();
+  });
+  urlInput.value = `https://www.youtube.com/watch?v=${currentChannel().youtubeId}`;
 
   render();
 }
@@ -3384,7 +3593,7 @@ function openSettings(options = {}) {
 const soengPages = {
   'soeng://welcome': {
     title: 'Welcome to SoengBrowser',
-    body: 'A minimal browser shell with working navigation, history, refresh, bookmarks, and local SoengOS pages. External URLs are represented by a sandbox card so the OS shell remains safe and deterministic.',
+    body: 'Type a normal https address and press Enter. Wikipedia articles load as readable pages. YouTube links play in-place. Other sites open in a sandboxed frame — some hosts still refuse to be framed; use Open tab for those.',
     status: 'Local system page',
   },
   'soeng://apps': {
@@ -3405,6 +3614,7 @@ const soengPages = {
 };
 
 function renderBrowserChrome(page, { title, body, status, icon }) {
+  page.className = 'browser-page';
   page.textContent = '';
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '48');
@@ -3422,6 +3632,46 @@ function renderBrowserChrome(page, { title, body, status, icon }) {
   meta.className = 'browser-status';
   meta.textContent = status;
   page.append(svg, heading, copy, meta);
+}
+
+function renderBrowserFrame(page, src, title) {
+  page.className = 'browser-page live';
+  page.textContent = '';
+  const frame = document.createElement('iframe');
+  frame.className = 'browser-frame';
+  frame.title = title || src;
+  frame.referrerPolicy = 'strict-origin-when-cross-origin';
+  frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation';
+  frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+  frame.src = src;
+  page.appendChild(frame);
+}
+
+async function renderWikipediaPage(page, safeUrl, wiki) {
+  page.className = 'browser-page wiki';
+  page.dataset.liveUrl = safeUrl;
+  page.textContent = '';
+  const heading = document.createElement('h2');
+  heading.textContent = 'Loading Wikipedia…';
+  page.appendChild(heading);
+  try {
+    const api = `https://${wiki.lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wiki.title)}`;
+    const res = await fetch(api, { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error('wiki');
+    const data = await res.json();
+    if (page.dataset.liveUrl !== safeUrl) return;
+    page.textContent = '';
+    const title = document.createElement('h2');
+    title.textContent = data.title || wiki.title.replace(/_/g, ' ');
+    const copy = document.createElement('p');
+    copy.textContent = data.extract || 'This article loaded, but the summary was empty.';
+    const meta = document.createElement('div');
+    meta.className = 'browser-status';
+    meta.textContent = `${wiki.lang}.wikipedia.org · live summary`;
+    page.append(title, copy, meta);
+  } catch (e) {
+    renderBrowserFrame(page, safeUrl, wiki.title);
+  }
 }
 
 function renderBrowserPage(win, state, url) {
@@ -3451,34 +3701,52 @@ function renderBrowserPage(win, state, url) {
     });
     return;
   }
-  renderBrowserChrome(page, {
-    title: safeUrl,
-    body: 'External content is opened as a safe sandbox placeholder in this demo. A native build would hand this URL to the embedded browser engine or system browser service.',
-    status: 'Sandboxed external page · Network bridge ready',
-    icon: '<rect x="8" y="8" width="32" height="32"/><line x1="8" y1="16" x2="40" y2="16"/><circle cx="14" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
-  });
+  if (safeUrl === 'about:blank') {
+    renderBrowserChrome(page, {
+      title: 'Blank',
+      body: 'about:blank',
+      status: 'Empty document',
+      icon: '<rect x="8" y="8" width="32" height="32"/>',
+    });
+    return;
+  }
+  const youtube = getYoutubeEmbedUrl(safeUrl);
+  if (youtube) {
+    renderBrowserFrame(page, `${youtube}?rel=0`, 'YouTube');
+    return;
+  }
+  const wiki = getWikipediaPageRef(safeUrl);
+  if (wiki) {
+    renderWikipediaPage(page, safeUrl, wiki);
+    return;
+  }
+  renderBrowserFrame(page, safeUrl, safeUrl);
 }
 
 function openBrowser(options = {}) {
   const html = `
-    <div class="browser-toolbar">
-      <button class="nav-btn" data-browser-action="back">&#9664;</button>
-      <button class="nav-btn" data-browser-action="forward">&#9654;</button>
-      <button class="nav-btn" data-browser-action="refresh">&#8635;</button>
-      <button class="browser-action" data-browser-action="home">Home</button>
-      <input type="text" class="url-bar" value="soeng://welcome" data-browser-url spellcheck="false" />
-    </div>
-    <div class="browser-bookmarks">
-      <button class="browser-action" data-url="soeng://welcome">Welcome</button>
-      <button class="browser-action" data-url="soeng://apps">Apps</button>
-      <button class="browser-action" data-url="soeng://native">Native Bridge</button>
-      <button class="browser-action" data-url="soeng://help">Help</button>
-    </div>
-    <div class="browser-content">
-      <div class="browser-page" data-browser-page></div>
+    <div class="browser-app">
+      <div class="browser-toolbar">
+        <button class="nav-btn" data-browser-action="back">&#9664;</button>
+        <button class="nav-btn" data-browser-action="forward">&#9654;</button>
+        <button class="nav-btn" data-browser-action="refresh">&#8635;</button>
+        <button class="browser-action" data-browser-action="home">Home</button>
+        <input type="text" class="url-bar" value="soeng://welcome" data-browser-url spellcheck="false" />
+        <button class="browser-action" data-browser-action="open-tab">Open tab</button>
+      </div>
+      <div class="browser-bookmarks">
+        <button class="browser-action" data-url="soeng://welcome">Welcome</button>
+        <button class="browser-action" data-url="https://example.com">Example</button>
+        <button class="browser-action" data-url="https://en.wikipedia.org/wiki/Operating_system">Wikipedia</button>
+        <button class="browser-action" data-url="https://www.youtube.com/watch?v=aqz-KE-bpKQ">YouTube</button>
+        <button class="browser-action" data-url="soeng://help">Help</button>
+      </div>
+      <div class="browser-content">
+        <div class="browser-page" data-browser-page></div>
+      </div>
     </div>
   `;
-  const id = createWindow('browser', 'Browser', 680, 470, html, { ...options, appName: 'browser' });
+  const id = createWindow('browser', 'Browser', 760, 540, html, { ...options, appName: 'browser' });
   initBrowser(id);
 }
 
@@ -3498,6 +3766,14 @@ function initBrowser(id) {
   });
   win.querySelectorAll('[data-url]').forEach(btn => btn.addEventListener('click', () => go(btn.dataset.url)));
   win.querySelector('[data-browser-action="home"]').addEventListener('click', () => go('soeng://welcome'));
+  win.querySelector('[data-browser-action="open-tab"]').addEventListener('click', () => {
+    const href = getAllowedNavigationUrl(state.current);
+    if (!href || href.startsWith('soeng://') || href === 'about:blank') {
+      showToast('Nothing to open in a host tab');
+      return;
+    }
+    window.open(href, '_blank', 'noopener,noreferrer');
+  });
   win.querySelector('[data-browser-action="refresh"]').addEventListener('click', () => { renderBrowserPage(win, state, state.current); showToast('Page refreshed'); });
   win.querySelector('[data-browser-action="back"]').addEventListener('click', () => {
     const previous = state.back.pop();

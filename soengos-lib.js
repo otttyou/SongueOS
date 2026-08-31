@@ -42,6 +42,58 @@
     return null;
   }
 
+  function parseYoutubeVideoId(input) {
+    const raw = String(input || '').trim();
+    if (!raw) return null;
+    if (/^[A-Za-z0-9_-]{11}$/.test(raw)) return raw;
+    try {
+      const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+      const parsed = new URL(href);
+      const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+      if (host === 'youtu.be') {
+        const id = parsed.pathname.split('/').filter(Boolean)[0] || '';
+        return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+      }
+      if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com' || host === 'youtube-nocookie.com') {
+        const fromQuery = parsed.searchParams.get('v') || '';
+        if (/^[A-Za-z0-9_-]{11}$/.test(fromQuery)) return fromQuery;
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        if (parts.length >= 2 && /^(embed|shorts|live)$/.test(parts[0]) && /^[A-Za-z0-9_-]{11}$/.test(parts[1])) {
+          return parts[1];
+        }
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  }
+
+  function getYoutubeEmbedUrl(input) {
+    const id = parseYoutubeVideoId(input);
+    return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
+  }
+
+  function getWikipediaPageRef(href) {
+    try {
+      const parsed = new URL(href);
+      const host = parsed.hostname.toLowerCase();
+      if (host === 'wikipedia.org' || host === 'www.wikipedia.org') {
+        return { lang: 'en', title: 'Wikipedia' };
+      }
+      const match = host.match(/^([a-z]{2,3})\.(?:m\.)?wikipedia\.org$/);
+      if (!match) return null;
+      const path = parsed.pathname;
+      if (path === '/' || path === '/wiki' || path === '/wiki/') {
+        return { lang: match[1], title: 'Main_Page' };
+      }
+      const wiki = path.match(/^\/wiki\/([^/#]+)/);
+      if (!wiki) return null;
+      return { lang: match[1], title: decodeURIComponent(wiki[1]) };
+    } catch (e) {
+      return null;
+    }
+  }
+
   function normalizePath(path) {
     const parts = String(path || '/').split('/').filter(Boolean);
     const stack = [];
@@ -137,6 +189,9 @@
   return {
     escapeHtml,
     getAllowedNavigationUrl,
+    parseYoutubeVideoId,
+    getYoutubeEmbedUrl,
+    getWikipediaPageRef,
     normalizePath,
     joinPath,
     resolveFsPath,
