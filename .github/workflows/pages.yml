@@ -22,9 +22,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
+
+      # Enable the Pages site if it is not configured yet, then point it
+      # at this Actions workflow. Without this, configure-pages fails with
+      # "Get Pages site failed / Not Found" and blocks publish.
+      - name: Ensure GitHub Pages is enabled for Actions
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Stage static site
+        run: |
+          mkdir -p _site
+          # Ship the desktop demo, not the whole git/history tree.
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude '_site' \
+            --exclude '.cursor' \
+            ./ _site/
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
+
       - id: deployment
         uses: actions/deploy-pages@v4
