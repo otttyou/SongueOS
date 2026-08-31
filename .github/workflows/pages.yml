@@ -5,10 +5,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Push a static artifact to gh-pages. GITHUB_TOKEN can update branches but
+# cannot create the Pages site resource; enable once under Settings → Pages →
+# Deploy from a branch → gh-pages / (root).
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -16,25 +17,13 @@ concurrency:
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Enable the Pages site if it is not configured yet, then point it
-      # at this Actions workflow. Without this, configure-pages fails with
-      # "Get Pages site failed / Not Found" and blocks publish.
-      - name: Ensure GitHub Pages is enabled for Actions
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
       - name: Stage static site
         run: |
           mkdir -p _site
-          # Ship the desktop demo, not the whole git/history tree.
           rsync -a \
             --exclude '.git' \
             --exclude '.github' \
@@ -42,10 +31,12 @@ jobs:
             --exclude '_site' \
             --exclude '.cursor' \
             ./ _site/
+          cp _site/SoengOS.html _site/index.html
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: _site
-
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          force_orphan: true
