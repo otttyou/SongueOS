@@ -704,10 +704,76 @@
   .browser-frame { width: 100%; height: 100%; border: 0; background: #fff; }
   .browser-bookmarks { display:flex; gap:6px; padding:6px 8px; border-bottom:1px solid var(--g3); background:var(--g1); overflow-x:auto; }
   .browser-status { margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--g7); }
-  .tv-url { flex:1; min-width:120px; height:22px; background:var(--g2); border:1px solid var(--g3); color:var(--gc); padding:0 8px; font-family:var(--mono); font-size:10px; outline:none; border-radius:var(--radius-sm); }
-  .tv-screen.has-player { background: #120e0b !important; }
-  .tv-screen.has-player::before, .tv-screen.has-player .tv-screen-label { display: none; }
-  .tv-frame { position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:inherit; }
+  .tv-url { flex:1; min-width:140px; height:28px; background:rgba(255,252,246,0.7); border:1px solid rgba(24,20,16,0.10); color:var(--gc); padding:0 12px; font-family:var(--sans); font-size:11px; outline:none; border-radius:var(--radius-pill); }
+  .tv-desk { display:flex; flex-direction:column; height:100%; min-height:0; background:linear-gradient(180deg, #f7f1e6 0%, #efe6d8 100%); }
+  .tv-toolbar {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    padding:12px 14px; border-bottom:1px solid rgba(24,20,16,0.08);
+  }
+  .tv-toolbar button {
+    height:28px; padding:0 14px; border:none; cursor:pointer;
+    border-radius:var(--radius-pill); background:rgba(24,20,16,0.06); color:var(--ink);
+    font-family:var(--sans); font-size:11px;
+    transition:transform 280ms cubic-bezier(0.22,1,0.36,1), background 280ms ease, color 280ms ease, box-shadow 280ms ease;
+  }
+  .tv-toolbar button:hover { transform:translateY(-1px); background:rgba(24,20,16,0.10); box-shadow:0 8px 18px rgba(70,42,24,0.10); }
+  .tv-toolbar button.primary { background:var(--espresso); color:var(--cream); }
+  .tv-toolbar button.primary:hover { background:#2a221b; color:var(--cream); }
+  .tv-status { margin-left:auto; color:var(--g7); font-size:11px; white-space:nowrap; }
+  .tv-stage { flex:1; min-height:0; display:flex; flex-direction:column; padding:14px; gap:14px; }
+  .tv-screen {
+    position:relative; flex:1; min-height:220px; border:1px solid rgba(24,20,16,0.08);
+    background:#120e0b; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; border-radius:22px; box-shadow:0 18px 40px rgba(70,42,24,0.14);
+    transition:transform 480ms cubic-bezier(0.22,1,0.36,1), box-shadow 480ms ease;
+  }
+  .tv-screen.theater { border-radius:18px; box-shadow:0 28px 60px rgba(70,42,24,0.22); }
+  .tv-screen::before {
+    content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.55));
+    opacity:1; transition:opacity 420ms ease;
+  }
+  .tv-screen.has-player::before { opacity:0; }
+  .tv-screen-label { position:relative; z-index:2; text-align:center; padding:20px; transition:opacity 360ms ease, transform 360ms ease; }
+  .tv-screen.has-player .tv-screen-label { opacity:0; transform:translateY(8px); pointer-events:none; }
+  .tv-screen-label h2 { font-family:var(--display); font-size:22px; color:#f6f1e4; margin-bottom:6px; font-weight:400; }
+  .tv-screen-label p { font-size:12px; color:rgba(246,241,228,0.65); }
+  .tv-live {
+    position:absolute; top:14px; right:14px; z-index:4;
+    background:rgba(246,241,228,0.92); color:#181410; font-size:9px;
+    padding:4px 10px; letter-spacing:0.08em; font-weight:600;
+    border-radius:var(--radius-pill); box-shadow:0 6px 16px rgba(0,0,0,0.18);
+  }
+  .tv-scrim {
+    position:absolute; inset:0; z-index:3; background:#120e0b;
+    opacity:0; pointer-events:none; transition:opacity 420ms ease;
+  }
+  .tv-scrim.on { opacity:1; }
+  .tv-video, .tv-frame {
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+    background:#000; object-fit:contain; opacity:0;
+    transition:opacity 480ms ease;
+  }
+  .tv-video.show, .tv-frame.show { opacity:1; }
+  .tv-rail {
+    display:flex; gap:10px; overflow-x:auto; padding:2px 2px 6px;
+    scroll-snap-type:x mandatory; scrollbar-width:thin;
+  }
+  .tv-chip {
+    flex:0 0 168px; scroll-snap-align:start; cursor:pointer;
+    border:1px solid rgba(24,20,16,0.08); border-radius:18px;
+    background:rgba(255,252,246,0.72); padding:10px; text-align:left;
+    transition:transform 320ms cubic-bezier(0.22,1,0.36,1), box-shadow 320ms ease, border-color 320ms ease, background 320ms ease;
+  }
+  .tv-chip:hover { transform:translateY(-4px) scale(1.02); box-shadow:0 14px 28px rgba(70,42,24,0.12); }
+  .tv-chip.active { border-color:rgba(24,20,16,0.28); background:#fff; box-shadow:0 16px 32px rgba(70,42,24,0.14); transform:translateY(-2px); }
+  .tv-chip-art {
+    height:72px; border-radius:12px; margin-bottom:8px;
+    display:flex; align-items:flex-end; justify-content:flex-start; padding:8px;
+    color:rgba(246,241,228,0.9); font-size:10px; letter-spacing:0.04em;
+  }
+  .tv-chip strong { display:block; font-size:12px; color:var(--ink); margin-bottom:2px; }
+  .tv-chip span { display:block; font-size:10px; color:var(--g7); line-height:1.4; }
 
   /* ── Media apps (Notes, Music, Photos, Podcast, TV) ── */
   .media-app { display:flex; flex-direction:column; height:100%; background:var(--g1); }
@@ -813,25 +879,6 @@
   .podcast-info, .tv-info { flex:1; }
   .podcast-info h4, .tv-info h4 { font-size:12px; color:var(--white); margin-bottom:4px; }
   .podcast-info p, .tv-info p { font-size:10px; color:var(--g7); line-height:1.5; }
-  .tv-screen {
-    aspect-ratio:16/9; border:1px solid var(--g3); background:#000;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    margin-bottom:16px; position:relative; overflow:hidden;
-    border-radius:var(--radius-lg);
-  }
-  .tv-screen::before {
-    content:''; position:absolute; inset:0;
-    background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.8));
-  }
-  .tv-screen-label { position:relative; z-index:1; text-align:center; }
-  .tv-screen-label h2 { font-size:18px; color:var(--white); margin-bottom:6px; }
-  .tv-screen-label p { font-size:11px; color:var(--ga); }
-  .tv-live {
-    position:absolute; top:12px; right:12px; z-index:2;
-    background:#f6f1e4; color:#181410; font-size:9px;
-    padding:2px 8px; letter-spacing:1px; font-weight:600;
-    border-radius:var(--radius-pill);
-  }
   .native-card { border:1px solid var(--g3); background:var(--g1); padding:10px; margin-top:8px; }
   .native-card { border-radius:var(--radius-md); }
   .native-card strong { color:var(--white); font-weight:500; }
@@ -1274,6 +1321,47 @@
   #ctx-menu { border: var(--hairline); }
   .ctx-item:hover { background: rgba(24, 20, 16, 0.06); color: var(--ink); }
   .ctx-sep { height: 1px; background: rgba(24, 20, 16, 0.08); }
+
+  /* Soft shell motion — overlays and windows should float, not snap */
+  #app-launcher {
+    opacity: 0;
+    pointer-events: none;
+    display: flex !important;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #app-launcher:not(.open) { visibility: hidden; }
+  #app-launcher.open { opacity: 1; pointer-events: auto; visibility: visible; }
+  #app-launcher .app-launcher-panel {
+    transform: translateY(14px) scale(0.98);
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #app-launcher.open .app-launcher-panel { transform: translateY(0) scale(1); }
+  #cmd-palette {
+    opacity: 0;
+    pointer-events: none;
+    display: flex !important;
+    transform: translateX(-50%) translateY(10px) scale(0.98);
+    transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #cmd-palette:not(.open) { visibility: hidden; }
+  #cmd-palette.open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  .window {
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 360ms ease, transform 360ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 360ms ease;
+  }
+  .media-toolbar button,
+  .fm-action,
+  .browser-action,
+  .settings-action-btn {
+    border-radius: var(--radius-pill) !important;
+  }
+  .toast {
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 </style>
 </head>
 <body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
@@ -1913,8 +2001,15 @@ function setTaskbarActive(id) {
 
 function closeWindow(id) {
   const win = document.getElementById('win-' + id);
-  if (win?.querySelector('[data-music-app], [data-podcast-app]')) soengTone.stop();
-  if (win) { win.remove(); delete openWindows[id]; }
+  if (win) {
+    win.dispatchEvent(new CustomEvent('soeng-close'));
+    if (win.querySelector('[data-music-app], [data-podcast-app]')) soengTone.stop();
+    win.querySelectorAll('video').forEach(video => {
+      try { video.pause(); video.removeAttribute('src'); video.load(); } catch (e) {}
+    });
+    win.remove();
+    delete openWindows[id];
+  }
   removeFromTaskbar(id);
   updateDockIndicators();
 }
@@ -3274,38 +3369,88 @@ function initPodcast(id) {
 
 // ── TV ──
 const tvChannels = [
-  { id: 'bunny', name: 'Open Cinema', program: 'Big Buck Bunny', genre: 'Film', youtubeId: 'aqz-KE-bpKQ', gradient: 'linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%)' },
-  { id: 'sintel', name: 'Sintel', program: 'Sintel — Blender', genre: 'Film', youtubeId: 'eRsGyueVLvQ', gradient: 'linear-gradient(180deg, #134e4a 0%, #065f46 100%)' },
-  { id: 'tears', name: 'Tears of Steel', program: 'Tears of Steel', genre: 'Film', youtubeId: 'R6MlUcmOul8', gradient: 'linear-gradient(180deg, #312e81 0%, #1e1b4b 100%)' },
-  { id: 'lofi', name: 'Lofi Desk', program: 'lofi hip hop radio', genre: 'Music', youtubeId: 'jfKfPfyJRdk', gradient: 'linear-gradient(180deg, #831843 0%, #500724 100%)' },
-  { id: 'earth', name: 'Earth Desk', program: 'ISS Earth views', genre: 'Live', youtubeId: '21X5lGlDOfg', gradient: 'linear-gradient(180deg, #44403c 0%, #1c1917 100%)' },
+  {
+    id: 'bunny',
+    name: 'Open Cinema',
+    program: 'Big Buck Bunny',
+    genre: 'Film',
+    stream: 'https://media.w3.org/2010/05/bunny/movie.mp4',
+    youtubeId: 'aqz-KE-bpKQ',
+    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 55%, #dea864 120%)',
+  },
+  {
+    id: 'sintel',
+    name: 'Sintel Desk',
+    program: 'Sintel trailer',
+    genre: 'Film',
+    stream: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
+    youtubeId: 'eRsGyueVLvQ',
+    gradient: 'linear-gradient(135deg, #312e81 0%, #1e1b4b 55%, #c4a882 120%)',
+  },
+  {
+    id: 'studio',
+    name: 'Studio Reel',
+    program: 'W3C sample reel',
+    genre: 'Short',
+    stream: 'https://media.w3.org/2010/05/video/movie_300.mp4',
+    youtubeId: 'R6MlUcmOul8',
+    gradient: 'linear-gradient(135deg, #134e4a 0%, #065f46 55%, #7db88e 120%)',
+  },
+  {
+    id: 'garden',
+    name: 'Garden Desk',
+    program: 'Flower — MDN',
+    genre: 'Nature',
+    stream: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    youtubeId: 'jfKfPfyJRdk',
+    gradient: 'linear-gradient(135deg, #831843 0%, #500724 55%, #e89a5a 120%)',
+  },
+  {
+    id: 'tram',
+    name: 'Tram Desk',
+    program: 'Schlossbergbahn',
+    genre: 'Travel',
+    stream: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/87/Schlossbergbahn.webm/Schlossbergbahn.webm.480p.vp9.webm',
+    youtubeId: '21X5lGlDOfg',
+    gradient: 'linear-gradient(135deg, #44403c 0%, #1c1917 55%, #dea864 120%)',
+  },
 ];
 
-let tvState = { channelId: tvChannels[0].id, watching: false, customId: '' };
+let tvState = {
+  channelId: tvChannels[0].id,
+  watching: false,
+  theater: false,
+  customId: '',
+  sourceKey: '',
+};
 
 function openTV(options = {}) {
   const html = `
-    <div class="media-app" data-tv-app>
-      <div class="media-toolbar">
-        <button data-tv-action="watch">Watch</button>
-        <button data-tv-action="stop">Stop</button>
+    <div class="tv-desk" data-tv-app tabindex="0">
+      <div class="tv-toolbar">
+        <button class="primary" data-tv-action="play">Play</button>
+        <button data-tv-action="pause">Pause</button>
+        <button data-tv-action="prev">Prev</button>
+        <button data-tv-action="next">Next</button>
+        <button data-tv-action="theater">Theater</button>
         <input class="tv-url" data-tv-url placeholder="Paste a YouTube URL…" spellcheck="false" />
-        <button data-tv-action="tune">Tune</button>
-        <span data-tv-status style="margin-left:auto;color:var(--g7);">Channel guide</span>
+        <button data-tv-action="tune">Tune YT</button>
+        <span class="tv-status" data-tv-status>Pick a desk</span>
       </div>
-      <div class="media-main">
+      <div class="tv-stage">
         <div class="tv-screen" data-tv-screen>
-          <div class="tv-live" data-tv-live hidden>LIVE</div>
+          <div class="tv-scrim" data-tv-scrim></div>
+          <div class="tv-live" data-tv-live hidden>ON AIR</div>
           <div class="tv-screen-label">
             <h2 data-tv-program>—</h2>
             <p data-tv-channel>—</p>
           </div>
         </div>
-        <div data-tv-list></div>
+        <div class="tv-rail" data-tv-list></div>
       </div>
     </div>
   `;
-  const id = createWindow('tv', 'TV', 680, 560, html, { ...options, appName: 'tv' });
+  const id = createWindow('tv', 'TV', 760, 620, html, { ...options, appName: 'tv' });
   initTV(id);
 }
 
@@ -3313,103 +3458,225 @@ function initTV(id) {
   const win = document.getElementById('win-' + id);
   if (!win || win.dataset.tvReady === '1') return;
   win.dataset.tvReady = '1';
+  const root = win.querySelector('[data-tv-app]');
   const screen = win.querySelector('[data-tv-screen]');
+  const scrim = win.querySelector('[data-tv-scrim]');
   const liveEl = win.querySelector('[data-tv-live]');
   const programEl = win.querySelector('[data-tv-program]');
   const channelEl = win.querySelector('[data-tv-channel]');
   const statusEl = win.querySelector('[data-tv-status]');
   const list = win.querySelector('[data-tv-list]');
   const urlInput = win.querySelector('[data-tv-url]');
+  const playBtn = win.querySelector('[data-tv-action="play"]');
+  let activeMedia = null;
 
   function currentChannel() {
     return tvChannels.find(c => c.id === tvState.channelId) || tvChannels[0];
   }
 
-  function currentVideoId() {
-    return tvState.customId || currentChannel().youtubeId;
+  function clearMedia() {
+    if (activeMedia) {
+      try { activeMedia.pause?.(); } catch (e) {}
+      activeMedia.remove();
+      activeMedia = null;
+    }
+    screen.querySelectorAll('.tv-video, .tv-frame').forEach(el => el.remove());
+    tvState.sourceKey = '';
   }
 
-  function mountPlayer(autoplay) {
-    screen.querySelector('.tv-frame')?.remove();
-    const embed = getYoutubeEmbedUrl(currentVideoId());
+  function afterFade(fn) {
+    scrim.classList.add('on');
+    window.setTimeout(() => {
+      fn();
+      window.requestAnimationFrame(() => scrim.classList.remove('on'));
+    }, 180);
+  }
+
+  function mountStream(src, autoplay) {
+    clearMedia();
+    const video = document.createElement('video');
+    video.className = 'tv-video';
+    video.controls = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.src = src;
+    screen.appendChild(video);
+    activeMedia = video;
+    tvState.sourceKey = `stream:${src}`;
+    const reveal = () => video.classList.add('show');
+    video.addEventListener('loadeddata', reveal, { once: true });
+    video.addEventListener('error', () => {
+      statusEl.textContent = 'Stream stalled — try Tune YT or another desk';
+      video.classList.remove('show');
+    });
+    if (autoplay) {
+      const playPromise = video.play();
+      if (playPromise?.catch) playPromise.catch(() => {
+        statusEl.textContent = 'Click Play — the browser wants a gesture';
+      });
+    }
+    window.setTimeout(reveal, 80);
+  }
+
+  function mountYoutube(videoId, autoplay) {
+    clearMedia();
+    const embed = getYoutubeEmbedUrl(videoId);
     if (!embed) return;
     const frame = document.createElement('iframe');
     frame.className = 'tv-frame';
-    frame.title = currentChannel().program;
-    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    frame.title = programEl.textContent || 'YouTube';
+    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     frame.allowFullscreen = true;
     frame.referrerPolicy = 'strict-origin-when-cross-origin';
     frame.src = `${embed}?rel=0&modestbranding=1${autoplay ? '&autoplay=1' : ''}`;
     screen.appendChild(frame);
+    activeMedia = frame;
+    tvState.sourceKey = `yt:${videoId}`;
+    window.setTimeout(() => frame.classList.add('show'), 40);
   }
 
-  function render() {
+  function paintChrome() {
     const channel = currentChannel();
-    screen.style.background = channel.gradient;
-    programEl.textContent = tvState.customId ? 'Tuned YouTube' : channel.program;
-    channelEl.textContent = tvState.customId
+    const custom = Boolean(tvState.customId);
+    programEl.textContent = custom ? 'Tuned YouTube' : channel.program;
+    channelEl.textContent = custom
       ? `youtube-nocookie · ${tvState.customId}`
       : `${channel.name} · ${channel.genre}`;
     liveEl.hidden = !tvState.watching;
     screen.classList.toggle('has-player', tvState.watching);
-    statusEl.textContent = tvState.watching ? `Watching ${programEl.textContent}` : 'Paste a YouTube URL or pick a desk';
-    if (tvState.watching) mountPlayer(true);
-    else screen.querySelector('.tv-frame')?.remove();
+    screen.classList.toggle('theater', tvState.theater);
+    playBtn.textContent = tvState.watching ? 'Replay' : 'Play';
+    statusEl.textContent = tvState.watching
+      ? (custom ? `Watching YouTube · ${tvState.customId}` : `Watching ${channel.program}`)
+      : 'Click a desk — playback starts right away';
+    if (!custom && urlInput && document.activeElement !== urlInput) {
+      urlInput.value = channel.stream;
+    }
+  }
+
+  function renderRail() {
+    const channel = currentChannel();
     list.textContent = '';
     tvChannels.forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'tv-channel' + (item.id === channel.id && !tvState.customId ? ' active' : '');
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'tv-chip' + (item.id === channel.id && !tvState.customId ? ' active' : '');
       const art = document.createElement('div');
-      art.className = 'tv-art';
-      art.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12"/><line x1="12" y1="17" x2="12" y2="20"/></svg>';
-      const info = document.createElement('div');
-      info.className = 'tv-info';
-      const h4 = document.createElement('h4');
-      h4.textContent = item.name;
-      const p = document.createElement('p');
-      p.textContent = `${item.program} · ${item.genre}`;
-      info.append(h4, p);
-      row.append(art, info);
-      row.addEventListener('click', () => {
-        tvState.channelId = item.id;
-        tvState.customId = '';
-        if (urlInput) urlInput.value = `https://www.youtube.com/watch?v=${item.youtubeId}`;
-        render();
-        if (tvState.watching) showToast(`Tuned ${item.name}`);
-      });
-      list.appendChild(row);
+      art.className = 'tv-chip-art';
+      art.style.background = item.gradient;
+      art.textContent = item.genre;
+      const strong = document.createElement('strong');
+      strong.textContent = item.name;
+      const span = document.createElement('span');
+      span.textContent = item.program;
+      chip.append(art, strong, span);
+      chip.addEventListener('click', () => tuneChannel(item.id, true));
+      list.appendChild(chip);
     });
   }
 
-  function tuneFromInput() {
-    const id = parseYoutubeVideoId(urlInput.value);
-    if (!id) {
-      showToast('Need a YouTube watch, youtu.be, shorts, or embed URL');
+  function ensurePlayback(force) {
+    const channel = currentChannel();
+    const key = tvState.customId ? `yt:${tvState.customId}` : `stream:${channel.stream}`;
+    if (!force && tvState.watching && tvState.sourceKey === key) {
+      if (activeMedia?.play) activeMedia.play().catch(() => {});
       return;
     }
-    tvState.customId = id;
-    tvState.watching = true;
-    render();
-    showToast('Tuned YouTube');
+    soengTone.stop();
+    musicState.playing = false;
+    podcastState.playing = false;
+    afterFade(() => {
+      if (tvState.customId) mountYoutube(tvState.customId, true);
+      else mountStream(channel.stream, true);
+      paintChrome();
+    });
   }
 
-  win.querySelector('[data-tv-action="watch"]').addEventListener('click', () => {
-    tvState.watching = true;
-    render();
-    showToast(`Now watching ${programEl.textContent}`);
-  });
-  win.querySelector('[data-tv-action="stop"]').addEventListener('click', () => {
-    tvState.watching = false;
-    render();
-    showToast('Playback stopped');
-  });
-  win.querySelector('[data-tv-action="tune"]').addEventListener('click', tuneFromInput);
-  urlInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') tuneFromInput();
-  });
-  urlInput.value = `https://www.youtube.com/watch?v=${currentChannel().youtubeId}`;
+  function tuneChannel(channelId, autoplay) {
+    tvState.channelId = channelId;
+    tvState.customId = '';
+    tvState.watching = Boolean(autoplay);
+    paintChrome();
+    renderRail();
+    if (autoplay) ensurePlayback(true);
+    else clearMedia();
+  }
 
-  render();
+  function shiftChannel(delta) {
+    const idx = tvChannels.findIndex(c => c.id === tvState.channelId);
+    const next = tvChannels[(idx + delta + tvChannels.length) % tvChannels.length];
+    tuneChannel(next.id, true);
+    showToast(next.program);
+  }
+
+  function stopPlayback() {
+    tvState.watching = false;
+    afterFade(() => {
+      clearMedia();
+      paintChrome();
+    });
+  }
+
+  function pausePlayback() {
+    if (activeMedia?.pause) {
+      activeMedia.pause();
+      statusEl.textContent = 'Paused';
+      return;
+    }
+    stopPlayback();
+  }
+
+  win.querySelector('[data-tv-action="play"]').addEventListener('click', () => {
+    tvState.watching = true;
+    ensurePlayback(true);
+  });
+  win.querySelector('[data-tv-action="pause"]').addEventListener('click', pausePlayback);
+  win.querySelector('[data-tv-action="prev"]').addEventListener('click', () => shiftChannel(-1));
+  win.querySelector('[data-tv-action="next"]').addEventListener('click', () => shiftChannel(1));
+  win.querySelector('[data-tv-action="theater"]').addEventListener('click', () => {
+    tvState.theater = !tvState.theater;
+    const el = document.getElementById('win-' + id);
+    el?.classList.toggle('maximized', tvState.theater);
+    paintChrome();
+  });
+  win.querySelector('[data-tv-action="tune"]').addEventListener('click', () => {
+    const yt = parseYoutubeVideoId(urlInput.value);
+    if (!yt) {
+      showToast('Paste a YouTube watch / youtu.be / shorts link');
+      return;
+    }
+    tvState.customId = yt;
+    tvState.watching = true;
+    paintChrome();
+    renderRail();
+    ensurePlayback(true);
+    showToast('Tuned YouTube');
+  });
+  urlInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') win.querySelector('[data-tv-action="tune"]').click();
+  });
+  root.addEventListener('keydown', (event) => {
+    if (event.target === urlInput) return;
+    if (event.key === 'ArrowRight') { event.preventDefault(); shiftChannel(1); }
+    if (event.key === 'ArrowLeft') { event.preventDefault(); shiftChannel(-1); }
+    if (event.key === ' ') {
+      event.preventDefault();
+      if (tvState.watching && activeMedia && !activeMedia.paused) pausePlayback();
+      else {
+        tvState.watching = true;
+        ensurePlayback(true);
+      }
+    }
+  });
+
+  win.addEventListener('soeng-close', () => {
+    clearMedia();
+  }, { once: true });
+
+  paintChrome();
+  renderRail();
+  tuneChannel(tvState.channelId, true);
+  root.focus({ preventScroll: true });
 }
 
 // ── Settings ──

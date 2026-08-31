@@ -235,9 +235,12 @@ test('SoengOS.html plays live music, YouTube TV, and framed web pages', () => {
   assert.match(html, /AudioContext/);
   assert.match(html, /youtube-nocookie/);
   assert.match(html, /data-tv-url/);
+  assert.match(html, /media\.w3\.org\/2010\/05\/bunny\/movie\.mp4/);
   assert.match(html, /function renderBrowserFrame/);
   assert.match(html, /wikipedia\.org\/api\/rest_v1\/page\/summary/);
   assert.match(html, /sandbox = 'allow-scripts/);
+  assert.match(html, /class="tv-desk"/);
+  assert.match(html, /data-tv-action="theater"/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'soengos-lib.js'), 'utf8'), /youtube-nocookie\.com\/embed/);
 });
 
