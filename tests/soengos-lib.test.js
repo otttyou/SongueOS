@@ -281,6 +281,16 @@ test('SoengOS.html exposes the practical app launcher and curved motion system',
   assert.match(html, /function newWorkflow\(\) \{[\s\S]*kanban-card/);
 });
 
+test('SoengOS.html ships ryOS-inspired shell polish', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  assert.match(html, /id="control-center"/);
+  assert.match(html, /id="menu-dropdown"/);
+  assert.match(html, /function initDockMagnification/);
+  assert.match(html, /function saveShellState/);
+  assert.match(html, /category: 'Apps'/);
+  assert.match(html, /function finishMinimizeWindow/);
+});
+
 test('SoengOS.html loads the shared security library', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /<script src="soengos-lib\.js"><\/script>/);

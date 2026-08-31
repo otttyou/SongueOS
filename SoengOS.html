@@ -220,6 +220,167 @@
     background: var(--cream); color: var(--espresso);
   }
 
+  /* ── Menu bar (ryOS-style app menus) ── */
+  #topbar .menubar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .menu-trigger {
+    background: transparent;
+    border: none;
+    color: var(--ga);
+    font-family: var(--sans);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+  .menu-trigger:hover,
+  .menu-trigger.open {
+    background: rgba(24, 20, 16, 0.08);
+    color: var(--ink);
+  }
+  .menu-trigger.menu-apple {
+    font-family: var(--display);
+    font-size: 12px;
+    color: var(--ink);
+    padding-left: 6px;
+  }
+  .menu-apple-sub {
+    font-family: var(--sans);
+    font-size: 10px;
+    color: rgba(24, 20, 16, 0.42);
+    margin-left: 4px;
+  }
+  #menu-dropdown {
+    position: fixed;
+    z-index: 12000;
+    min-width: 200px;
+    display: none;
+    background: var(--cream);
+    border: var(--hairline);
+    box-shadow: var(--shadow-float);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    padding: 6px 0;
+  }
+  #menu-dropdown.open { display: block; }
+  .menu-dropdown-item {
+    padding: 8px 14px;
+    font-size: 11px;
+    color: var(--ga);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: background var(--transition), color var(--transition);
+  }
+  .menu-dropdown-item:hover { background: rgba(24, 20, 16, 0.06); color: var(--ink); }
+  .menu-dropdown-item .menu-shortcut {
+    font-family: var(--mono);
+    font-size: 9px;
+    opacity: 0.55;
+  }
+  .menu-dropdown-sep {
+    height: 1px;
+    background: rgba(24, 20, 16, 0.08);
+    margin: 4px 0;
+  }
+
+  /* ── Control Center tray ── */
+  #control-center {
+    position: fixed;
+    z-index: 12000;
+    top: calc(var(--topbar-h) + 6px);
+    right: 14px;
+    width: min(300px, calc(100vw - 28px));
+    display: none;
+    background: var(--glass);
+    border: var(--hairline);
+    box-shadow: var(--shadow-soft);
+    border-radius: var(--radius-lg);
+    backdrop-filter: var(--blur);
+    padding: 14px;
+    gap: 10px;
+    flex-direction: column;
+  }
+  #control-center.open { display: flex; }
+  .cc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--display);
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .cc-close {
+    width: 26px;
+    height: 26px;
+    border: var(--hairline);
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    color: var(--ga);
+  }
+  .cc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .cc-tile {
+    padding: 10px 12px;
+    border: var(--hairline);
+    border-radius: var(--radius-md);
+    background: rgba(255, 252, 246, 0.55);
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition);
+  }
+  .cc-tile:hover { background: rgba(255, 252, 246, 0.9); transform: translateY(-1px); }
+  .cc-tile strong {
+    display: block;
+    font-size: 11px;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .cc-tile span {
+    font-size: 9px;
+    color: var(--g7);
+  }
+  .cc-tile.on { border-color: rgba(104, 126, 86, 0.35); background: rgba(104, 126, 86, 0.1); }
+  .cc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 4px;
+    font-size: 11px;
+    color: var(--ga);
+  }
+  .cc-row input[type="range"] { flex: 1; accent-color: var(--espresso); }
+  .topbar-cc-btn {
+    width: 28px;
+    height: 28px;
+    border: var(--hairline);
+    background: rgba(24, 20, 16, 0.04);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background var(--transition), transform var(--transition);
+  }
+  .topbar-cc-btn:hover { background: rgba(24, 20, 16, 0.08); }
+  .topbar-cc-btn.open { background: var(--espresso); color: var(--cream); }
+  .topbar-cc-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
 
   /* ── Unified platform chrome ── */
   body[data-desktop-mode="hybrid"] #desktop-dock,
@@ -266,6 +427,13 @@
     color: var(--cream);
     transform: translateY(-5px) scale(1.04);
     box-shadow: 0 10px 22px rgba(24, 20, 16, 0.14);
+  }
+  body[data-dock-magnify="true"] .dock-icon {
+    transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1), background var(--transition), color var(--transition), box-shadow var(--transition);
+  }
+  body[data-dock-magnify="true"] .dock-icon:hover,
+  body[data-dock-magnify="true"] .dock-icon.active {
+    transform: none;
   }
   .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; }
   .dock-icon::after {
@@ -440,7 +608,16 @@
     from { opacity: 0; transform: translateY(12px) scale(0.97); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-  .window.minimized { display: none; }
+  .window.minimized {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: scale(0.2);
+  }
+  .window.minimizing {
+    pointer-events: none;
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease, box-shadow 280ms ease;
+  }
   .window.maximized {
     top: 0 !important; left: 0 !important;
     width: 100% !important; height: 100% !important;
@@ -1106,6 +1283,15 @@
     background: var(--espresso);
     color: var(--cream);
   }
+  #cmd-palette .result-category {
+    padding: 6px 18px 4px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: lowercase;
+    color: var(--g7);
+    border-top: 1px solid rgba(24, 20, 16, 0.06);
+  }
+  #cmd-palette .result-category:first-child { border-top: none; }
   #cmd-palette .result-item .shortcut {
     margin-left: auto;
     font-size: 10px;
@@ -1386,6 +1572,7 @@
     .app-launcher-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .app-launcher-panel { padding:16px; }
     #topbar { left: 8px; right: 8px; }
+    #topbar .menu-trigger:not(.menu-apple):not([data-menu="view"]) { display: none; }
     #taskbar { left: 8px; right: 8px; }
     body[data-desktop-mode="hybrid"] #desktop-dock { bottom: calc(var(--taskbar-h) + var(--chrome-gap)); }
   }
@@ -1431,6 +1618,11 @@
     color: var(--ink);
     transform: translateY(-10px) scale(1.18);
     box-shadow: 0 16px 28px rgba(70, 42, 24, 0.14);
+  }
+  body[data-dock-magnify="true"] .dock-icon:hover,
+  body[data-dock-magnify="true"] .dock-icon.active {
+    transform: none;
+    box-shadow: none;
   }
   .dock-icon.active::after { background: var(--espresso); border-color: var(--espresso); }
   #dock-menu { border: var(--hairline); }
@@ -1673,8 +1865,17 @@
 
 <!-- Top Bar -->
 <div id="topbar">
-  <div class="logo"><span class="logo-primary">soengos</span><span class="logo-sub">— paper studio</span></div>
+  <nav class="menubar" aria-label="Application menu">
+    <button type="button" class="menu-trigger menu-apple" id="menu-apple" aria-haspopup="true">soengos<span class="menu-apple-sub">— paper studio</span></button>
+    <button type="button" class="menu-trigger" data-menu="file">File</button>
+    <button type="button" class="menu-trigger" data-menu="view">View</button>
+    <button type="button" class="menu-trigger" data-menu="go">Go</button>
+    <button type="button" class="menu-trigger" data-menu="help">Help</button>
+  </nav>
   <div class="right">
+    <button type="button" class="topbar-cc-btn" id="control-center-btn" aria-label="Control Center" aria-expanded="false" aria-controls="control-center">
+      <svg viewBox="0 0 24 24" stroke-width="1.6"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>
+    </button>
     <div class="clock" id="clock">00:00</div>
     <div class="battery">
       <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="#6b5f55" stroke-width="1">
@@ -1685,6 +1886,41 @@
       <span style="font-size:9px">87%</span>
     </div>
     <button class="menu-btn" onclick="toggleAppLauncher()" aria-haspopup="dialog" aria-controls="app-launcher">APPS</button>
+  </div>
+</div>
+
+<div id="menu-dropdown" role="menu" aria-hidden="true"></div>
+
+<div id="control-center" role="dialog" aria-label="Control Center" aria-hidden="true">
+  <div class="cc-head">
+    <span>Control Center</span>
+    <button type="button" class="cc-close" onclick="toggleControlCenter(false)" aria-label="Close">×</button>
+  </div>
+  <div class="cc-grid">
+    <button type="button" class="cc-tile" data-cc="wifi" onclick="toggleCcTile('wifi')">
+      <strong>Wi-Fi</strong><span>SoengNet_5G</span>
+    </button>
+    <button type="button" class="cc-tile" data-cc="sound" onclick="toggleCcTile('sound')">
+      <strong>Sound</strong><span>UI feedback</span>
+    </button>
+    <button type="button" class="cc-tile" data-cc="desktopGrid" onclick="toggleCcTile('desktopGrid')">
+      <strong>Grid</strong><span>Paper graph lines</span>
+    </button>
+    <button type="button" class="cc-tile" data-cc="animations" onclick="toggleCcTile('animations')">
+      <strong>Motion</strong><span>Window lift</span>
+    </button>
+  </div>
+  <div class="cc-row">
+    <span>Dock magnify</span>
+    <input type="range" id="cc-dock-mag" min="100" max="160" value="135" oninput="setDockMagnification(this.value)" />
+  </div>
+  <div class="cc-row">
+    <span>Desktop mode</span>
+    <select id="cc-desktop-mode" onchange="setDesktopMode(this.value)" style="font-size:10px;border:var(--hairline);border-radius:var(--radius-pill);padding:4px 8px;background:var(--cream);">
+      <option value="hybrid">Hybrid</option>
+      <option value="mac">Mac</option>
+      <option value="linux">Linux</option>
+    </select>
   </div>
 </div>
 
@@ -1926,6 +2162,259 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
+// ── Shell UX (ryOS-inspired: menus, control center, motion, persistence) ──
+const SHELL_STORAGE_KEY = 'soengos-shell-v1';
+let dockMagnification = 1.35;
+let dockMagnifyEnabled = true;
+let audioCtx = null;
+
+function saveShellState() {
+  try {
+    localStorage.setItem(SHELL_STORAGE_KEY, JSON.stringify({
+      desktopMode,
+      windowControls,
+      dockPosition,
+      taskbarVisible,
+      systemToggles,
+      dockMagnification,
+      dockMagnifyEnabled,
+      appFontSize: document.documentElement.style.getPropertyValue('--app-font-size') || '12px',
+      uiScale: document.documentElement.style.getPropertyValue('--ui-scale') || '1',
+    }));
+  } catch (e) {}
+}
+
+function loadShellState() {
+  try {
+    const raw = localStorage.getItem(SHELL_STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.desktopMode && desktopModeModels[data.desktopMode]) desktopMode = data.desktopMode;
+    if (data.windowControls) windowControls = data.windowControls;
+    if (data.dockPosition) dockPosition = data.dockPosition;
+    if (typeof data.taskbarVisible === 'boolean') taskbarVisible = data.taskbarVisible;
+    if (data.systemToggles) Object.assign(systemToggles, data.systemToggles);
+    if (typeof data.dockMagnification === 'number') dockMagnification = data.dockMagnification;
+    if (typeof data.dockMagnifyEnabled === 'boolean') dockMagnifyEnabled = data.dockMagnifyEnabled;
+    if (data.appFontSize) document.documentElement.style.setProperty('--app-font-size', data.appFontSize);
+    if (data.uiScale) document.documentElement.style.setProperty('--ui-scale', data.uiScale);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function shellAnimationsEnabled() {
+  return systemToggles.animations && !document.body.classList.contains('reduced-motion');
+}
+
+function playUiSound(kind) {
+  if (!systemToggles.sound) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const presets = {
+      open: { f: 620, d: 0.08, vol: 0.04 },
+      close: { f: 420, d: 0.1, vol: 0.035 },
+      click: { f: 520, d: 0.05, vol: 0.03 },
+      minimize: { f: 380, d: 0.09, vol: 0.03 },
+    };
+    const preset = presets[kind] || presets.click;
+    osc.type = 'triangle';
+    osc.frequency.value = preset.f;
+    gain.gain.value = preset.vol;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + preset.d);
+    osc.stop(audioCtx.currentTime + preset.d + 0.02);
+  } catch (e) {}
+}
+
+function setDockMagnification(value) {
+  dockMagnification = Math.max(1, Math.min(1.6, Number(value) / 100));
+  dockMagnifyEnabled = dockMagnification > 1.02;
+  document.body.dataset.dockMagnify = dockMagnifyEnabled ? 'true' : 'false';
+  const slider = document.getElementById('cc-dock-mag');
+  if (slider) slider.value = String(Math.round(dockMagnification * 100));
+  saveShellState();
+}
+
+function initDockMagnification() {
+  const dock = document.getElementById('desktop-dock');
+  if (!dock) return;
+  const icons = [...dock.querySelectorAll('.dock-icon')];
+  const resetIcons = () => icons.forEach(icon => { icon.style.transform = ''; });
+  dock.addEventListener('mousemove', (event) => {
+    if (!dockMagnifyEnabled || dock.style.display === 'none') return;
+    const isVertical = dock.classList.contains('vertical') || getComputedStyle(dock).flexDirection === 'column';
+    icons.forEach(icon => {
+      const rect = icon.getBoundingClientRect();
+      const center = isVertical
+        ? rect.top + rect.height / 2
+        : rect.left + rect.width / 2;
+      const pointer = isVertical ? event.clientY : event.clientX;
+      const dist = Math.abs(pointer - center);
+      const lift = Math.max(0, (dockMagnification - 1) * Math.exp(-dist / 72));
+      const scale = 1 + lift;
+      icon.style.transform = `translateY(${-lift * 14}px) scale(${scale})`;
+    });
+  });
+  dock.addEventListener('mouseleave', resetIcons);
+}
+
+function syncControlCenter() {
+  document.querySelectorAll('.cc-tile[data-cc]').forEach(tile => {
+    const key = tile.dataset.cc;
+    tile.classList.toggle('on', Boolean(systemToggles[key]));
+  });
+  const modeSelect = document.getElementById('cc-desktop-mode');
+  if (modeSelect) modeSelect.value = desktopMode;
+  const mag = document.getElementById('cc-dock-mag');
+  if (mag) mag.value = String(Math.round(dockMagnification * 100));
+  document.body.dataset.dockMagnify = dockMagnifyEnabled ? 'true' : 'false';
+  document.body.classList.toggle('no-grid', !systemToggles.desktopGrid);
+  document.body.classList.toggle('reduced-motion', !systemToggles.animations);
+}
+
+function toggleControlCenter(force) {
+  const panel = document.getElementById('control-center');
+  const btn = document.getElementById('control-center-btn');
+  if (!panel) return;
+  const shouldOpen = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+  panel.classList.toggle('open', shouldOpen);
+  panel.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+  if (btn) {
+    btn.classList.toggle('open', shouldOpen);
+    btn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+  }
+  if (shouldOpen) {
+    closeMenuDropdown();
+    closeCmdPalette();
+    toggleAppLauncher(false);
+    syncControlCenter();
+  }
+}
+
+function toggleCcTile(key) {
+  systemToggles[key] = !systemToggles[key];
+  if (key === 'desktopGrid') document.body.classList.toggle('no-grid', !systemToggles[key]);
+  if (key === 'animations') document.body.classList.toggle('reduced-motion', !systemToggles[key]);
+  syncControlCenter();
+  saveShellState();
+  playUiSound('click');
+  showToast(`${key.replace(/([A-Z])/g, ' $1')} ${systemToggles[key] ? 'enabled' : 'disabled'}`);
+}
+
+document.getElementById('control-center-btn')?.addEventListener('click', () => toggleControlCenter());
+
+const menuPanels = {
+  soengos: [
+    { label: 'About SoengOS', action: () => toggleAbout() },
+    { label: 'Settings…', action: () => activateApp('settings') },
+    { sep: true },
+    { label: 'Restart', action: () => location.reload() },
+    { label: 'Shut Down…', action: () => openPower() },
+  ],
+  file: [
+    { label: 'New Notes Window', action: () => openApp('notes', { forceNew: true }) },
+    { label: 'Open File Manager', action: () => activateApp('filemanager') },
+    { sep: true },
+    { label: 'Close Window', shortcut: 'Esc', action: () => closeFocusedWindow() },
+    { label: 'Close All Windows', action: () => closeAllWindows() },
+  ],
+  view: [
+    { label: 'Focus Mode', shortcut: 'F11', action: () => toggleFocus() },
+    { label: 'Toggle Grid', action: () => toggleCcTile('desktopGrid') },
+    { label: 'Command Palette', shortcut: '⌘K', action: () => openCmdPalette() },
+    { label: 'Control Center', action: () => toggleControlCenter(true) },
+    { label: 'App Launcher', action: () => toggleAppLauncher(true) },
+  ],
+  go: [
+    { label: 'Applications', action: () => toggleAppLauncher(true) },
+    { label: 'Galleries', action: () => activateApp('exhibitions') },
+    { label: 'Terminal', action: () => activateApp('terminal') },
+    { label: 'Browser', action: () => activateApp('browser') },
+  ],
+  help: [
+    { label: 'Keyboard Shortcuts', action: () => toggleAbout() },
+    { label: 'Native Runtime Plan', action: () => openNativeReadiness() },
+    { label: 'Open soeng://help', action: () => openApp('browser', { forceNew: true }) },
+  ],
+};
+
+let openMenuId = null;
+
+function closeMenuDropdown() {
+  const menu = document.getElementById('menu-dropdown');
+  if (!menu) return;
+  menu.classList.remove('open');
+  menu.setAttribute('aria-hidden', 'true');
+  document.querySelectorAll('.menu-trigger.open').forEach(el => el.classList.remove('open'));
+  openMenuId = null;
+}
+
+function openMenuDropdown(menuId, anchor) {
+  const menu = document.getElementById('menu-dropdown');
+  if (!menu) return;
+  const items = menuPanels[menuId];
+  if (!items) return;
+  closeMenuDropdown();
+  toggleControlCenter(false);
+  menu.textContent = '';
+  items.forEach(entry => {
+    if (entry.sep) {
+      const sep = document.createElement('div');
+      sep.className = 'menu-dropdown-sep';
+      menu.appendChild(sep);
+      return;
+    }
+    const row = document.createElement('div');
+    row.className = 'menu-dropdown-item';
+    row.role = 'menuitem';
+    row.textContent = entry.label;
+    if (entry.shortcut) {
+      const shortcut = document.createElement('span');
+      shortcut.className = 'menu-shortcut';
+      shortcut.textContent = entry.shortcut;
+      row.appendChild(shortcut);
+    }
+    row.addEventListener('click', () => {
+      closeMenuDropdown();
+      entry.action();
+    });
+    menu.appendChild(row);
+  });
+  const rect = anchor.getBoundingClientRect();
+  menu.style.left = `${Math.max(8, rect.left)}px`;
+  menu.style.top = `${rect.bottom + 6}px`;
+  menu.classList.add('open');
+  menu.setAttribute('aria-hidden', 'false');
+  anchor.classList.add('open');
+  openMenuId = menuId;
+}
+
+document.getElementById('menu-apple')?.addEventListener('click', (event) => {
+  openMenuDropdown('soengos', event.currentTarget);
+});
+document.querySelectorAll('.menu-trigger[data-menu]').forEach(trigger => {
+  trigger.addEventListener('click', () => openMenuDropdown(trigger.dataset.menu, trigger));
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('#menu-dropdown') && !event.target.closest('.menu-trigger')) closeMenuDropdown();
+  if (!event.target.closest('#control-center') && !event.target.closest('#control-center-btn')) toggleControlCenter(false);
+});
+
+function closeFocusedWindow() {
+  const focused = document.querySelector('.window.focused');
+  if (!focused) {
+    showToast('No focused window');
+    return;
+  }
+  closeWindow(focused.id.replace('win-', ''));
+}
+
 function showDockMenu(event, appName) {
   const menu = document.getElementById('dock-menu');
   if (!menu) return;
@@ -1979,6 +2468,17 @@ let desktopMode = 'hybrid';
 let windowControls = 'linux';
 let dockPosition = 'center';
 let taskbarVisible = true;
+
+const systemToggles = {
+  darkMode: true,
+  desktopGrid: true,
+  animations: true,
+  sound: false,
+  autoLock: true,
+  wifi: true,
+  bluetooth: false,
+  vpn: false,
+};
 
 const desktopModeModels = {
   hybrid: {
@@ -2045,9 +2545,9 @@ function applyDesktopMode(mode = desktopMode, overrides = {}) {
     if (key === 'taskbarVisible') el.textContent = taskbarVisible ? 'Visible' : 'Hidden';
     if (key === 'shortcutMod') el.textContent = platformShortcutMod();
   });
+  syncControlCenter();
+  saveShellState();
 }
-
-applyDesktopMode('hybrid');
 
 function getAppWindows(appName) {
   return Object.entries(openWindows)
@@ -2076,8 +2576,25 @@ function restoreWindow(id) {
   const win = document.getElementById('win-' + id);
   const meta = openWindows[id];
   if (!win || !meta) return false;
-  win.classList.remove('minimized');
-  meta.minimized = false;
+  if (meta.minimized) {
+    win.classList.remove('minimized');
+    meta.minimized = false;
+    if (shellAnimationsEnabled()) {
+      win.style.opacity = '0';
+      win.style.transform = 'translateY(10px) scale(0.97)';
+      requestAnimationFrame(() => {
+        win.style.transition = 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease';
+        win.style.opacity = '1';
+        win.style.transform = 'translateY(0) scale(1)';
+        setTimeout(() => {
+          win.style.transition = '';
+          win.style.transform = '';
+          win.style.opacity = '';
+        }, 320);
+      });
+    }
+    playUiSound('open');
+  }
   bringToFront(win);
   return true;
 }
@@ -2185,6 +2702,7 @@ function createWindow(id, title, width, height, contentHTML, options = {}) {
 
   if (appName === 'terminal') initTerminal(win);
   updateDockIndicators();
+  playUiSound('open');
   return id;
 }
 
@@ -2236,6 +2754,7 @@ function setTaskbarActive(id) {
 }
 
 function closeWindow(id) {
+  playUiSound('close');
   const win = document.getElementById('win-' + id);
   if (win) {
     win.dispatchEvent(new CustomEvent('soeng-close'));
@@ -2251,11 +2770,14 @@ function closeWindow(id) {
   updateDockIndicators();
 }
 
-function minimizeWindow(id) {
+function finishMinimizeWindow(id) {
   const win = document.getElementById('win-' + id);
   if (win) {
+    win.classList.remove('minimizing');
     win.classList.add('minimized');
     win.classList.remove('focused');
+    win.style.transform = '';
+    win.style.opacity = '';
   }
   if (openWindows[id]) {
     openWindows[id].minimized = true;
@@ -2264,6 +2786,36 @@ function minimizeWindow(id) {
   const btn = document.getElementById('tb-' + id);
   if (btn) btn.classList.remove('active');
   updateDockIndicators();
+}
+
+function minimizeWindow(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.classList.contains('minimized')) return;
+  playUiSound('minimize');
+
+  if (!shellAnimationsEnabled()) {
+    finishMinimizeWindow(id);
+    return;
+  }
+
+  const meta = openWindows[id];
+  const dock = document.getElementById('desktop-dock');
+  const dockIcon = meta ? document.querySelector(`.dock-icon[data-app="${meta.appName}"]`) : null;
+  const dockVisible = dock && getComputedStyle(dock).display !== 'none';
+
+  if (dockIcon && dockVisible) {
+    const winRect = win.getBoundingClientRect();
+    const dockRect = dockIcon.getBoundingClientRect();
+    const dx = dockRect.left + dockRect.width / 2 - (winRect.left + winRect.width / 2);
+    const dy = dockRect.top + dockRect.height / 2 - (winRect.top + winRect.height / 2);
+    win.classList.add('minimizing');
+    win.style.transform = `translate(${dx}px, ${dy}px) scale(0.08)`;
+    win.style.opacity = '0';
+    setTimeout(() => finishMinimizeWindow(id), 300);
+    return;
+  }
+
+  finishMinimizeWindow(id);
 }
 
 function maximizeWindow(id) {
@@ -4012,17 +4564,6 @@ function setTaskbarVisibility(value) {
   showToast(value === 'visible' ? 'Taskbar visible' : 'Taskbar hidden');
 }
 
-const systemToggles = {
-  darkMode: true,
-  desktopGrid: true,
-  animations: true,
-  sound: false,
-  autoLock: true,
-  wifi: true,
-  bluetooth: false,
-  vpn: false,
-};
-
 function setSystemToggle(key, el) {
   systemToggles[key] = !systemToggles[key];
   if (el) el.classList.toggle('on', systemToggles[key]);
@@ -4034,11 +4575,15 @@ function setSystemToggle(key, el) {
     showToast('Paper studio stays light — espresso is for ink, not the wall');
     return;
   }
+  syncControlCenter();
+  saveShellState();
+  playUiSound('click');
   showToast(`${key.replace(/([A-Z])/g, ' $1')} ${systemToggles[key] ? 'enabled' : 'disabled'}`);
 }
 
 function setAppFontSize(value) {
   document.documentElement.style.setProperty('--app-font-size', `${value}px`);
+  saveShellState();
   showToast(`App font size: ${value}px`);
 }
 
@@ -4046,6 +4591,7 @@ function setUiScale(value) {
   const scale = Number(value) / 100;
   document.documentElement.style.setProperty('--ui-scale', scale);
   document.querySelectorAll('.window-content > *').forEach(el => { el.style.zoom = scale; });
+  saveShellState();
   showToast(`UI scale: ${value}%`);
 }
 
@@ -4115,6 +4661,10 @@ function openSettings(options = {}) {
         <div class="settings-row">
           <div><label>Desktop Grid</label><div class="sublabel">Show background grid lines</div></div>
           <div class="toggle on" onclick="setSystemToggle('desktopGrid', this)"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Dock Magnification</label><div class="sublabel">Neighbor lift like macOS / ryOS dock</div></div>
+          <input type="range" class="settings-slider" id="settings-dock-mag" min="100" max="160" value="135" oninput="setDockMagnification(this.value)" />
         </div>
         <div class="settings-row">
           <div><label>Font Size</label></div>
@@ -4374,31 +4924,31 @@ function initBrowser(id) {
 
 // ── Command Palette ──
 const cmdActions = [
-  { name: 'Open File Manager', action: () => activateApp('filemanager'), shortcut: '' },
-  { name: 'Open Notes', action: () => activateApp('notes'), shortcut: '' },
-  { name: 'Open Browser', action: () => activateApp('browser'), shortcut: '' },
-  { name: 'Open Music', action: () => activateApp('music'), shortcut: '' },
-  { name: 'Open Photos', action: () => activateApp('photos'), shortcut: '' },
-  { name: 'Open Podcast', action: () => activateApp('podcast'), shortcut: '' },
-  { name: 'Open TV', action: () => activateApp('tv'), shortcut: '' },
-  { name: 'Open Terminal', action: () => activateApp('terminal'), shortcut: '' },
-  { name: 'Open Settings', action: () => activateApp('settings'), shortcut: '' },
-  { name: 'Open Workflow Hub', action: () => activateApp('workflow'), shortcut: '' },
-  { name: 'Open Automation Studio', action: () => activateApp('automation'), shortcut: '' },
-  { name: 'Open Galleries', action: () => activateApp('exhibitions'), shortcut: '' },
-  { name: 'Open Fable Wall', action: () => activateApp('fable'), shortcut: '' },
-  { name: 'Open Cool S Studio', action: () => activateApp('cools'), shortcut: '' },
-  { name: 'Open Self Portraits', action: () => activateApp('portraits'), shortcut: '' },
-  { name: 'Open Hugging Face Incident', action: () => activateApp('incident'), shortcut: '' },
-  { name: 'Open Native Runtime Plan', action: () => openNativeReadiness(), shortcut: '' },
-  { name: 'Switch to Hybrid Mode', action: () => setDesktopMode('hybrid'), shortcut: '' },
-  { name: 'Switch to Mac Mode', action: () => setDesktopMode('mac'), shortcut: '' },
-  { name: 'Switch to Linux Mode', action: () => setDesktopMode('linux'), shortcut: '' },
-  { name: 'Toggle Focus Mode', action: () => toggleFocus(), shortcut: 'F11' },
-  { name: 'About SoengOS', action: () => toggleAbout(), shortcut: '' },
-  { name: 'Close All Windows', action: () => closeAllWindows(), shortcut: '' },
-  { name: 'Minimize All Windows', action: () => Object.keys(openWindows).forEach(id => minimizeWindow(id)), shortcut: '' },
-  { name: 'Power Menu', action: () => openPower(), shortcut: '' },
+  { name: 'Open File Manager', category: 'Apps', action: () => activateApp('filemanager'), shortcut: '' },
+  { name: 'Open Notes', category: 'Apps', action: () => activateApp('notes'), shortcut: '' },
+  { name: 'Open Browser', category: 'Apps', action: () => activateApp('browser'), shortcut: '' },
+  { name: 'Open Music', category: 'Apps', action: () => activateApp('music'), shortcut: '' },
+  { name: 'Open Photos', category: 'Apps', action: () => activateApp('photos'), shortcut: '' },
+  { name: 'Open Podcast', category: 'Apps', action: () => activateApp('podcast'), shortcut: '' },
+  { name: 'Open TV', category: 'Apps', action: () => activateApp('tv'), shortcut: '' },
+  { name: 'Open Terminal', category: 'Apps', action: () => activateApp('terminal'), shortcut: '' },
+  { name: 'Open Settings', category: 'Apps', action: () => activateApp('settings'), shortcut: '' },
+  { name: 'Open Workflow Hub', category: 'Apps', action: () => activateApp('workflow'), shortcut: '' },
+  { name: 'Open Automation Studio', category: 'Apps', action: () => activateApp('automation'), shortcut: '' },
+  { name: 'Open Galleries', category: 'Galleries', action: () => activateApp('exhibitions'), shortcut: '' },
+  { name: 'Open Fable Wall', category: 'Galleries', action: () => activateApp('fable'), shortcut: '' },
+  { name: 'Open Cool S Studio', category: 'Galleries', action: () => activateApp('cools'), shortcut: '' },
+  { name: 'Open Self Portraits', category: 'Galleries', action: () => activateApp('portraits'), shortcut: '' },
+  { name: 'Open Hugging Face Incident', category: 'Galleries', action: () => activateApp('incident'), shortcut: '' },
+  { name: 'Open Native Runtime Plan', category: 'System', action: () => openNativeReadiness(), shortcut: '' },
+  { name: 'Switch to Hybrid Mode', category: 'System', action: () => setDesktopMode('hybrid'), shortcut: '' },
+  { name: 'Switch to Mac Mode', category: 'System', action: () => setDesktopMode('mac'), shortcut: '' },
+  { name: 'Switch to Linux Mode', category: 'System', action: () => setDesktopMode('linux'), shortcut: '' },
+  { name: 'Toggle Focus Mode', category: 'System', action: () => toggleFocus(), shortcut: 'F11' },
+  { name: 'About SoengOS', category: 'System', action: () => toggleAbout(), shortcut: '' },
+  { name: 'Close All Windows', category: 'System', action: () => closeAllWindows(), shortcut: '' },
+  { name: 'Minimize All Windows', category: 'System', action: () => Object.keys(openWindows).forEach(id => minimizeWindow(id)), shortcut: '' },
+  { name: 'Power Menu', category: 'System', action: () => openPower(), shortcut: '' },
 ];
 
 function fuzzyMatch(str, query) {
@@ -4447,22 +4997,40 @@ function launchFromLauncher(appName) {
 function renderCmdResults(query) {
   const container = document.getElementById('cmd-results');
   const filtered = cmdActions.filter(a => fuzzyMatch(a.name, query));
+  const groups = [];
+  const seen = new Set();
+  filtered.forEach(action => {
+    const cat = action.category || 'Commands';
+    if (!seen.has(cat)) {
+      seen.add(cat);
+      groups.push({ category: cat, items: [] });
+    }
+    groups.find(g => g.category === cat).items.push(action);
+  });
 
   container.textContent = '';
-  filtered.forEach((a, i) => {
-    const item = document.createElement('div');
-    item.className = `result-item${i === 0 ? ' active' : ''}`;
-    item.dataset.idx = String(i);
-    const name = document.createElement('span');
-    name.textContent = a.name;
-    item.appendChild(name);
-    if (a.shortcut) {
-      const shortcut = document.createElement('span');
-      shortcut.className = 'shortcut';
-      shortcut.textContent = a.shortcut;
-      item.appendChild(shortcut);
-    }
-    container.appendChild(item);
+  let itemIndex = 0;
+  groups.forEach(group => {
+    const heading = document.createElement('div');
+    heading.className = 'result-category';
+    heading.textContent = group.category;
+    container.appendChild(heading);
+    group.items.forEach((a) => {
+      const i = itemIndex++;
+      const item = document.createElement('div');
+      item.className = `result-item${i === 0 ? ' active' : ''}`;
+      item.dataset.idx = String(i);
+      const name = document.createElement('span');
+      name.textContent = a.name;
+      item.appendChild(name);
+      if (a.shortcut) {
+        const shortcut = document.createElement('span');
+        shortcut.className = 'shortcut';
+        shortcut.textContent = a.shortcut;
+        item.appendChild(shortcut);
+      }
+      container.appendChild(item);
+    });
   });
 
   container.querySelectorAll('.result-item').forEach((el, i) => {
@@ -4659,6 +5227,10 @@ document.getElementById('power-menu').addEventListener('click', (e) => {
 document.getElementById('cmd-palette').addEventListener('click', (e) => {
   if (e.target === document.getElementById('cmd-palette')) closeCmdPalette();
 });
+
+loadShellState();
+applyDesktopMode(desktopMode);
+initDockMagnification();
 </script>
 </body>
 </html>
