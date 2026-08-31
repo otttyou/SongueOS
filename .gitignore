@@ -1,0 +1,2 @@
+# Source HTML files are tracked; local dependencies are not.
+node_modules/

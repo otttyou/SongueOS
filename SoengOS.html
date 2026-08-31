@@ -1,0 +1,4366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoengOS – A Web-Enabled Linux OS Inspired by Zen Minimalism</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+  /* ── Reset ── */
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  button { border-radius: var(--radius-sm); }
+  input[type="text"], textarea, select { border-radius: var(--radius-sm); }
+
+  :root {
+    --taskbar-h: 58px;
+    /* Fable palette — paper field, cream surfaces, espresso ink.
+       The wall is light, like kengoworks.com/fable. Ink is for type, not the room. */
+    --espresso: #181410;
+    --cream: #f6f1e4;
+    --black: #f6f1e4;   /* chrome surface (cream) */
+    --white: #181410;   /* primary ink */
+    --g1: #f0ead9;      /* lightest raised surface */
+    --g2: #e8e0cb;      /* raised surface */
+    --g3: #d4c9ad;      /* soft border */
+    --g5: #a99c7f;      /* strong border */
+    --g7: #7d735d;      /* muted text */
+    --ga: #55503f;      /* secondary text */
+    --gc: #262019;      /* body text */
+    --ge: #181410;      /* ink */
+    --ink: #181410;
+    --paper: #f6f1e4;
+    --accent: #181410;        /* Fable inverts: accent is ink on cream */
+    --accent-soft: rgba(24, 20, 16, 0.14);
+    --accent-2: #181410;
+    --accent-3: #181410;
+    --glass: rgba(255, 251, 244, 0.74);
+    --glass-strong: rgba(246, 241, 228, 0.92);
+    --glass-border: rgba(24, 20, 16, 0.08);
+    --shadow-soft: 0 22px 56px rgba(70, 42, 24, 0.12), 0 4px 16px rgba(70, 42, 24, 0.06);
+    --shadow-float: 0 10px 28px rgba(70, 42, 24, 0.10);
+    --hairline: 1px solid rgba(24, 20, 16, 0.10);
+    --radius-xl: 28px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --radius-pill: 999px;
+    --blur: blur(18px) saturate(115%);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: "Helvetica Neue", Helvetica, 'Inter', "Segoe UI", system-ui, sans-serif;
+    --transition: 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    --topbar-h: 62px;
+    --display: "Fraunces", "Helvetica Neue", Georgia, serif;
+    --app-font-size: 12px;
+    --ui-scale: 1;
+    --gray-100: var(--ge);
+    --gray-200: var(--gc);
+    --gray-300: var(--ga);
+    --gray-400: var(--g7);
+    --gray-500: var(--g5);
+    --gray-600: var(--g3);
+    --gray-700: var(--g2);
+    --gray-800: var(--g1);
+  }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    font-family: var(--sans);
+    letter-spacing: -0.015em;
+    background:
+      radial-gradient(55% 45% at 78% 6%, rgba(232, 168, 120, 0.28) 0%, transparent 62%),
+      radial-gradient(48% 42% at 10% 92%, rgba(212, 140, 150, 0.16) 0%, transparent 65%),
+      radial-gradient(40% 36% at 48% 38%, rgba(255, 252, 246, 0.85) 0%, transparent 70%),
+      #f3ebe0;
+    color: var(--gc);
+    cursor: default;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Boot screen ── */
+  #boot-screen {
+    position: fixed; inset: 0; z-index: 99999;
+    background:
+      radial-gradient(60% 50% at 50% 45%, rgba(232, 168, 120, 0.20) 0%, transparent 70%),
+      #f3ebe0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    opacity: 1;
+    transition: opacity 800ms ease;
+  }
+  #boot-screen.fade-out { opacity: 0; pointer-events: none; }
+  #boot-screen .boot-logo {
+    font-family: var(--display);
+    font-size: 40px; font-weight: 400;
+    color: #181410;
+    letter-spacing: -0.015em;
+    opacity: 0;
+    animation: bootFadeIn 600ms 200ms ease forwards;
+  }
+  #boot-screen .boot-sub {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: rgba(24, 20, 16, 0.45);
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    opacity: 0;
+    animation: bootFadeIn 400ms 500ms ease forwards;
+  }
+  @keyframes bootFadeIn { to { opacity: 1; } }
+
+  /* ── Keyboard hint overlay ── */
+  #keyboard-hint {
+    position: fixed;
+    bottom: 84px; left: 50%; transform: translateX(-50%);
+    z-index: 90000;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    padding: 10px 22px;
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ga);
+    line-height: 1.8;
+    opacity: 0;
+    transition: opacity var(--transition);
+    pointer-events: none;
+    text-align: center;
+    border-radius: var(--radius-pill);
+    backdrop-filter: var(--blur);
+  }
+  #keyboard-hint.visible { opacity: 1; }
+  #keyboard-hint kbd {
+    display: inline-block;
+    background: var(--espresso);
+    border: none;
+    padding: 2px 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--cream);
+    margin: 0 2px;
+  }
+
+  /* ── Top bar ── */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--topbar-h);
+    background: var(--cream);
+    border-bottom: 2px solid var(--espresso);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    z-index: 10000;
+    font-size: 12px;
+    backdrop-filter: var(--blur);
+  }
+  #topbar .logo {
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    text-transform: lowercase;
+  }
+  #topbar .right {
+    display: flex; align-items: center; gap: 14px;
+    color: var(--ga);
+    font-size: 11px;
+  }
+  #topbar .right .clock { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  #topbar .right .battery {
+    display: flex; align-items: center; gap: 4px;
+  }
+  #topbar .right .battery svg { display: block; }
+  #topbar .right .menu-btn {
+    background: var(--espresso); border: 2px solid var(--espresso);
+    color: var(--cream);
+    padding: 2px 12px;
+    font-family: var(--sans); font-size: 10px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+    border-radius: var(--radius-pill);
+  }
+  #topbar .right .menu-btn:hover {
+    background: var(--cream); color: var(--espresso);
+  }
+
+
+  /* ── Unified platform chrome ── */
+  body[data-desktop-mode="hybrid"] #desktop-dock,
+  body[data-desktop-mode="mac"] #desktop-dock { display: flex; left: 50%; transform: translateX(-50%); bottom: 14px; }
+  body[data-desktop-mode="hybrid"][data-dock-position="left"] #desktop-dock,
+  body[data-desktop-mode="mac"][data-dock-position="left"] #desktop-dock { left: 14px; bottom: 50%; transform: translateY(50%); flex-direction: column; }
+  body[data-desktop-mode="mac"] #taskbar { display: none; }
+  body[data-desktop-mode="mac"] #desktop { bottom: 0; }
+  body[data-desktop-mode="linux"] #topbar,
+  body[data-desktop-mode="linux"] #desktop-dock { display: none; }
+  body[data-desktop-mode="linux"] #desktop { top: 0; }
+  body[data-taskbar-visible="false"] #taskbar { display: none; }
+  body[data-taskbar-visible="false"] #desktop { bottom: 0; }
+  body[data-window-controls="mac"] .window-titlebar { justify-content: flex-start; gap: 10px; }
+  body[data-window-controls="mac"] .window-titlebar .controls { order: -1; }
+  body[data-window-controls="mac"] .window-titlebar .controls button svg { display: none; }
+  body[data-window-controls="linux"] .window-titlebar .controls { margin-left: auto; order: 2; }
+  body[data-window-controls="linux"] .window-titlebar .controls button { border-radius: 50%; }
+  body[data-window-controls="mac"] .window-titlebar .controls button { border-radius: 50%; }
+  #desktop-dock {
+    position: fixed;
+    z-index: 11000;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    border-radius: var(--radius-xl);
+    backdrop-filter: var(--blur);
+  }
+  .dock-icon {
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    border: none;
+    color: var(--ink);
+    cursor: pointer;
+    position: relative;
+    transition: transform var(--transition), background var(--transition), color var(--transition);
+    border-radius: var(--radius-md);
+  }
+  .dock-icon:hover, .dock-icon.active {
+    background: var(--espresso);
+    color: var(--cream);
+    transform: translateY(-5px) scale(1.04);
+  }
+  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1.3; fill: none; }
+  .dock-icon::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--espresso);
+    border-radius: 50%;
+    opacity: 0;
+    transform: translateX(-50%);
+  }
+  .dock-icon.active::after { background: var(--espresso); opacity: 1; }
+  .dock-icon.minimized::after { background: transparent; opacity: 1; }
+  .dock-icon.multiple::before {
+    content: '';
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    background: transparent;
+  }
+  #dock-menu {
+    position: fixed;
+    z-index: 20000;
+    min-width: 156px;
+    display: none;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+  }
+  #dock-menu.open { display: block; }
+  .dock-menu-item {
+    padding: 10px 14px;
+    color: var(--ga);
+    font-size: 11px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+  .dock-menu-item:hover { background: var(--espresso); color: var(--cream); }
+
+  /* ── Desktop ── */
+  #desktop {
+    position: fixed;
+    top: var(--topbar-h); left: 0; right: 0; bottom: var(--taskbar-h);
+    background: transparent;
+    overflow: hidden;
+  }
+  /* Radiant pointer glow (canvas-wall aura) */
+  #radiant-glow {
+    position: fixed;
+    left: 50%; top: 40%;
+    width: 620px; height: 620px;
+    margin: -310px 0 0 -310px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      rgba(238, 190, 120, 0.14) 0%,
+      rgba(238, 190, 120, 0.05) 42%,
+      transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Desktop icons ── */
+  #desktop-icons {
+    position: absolute;
+    top: 24px; left: 24px;
+    display: grid;
+    grid-template-columns: repeat(2, 72px);
+    gap: 8px;
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
+  }
+  .desktop-icon {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    width: 72px;
+    padding: 10px 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color var(--transition), background var(--transition);
+    border-radius: var(--radius-md);
+  }
+  .desktop-icon:hover {
+    border-color: rgba(246, 241, 228, 0.5);
+    background: rgba(246, 241, 228, 0.08);
+  }
+  .desktop-icon.selected {
+    border-color: var(--cream);
+    background: var(--cream);
+  }
+  .desktop-icon.selected svg { stroke: var(--espresso); }
+  .desktop-icon.selected span { color: var(--espresso); }
+  .desktop-icon svg {
+    width: 32px; height: 32px;
+    stroke: var(--cream);
+    stroke-width: 1.2;
+    fill: none;
+  }
+  .desktop-icon span {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(246, 241, 228, 0.85);
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  /* ── Window system ── */
+  .window {
+    position: absolute;
+    min-width: 320px; min-height: 200px;
+    border: 2px solid var(--espresso);
+    display: flex; flex-direction: column;
+    z-index: 100;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    border-radius: var(--radius-lg);
+    transform-origin: center;
+    animation: windowEnter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    transition: opacity var(--transition), box-shadow var(--transition), transform var(--transition);
+    will-change: transform, opacity;
+  }
+  @keyframes windowEnter {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .window.minimized { display: none; }
+  .window.maximized {
+    top: 0 !important; left: 0 !important;
+    width: 100% !important; height: 100% !important;
+    border-radius: 0;
+  }
+  .window-titlebar {
+    height: 34px;
+    background: var(--cream);
+    border-bottom: 2px solid var(--espresso);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px;
+    cursor: grab;
+    flex-shrink: 0;
+  }
+  .window-titlebar:active { cursor: grabbing; }
+  .window-titlebar .title {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ga);
+    letter-spacing: -0.015em;
+  }
+  .window-titlebar .controls {
+    display: flex; gap: 6px;
+  }
+  .window-titlebar .controls button {
+    width: 16px; height: 16px;
+    background: var(--cream);
+    border: 1.5px solid var(--espresso);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    transition: background var(--transition);
+    border-radius: 50%;
+  }
+  .window-titlebar .controls button:hover { background: var(--espresso); }
+  .window-titlebar .controls button svg {
+    width: 8px; height: 8px;
+    stroke: var(--espresso);
+    stroke-width: 1.5;
+    fill: none;
+    transition: stroke var(--transition);
+  }
+  .window-titlebar .controls button:hover svg { stroke: var(--cream); }
+  .window-content {
+    flex: 1;
+    background: var(--cream);
+    overflow: auto;
+    font-family: var(--sans);
+    font-size: var(--app-font-size);
+    color: var(--gc);
+  }
+  .window-content > * { transform-origin: top left; }
+  body.no-grid #desktop::before { display: none; }
+  body.reduced-motion *,
+  body.reduced-motion *::before,
+  body.reduced-motion *::after { transition: none !important; animation: none !important; }
+  /* Resize handle */
+  .window-resize {
+    position: absolute; bottom: 0; right: 0;
+    width: 20px; height: 20px;
+    cursor: nwse-resize;
+  }
+  .window-resize::before {
+    content: '';
+    position: absolute; bottom: 5px; right: 5px;
+    width: 9px; height: 9px;
+    border-right: 2px solid var(--espresso);
+    border-bottom: 2px solid var(--espresso);
+  }
+
+
+  /* ── Workflow apps ── */
+  .kanban-column {
+    min-width: 200px;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .kanban-card {
+    background: var(--g1);
+    border: 1px solid var(--g3);
+    padding: 8px;
+    margin-bottom: 8px;
+    cursor: grab;
+    border-radius: var(--radius-sm);
+    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+  .kanban-card:hover { transform: translateY(-2px); border-color: var(--g5); box-shadow: 0 8px 20px rgba(24,20,16,0.1); }
+  .kanban-card:active { cursor: grabbing; }
+  .workflow-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--g7);
+    margin-right: 16px;
+  }
+  .tab {
+    padding: 4px 12px;
+    border-right: 1px solid var(--g3);
+    background: var(--g2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .tab.active { background: var(--g1); color: var(--white); }
+  .file-item {
+    border: 1px solid transparent;
+    padding: 8px;
+    cursor: pointer;
+  }
+  .file-item:hover { border-color: var(--g5); }
+  .file-item.selected { background: var(--g2); border-color: var(--white); }
+  .settings-select {
+    min-width: 150px;
+    background: var(--g2);
+    color: var(--gc);
+    border: 1px solid var(--g3);
+    padding: 4px 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    outline: none;
+    border-radius: var(--radius-sm);
+  }
+  .settings-select:focus { border-color: var(--g5); }
+
+  /* ── File Manager ── */
+  .fm-toolbar {
+    height: 28px;
+    background: var(--g1);
+    border-bottom: 1px solid var(--g3);
+    display: flex; align-items: center;
+    padding: 0 10px;
+    font-size: 10px;
+    color: var(--g7);
+    gap: 12px;
+  }
+  .fm-toolbar .path {
+    flex: 1;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+    padding: 2px 8px;
+    color: var(--ga);
+    font-family: var(--mono); font-size: 10px;
+    border-radius: var(--radius-sm);
+  }
+  .fm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 2px;
+    padding: 12px;
+  }
+  .fm-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background var(--transition), border-color var(--transition);
+    border-radius: var(--radius-md);
+  }
+  .fm-item:hover {
+    background: rgba(255,255,255,0.04);
+    border-color: var(--g3);
+  }
+  .fm-item svg { width: 28px; height: 28px; stroke: var(--g7); stroke-width: 1; fill: none; }
+  .fm-item span { font-size: 9px; color: var(--ga); text-align: center; word-break: break-all; }
+  .fm-item.folder svg { stroke: var(--gc); }
+  .fm-layout { display: grid; grid-template-columns: 148px 1fr; height: calc(100% - 28px); }
+  .fm-sidebar { border-right: 1px solid var(--g3); background: var(--g1); padding: 8px; overflow:auto; }
+  .fm-side-item { padding: 7px 8px; border: 1px solid transparent; color: var(--ga); cursor:pointer; font-size: 10px; }
+  .fm-side-item { border-radius: var(--radius-sm); }
+  .fm-side-item:hover { border-color: var(--g3); color: var(--white); }
+  .fm-main { overflow:auto; }
+  .fm-preview { border-top: 1px solid var(--g3); padding: 10px 12px; min-height: 78px; background: var(--g1); color: var(--ga); font-size: 11px; white-space: pre-wrap; }
+  .fm-action, .browser-action, .settings-action-btn { background: none; border: 1px solid var(--g3); color: var(--ga); padding: 3px 8px; font-family: var(--mono); font-size: 10px; cursor:pointer; }
+  .fm-action, .browser-action, .settings-action-btn { border-radius: var(--radius-sm); transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition); }
+  .fm-action:active, .browser-action:active, .settings-action-btn:active { transform: scale(0.97); }
+  .fm-action:hover, .browser-action:hover, .settings-action-btn:hover { border-color: var(--g5); color: var(--white); background: var(--g2); }
+
+  /* ── Terminal (espresso pane, cream type) ── */
+  .terminal-body {
+    padding: 16px;
+    margin: 10px;
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #f6f1e4;
+    background: #241c16;
+    overflow-y: auto;
+    cursor: text;
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 1px rgba(246, 241, 228, 0.06);
+  }
+  .terminal-body .line { white-space: pre-wrap; word-break: break-all; }
+  .terminal-body .prompt-color { color: #dea864; }
+  .terminal-body .input-line {
+    display: flex; align-items: center;
+  }
+  .terminal-body .input-line input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #f6f1e4;
+    font-family: var(--mono);
+    font-size: 12px;
+    caret-color: #dea864;
+  }
+
+  /* ── Settings ── */
+  .settings-body { padding: 16px; }
+  .settings-section {
+    margin-bottom: 20px;
+  }
+  .settings-section h3 {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--g7);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--g3);
+  }
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .settings-row label {
+    font-size: 12px; color: var(--gc);
+  }
+  .settings-row .sublabel {
+    font-size: 10px; color: var(--g5); margin-top: 2px;
+  }
+  /* Toggle */
+  .toggle {
+    width: 38px; height: 20px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    position: relative;
+    cursor: pointer;
+    transition: background var(--transition);
+    border-radius: var(--radius-pill);
+  }
+  .toggle.on { background: var(--espresso); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    background: var(--espresso);
+    transition: left var(--transition), background var(--transition);
+    border-radius: 50%;
+  }
+  .toggle.on::after { left: 20px; background: var(--cream); }
+  /* Slider */
+  .settings-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px; height: 2px;
+    background: var(--g3);
+    outline: none;
+    cursor: pointer;
+  }
+  .settings-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--espresso);
+    border: 2px solid var(--cream);
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  .settings-slider::-moz-range-thumb {
+    width: 14px; height: 14px;
+    background: var(--espresso);
+    border: 2px solid var(--cream);
+    cursor: pointer;
+    border-radius: 50%;
+  }
+
+  /* ── Browser ── */
+  .browser-toolbar {
+    height: 32px;
+    background: var(--g1);
+    border-bottom: 1px solid var(--g3);
+    display: flex; align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .browser-toolbar .nav-btn {
+    background: none; border: 1px solid var(--g3);
+    color: var(--g7); width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background var(--transition);
+    border-radius: var(--radius-sm);
+  }
+  .browser-toolbar .nav-btn:hover { background: var(--g3); color: var(--gc); }
+  .browser-toolbar .url-bar {
+    flex: 1; height: 22px;
+    background: var(--g2);
+    border: 1px solid var(--g3);
+    padding: 0 8px;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--ga);
+    outline: none;
+    border-radius: var(--radius-sm);
+  }
+  .browser-toolbar .url-bar:focus { border-color: var(--g5); }
+  .browser-app { display:flex; flex-direction:column; height:100%; min-height:0; }
+  .browser-content {
+    flex: 1;
+    min-height: 0;
+    background: var(--paper);
+    display: flex; align-items: stretch; justify-content: center;
+  }
+  .browser-page {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px;
+    background: var(--cream);
+    color: var(--gc);
+    font-family: var(--sans);
+    overflow: auto;
+  }
+  .browser-page.live { align-items: stretch; justify-content: stretch; padding: 0; gap: 0; background: #fff; }
+  .browser-page.wiki { align-items: flex-start; justify-content: flex-start; padding: 22px 26px; }
+  .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
+  .browser-page p { font-size: 12px; color: var(--g7); max-width: 400px; text-align: center; line-height: 1.6; }
+  .browser-page.wiki h2, .browser-page.wiki p { text-align: left; max-width: 52rem; }
+  .browser-page.wiki p { font-size: 13px; line-height: 1.7; color: var(--gc); }
+  .browser-frame { width: 100%; height: 100%; border: 0; background: #fff; }
+  .browser-bookmarks { display:flex; gap:6px; padding:6px 8px; border-bottom:1px solid var(--g3); background:var(--g1); overflow-x:auto; }
+  .browser-status { margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--g7); }
+  .tv-url { flex:1; min-width:140px; height:28px; background:rgba(255,252,246,0.7); border:1px solid rgba(24,20,16,0.10); color:var(--gc); padding:0 12px; font-family:var(--sans); font-size:11px; outline:none; border-radius:var(--radius-pill); }
+  .tv-desk { display:flex; flex-direction:column; height:100%; min-height:0; background:linear-gradient(180deg, #f7f1e6 0%, #efe6d8 100%); }
+  .tv-toolbar {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    padding:12px 14px; border-bottom:1px solid rgba(24,20,16,0.08);
+  }
+  .tv-toolbar button {
+    height:28px; padding:0 14px; border:none; cursor:pointer;
+    border-radius:var(--radius-pill); background:rgba(24,20,16,0.06); color:var(--ink);
+    font-family:var(--sans); font-size:11px;
+    transition:transform 280ms cubic-bezier(0.22,1,0.36,1), background 280ms ease, color 280ms ease, box-shadow 280ms ease;
+  }
+  .tv-toolbar button:hover { transform:translateY(-1px); background:rgba(24,20,16,0.10); box-shadow:0 8px 18px rgba(70,42,24,0.10); }
+  .tv-toolbar button.primary { background:var(--espresso); color:var(--cream); }
+  .tv-toolbar button.primary:hover { background:#2a221b; color:var(--cream); }
+  .tv-status { margin-left:auto; color:var(--g7); font-size:11px; white-space:nowrap; }
+  .tv-stage { flex:1; min-height:0; display:flex; flex-direction:column; padding:14px; gap:14px; }
+  .tv-screen {
+    position:relative; flex:1; min-height:220px; border:1px solid rgba(24,20,16,0.08);
+    background:#120e0b; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; border-radius:22px; box-shadow:0 18px 40px rgba(70,42,24,0.14);
+    transition:transform 480ms cubic-bezier(0.22,1,0.36,1), box-shadow 480ms ease;
+  }
+  .tv-screen.theater { border-radius:18px; box-shadow:0 28px 60px rgba(70,42,24,0.22); }
+  .tv-screen::before {
+    content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.55));
+    opacity:1; transition:opacity 420ms ease;
+  }
+  .tv-screen.has-player::before { opacity:0; }
+  .tv-screen-label { position:relative; z-index:2; text-align:center; padding:20px; transition:opacity 360ms ease, transform 360ms ease; }
+  .tv-screen.has-player .tv-screen-label { opacity:0; transform:translateY(8px); pointer-events:none; }
+  .tv-screen-label h2 { font-family:var(--display); font-size:22px; color:#f6f1e4; margin-bottom:6px; font-weight:400; }
+  .tv-screen-label p { font-size:12px; color:rgba(246,241,228,0.65); }
+  .tv-live {
+    position:absolute; top:14px; right:14px; z-index:4;
+    background:rgba(246,241,228,0.92); color:#181410; font-size:9px;
+    padding:4px 10px; letter-spacing:0.08em; font-weight:600;
+    border-radius:var(--radius-pill); box-shadow:0 6px 16px rgba(0,0,0,0.18);
+  }
+  .tv-scrim {
+    position:absolute; inset:0; z-index:3; background:#120e0b;
+    opacity:0; pointer-events:none; transition:opacity 420ms ease;
+  }
+  .tv-scrim.on { opacity:1; }
+  .tv-video, .tv-frame {
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+    background:#000; object-fit:contain; opacity:0;
+    transition:opacity 480ms ease;
+  }
+  .tv-video.show, .tv-frame.show { opacity:1; }
+  .tv-rail {
+    display:flex; gap:10px; overflow-x:auto; padding:2px 2px 6px;
+    scroll-snap-type:x mandatory; scrollbar-width:thin;
+  }
+  .tv-chip {
+    flex:0 0 168px; scroll-snap-align:start; cursor:pointer;
+    border:1px solid rgba(24,20,16,0.08); border-radius:18px;
+    background:rgba(255,252,246,0.72); padding:10px; text-align:left;
+    transition:transform 320ms cubic-bezier(0.22,1,0.36,1), box-shadow 320ms ease, border-color 320ms ease, background 320ms ease;
+  }
+  .tv-chip:hover { transform:translateY(-4px) scale(1.02); box-shadow:0 14px 28px rgba(70,42,24,0.12); }
+  .tv-chip.active { border-color:rgba(24,20,16,0.28); background:#fff; box-shadow:0 16px 32px rgba(70,42,24,0.14); transform:translateY(-2px); }
+  .tv-chip-art {
+    height:72px; border-radius:12px; margin-bottom:8px;
+    display:flex; align-items:flex-end; justify-content:flex-start; padding:8px;
+    color:rgba(246,241,228,0.9); font-size:10px; letter-spacing:0.04em;
+  }
+  .tv-chip strong { display:block; font-size:12px; color:var(--ink); margin-bottom:2px; }
+  .tv-chip span { display:block; font-size:10px; color:var(--g7); line-height:1.4; }
+
+  /* ── Media apps (Notes, Music, Photos, Podcast, TV) ── */
+  .media-app { display:flex; flex-direction:column; height:100%; background:var(--g1); }
+  .media-toolbar {
+    display:flex; align-items:center; gap:8px;
+    padding:8px 12px; border-bottom:1px solid var(--g3);
+    background:var(--black); font-size:10px; color:var(--ga);
+  }
+  .media-toolbar button {
+    background:none; border:1px solid var(--g3); color:var(--ga);
+    padding:4px 10px; font-family:var(--mono); font-size:10px; cursor:pointer;
+    border-radius:var(--radius-sm); transition:background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+  }
+  .media-toolbar button:hover, .media-toolbar button.active {
+    border-color:var(--g5); color:var(--white); background:var(--g2);
+  }
+  .media-body { flex:1; display:flex; overflow:hidden; }
+  .media-sidebar {
+    width:180px; border-right:1px solid var(--g3); overflow-y:auto;
+    background:var(--g1); padding:8px;
+  }
+  .media-list-item {
+    padding:8px; border:1px solid transparent; cursor:pointer;
+    font-size:10px; color:var(--ga); margin-bottom:4px;
+    border-radius:var(--radius-sm); transition:background var(--transition), color var(--transition), border-color var(--transition);
+  }
+  .media-list-item:hover { border-color:var(--g3); color:var(--white); }
+  .media-list-item.active { border-color:var(--g5); background:var(--g2); color:var(--white); }
+  .media-main { flex:1; overflow:auto; padding:16px; }
+  .notes-editor {
+    width:100%; height:100%; min-height:280px;
+    background:var(--g2); border:1px solid var(--g3); color:var(--gc);
+    padding:12px; font-family:var(--mono); font-size:12px; line-height:1.6;
+    resize:none; outline:none;
+    border-radius:var(--radius-md);
+  }
+  .notes-editor:focus { border-color:var(--g5); }
+  .music-now-playing {
+    padding:16px; border:1px solid var(--g3); background:var(--g2);
+    margin-bottom:16px;
+    border-radius:var(--radius-md);
+  }
+  .music-now-playing h3 { font-size:14px; color:var(--white); margin-bottom:4px; }
+  .music-now-playing p { font-size:11px; color:var(--g7); margin-bottom:12px; }
+  .music-progress {
+    height:4px; background:var(--g3); margin:12px 0; position:relative;
+    border-radius:var(--radius-pill); overflow:hidden;
+  }
+  .music-progress-bar {
+    height:100%; background:var(--espresso); width:0%;
+    transition:width 200ms linear;
+  }
+  .music-track {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px; border:1px solid transparent; cursor:pointer;
+    font-size:11px; color:var(--ga);
+    border-radius:var(--radius-sm); transition:background var(--transition), border-color var(--transition), transform var(--transition);
+  }
+  .music-track:hover { border-color:var(--g3); background:rgba(255,255,255,0.03); }
+  .music-track.active { border-color:var(--g5); color:var(--white); background:var(--g2); }
+  .photo-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+    gap:10px;
+  }
+  .photo-thumb {
+    aspect-ratio:4/3; border:1px solid var(--g3); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--g2), var(--g3));
+    transition:border-color var(--transition);
+    border-radius:var(--radius-md); overflow:hidden;
+  }
+  .photo-thumb:hover, .photo-thumb.active { border-color:var(--g5); }
+  .photo-thumb svg { width:32px; height:32px; stroke:var(--g7); fill:none; }
+  .photo-thumb span { font-size:9px; color:var(--ga); margin-top:6px; text-align:center; padding:0 4px; }
+  .photo-preview {
+    margin-top:16px; padding:16px; border:1px solid var(--g3);
+    background:var(--g2); min-height:160px;
+    border-radius:var(--radius-md);
+  }
+  .photo-preview h3 { font-size:13px; color:var(--white); margin-bottom:6px; }
+  .photo-preview p { font-size:11px; color:var(--g7); line-height:1.6; }
+  .photo-preview-stage {
+    height:180px; margin-bottom:12px; border:1px solid var(--g3);
+    background:linear-gradient(160deg, #1a1a1a, #333);
+    display:flex; align-items:center; justify-content:center;
+    border-radius:var(--radius-sm); overflow:hidden;
+  }
+  .podcast-episode, .tv-channel {
+    display:flex; gap:12px; padding:12px; border:1px solid var(--g3);
+    margin-bottom:8px; cursor:pointer; background:var(--g2);
+    border-radius:var(--radius-md); transition:transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+  .podcast-episode:hover, .tv-channel:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(24,20,16,0.08); }
+  .podcast-episode:hover, .tv-channel:hover { border-color:var(--g5); }
+  .podcast-episode.active, .tv-channel.active { border-color:var(--white); }
+  .podcast-art, .tv-art {
+    width:56px; height:56px; border:1px solid var(--g3);
+    display:flex; align-items:center; justify-content:center;
+    background:var(--g1); flex-shrink:0;
+    border-radius:var(--radius-sm);
+  }
+  .podcast-art svg, .tv-art svg { width:24px; height:24px; stroke:var(--ga); fill:none; }
+  .podcast-info, .tv-info { flex:1; }
+  .podcast-info h4, .tv-info h4 { font-size:12px; color:var(--white); margin-bottom:4px; }
+  .podcast-info p, .tv-info p { font-size:10px; color:var(--g7); line-height:1.5; }
+  .native-card { border:1px solid var(--g3); background:var(--g1); padding:10px; margin-top:8px; }
+  .native-card { border-radius:var(--radius-md); }
+  .native-card strong { color:var(--white); font-weight:500; }
+  .native-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .native-pill { display:inline-flex; border:1px solid var(--g5); color:var(--ga); padding:2px 7px; margin:3px 4px 0 0; font-size:10px; }
+  .native-pill { border-radius:var(--radius-pill); }
+
+  /* ── Command Palette ── */
+  #cmd-palette {
+    position: fixed;
+    top: 20%; left: 50%; transform: translateX(-50%);
+    width: 460px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-soft);
+    z-index: 50000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  #cmd-palette.open { opacity: 1; visibility: visible; pointer-events: auto; }
+  #cmd-palette input {
+    width: 100%; height: 44px;
+    background: transparent;
+    border: none; border-bottom: 2px solid var(--espresso);
+    padding: 0 18px;
+    font-family: var(--sans); font-size: 15px;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    outline: none;
+  }
+  #cmd-palette input::placeholder { color: var(--g7); }
+  #cmd-palette .results {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  #cmd-palette .result-item {
+    padding: 10px 18px;
+    font-family: var(--sans); font-size: 12px;
+    color: var(--ga);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: background var(--transition), color var(--transition);
+  }
+  #cmd-palette .result-item:hover,
+  #cmd-palette .result-item.active {
+    background: var(--espresso);
+    color: var(--cream);
+  }
+  #cmd-palette .result-item .shortcut {
+    margin-left: auto;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: inherit;
+    opacity: 0.6;
+  }
+
+  /* ── App Launcher ── */
+  #app-launcher {
+    position: fixed;
+    inset: 0;
+    z-index: 55000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 72px;
+    background: rgba(24, 20, 16, 0.56);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  #app-launcher.open { opacity: 1; visibility: visible; pointer-events: auto; }
+  .app-launcher-panel {
+    width: min(640px, calc(100vw - 32px));
+    max-height: calc(100vh - 116px);
+    overflow: auto;
+    padding: 20px;
+    background: rgba(246, 241, 228, 0.97);
+    border: 2px solid var(--espresso);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-soft);
+  }
+  .app-launcher-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:16px; }
+  .app-launcher-head h2 { color:var(--ink); font-size:18px; font-weight:500; }
+  .app-launcher-head p { color:var(--g7); font-size:11px; margin-top:4px; }
+  .app-launcher-close { width:32px; height:32px; border:1px solid var(--g3); background:var(--g1); color:var(--ink); cursor:pointer; border-radius:50%; font-size:18px; line-height:1; }
+  .app-launcher-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; }
+  .app-launcher-item {
+    min-height:82px;
+    padding:13px;
+    border:1px solid var(--g3);
+    border-radius:var(--radius-xl);
+    background:var(--g1);
+    color:var(--ink);
+    text-align:left;
+    cursor:pointer;
+    transition:transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  }
+  .app-launcher-item:hover { transform:translateY(-3px); border-color:var(--g5); background:var(--cream); box-shadow:0 10px 24px rgba(24,20,16,0.10); }
+  .app-launcher-item:active { transform:translateY(0) scale(0.98); }
+  .app-launcher-item strong { display:block; font-size:12px; font-weight:600; margin-bottom:5px; }
+  .app-launcher-item span { display:block; color:var(--g7); font-size:10px; line-height:1.45; }
+  .app-launcher-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; padding-top:14px; border-top:1px solid var(--g3); color:var(--g7); font-size:10px; }
+  .app-launcher-about { border:1px solid var(--g3); background:transparent; color:var(--ga); padding:6px 12px; cursor:pointer; border-radius:var(--radius-pill); }
+
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid rgba(222, 168, 100, 0.72);
+    outline-offset: 2px;
+  }
+
+  /* ── About Modal ── */
+  #about-modal {
+    position: fixed; inset: 0;
+    background: rgba(24, 20, 16, 0.72);
+    z-index: 60000;
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  #about-modal.open { display: flex; }
+  #about-modal .modal-box {
+    width: 480px;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-soft);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+  }
+  #about-modal .modal-box h2 {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    margin-bottom: 16px;
+  }
+  #about-modal .modal-box p {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--ga);
+    margin-bottom: 12px;
+  }
+  #about-modal .modal-box .close-btn {
+    margin-top: 12px;
+    background: var(--espresso);
+    border: 2px solid var(--espresso);
+    color: var(--cream);
+    padding: 8px 22px;
+    font-family: var(--sans); font-size: 11px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+    border-radius: var(--radius-pill);
+  }
+  #about-modal .modal-box .close-btn:hover { background: var(--cream); color: var(--espresso); }
+
+  /* ── Power menu ── */
+  #power-menu {
+    position: fixed; inset: 0;
+    background: rgba(24, 20, 16, 0.85);
+    z-index: 60000;
+    display: none;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px;
+  }
+  #power-menu.open { display: flex; }
+  #power-menu .power-option {
+    width: 220px;
+    padding: 13px 0;
+    text-align: center;
+    font-family: var(--sans); font-size: 13px;
+    font-weight: 400;
+    color: var(--espresso);
+    border: 2px solid var(--cream);
+    cursor: pointer;
+    background: var(--cream);
+    transition: background var(--transition), color var(--transition);
+    border-radius: var(--radius-md);
+  }
+  #power-menu .power-option:hover {
+    background: transparent; color: var(--cream);
+  }
+
+  /* ── Footer credit ── */
+  #footer-credit {
+    position: fixed;
+    bottom: 6px; right: 12px;
+    font-family: var(--sans);
+    font-size: 9px;
+    color: rgba(246, 241, 228, 0.35);
+    letter-spacing: 0.04em;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* ── Focus mode ── */
+  body.focus-mode #topbar,
+  body.focus-mode #desktop-icons,
+  body.focus-mode #taskbar { display: none; }
+  body.focus-mode #desktop { top: 0; bottom: 0; }
+
+  /* ── Scrollbar (near-invisible, Fable hides them) ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(24, 20, 16, 0.25); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(24, 20, 16, 0.5); }
+
+  /* ── Selection ── */
+  ::selection { background: var(--espresso); color: var(--cream); }
+
+  /* ── Taskbar ── */
+  #taskbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--taskbar-h);
+    background: var(--cream);
+    border-top: 2px solid var(--espresso);
+    z-index: 10000;
+    display: flex; align-items: center;
+    padding: 0 10px;
+    gap: 6px;
+    overflow: hidden;
+  }
+  .taskbar-win {
+    height: 22px;
+    padding: 0 12px;
+    font-family: var(--sans);
+    font-size: 10px;
+    color: var(--ga);
+    background: none;
+    border: 1.5px solid var(--espresso);
+    cursor: pointer;
+    display: flex; align-items: center;
+    transition: background var(--transition), color var(--transition);
+    max-width: 140px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border-radius: var(--radius-pill);
+  }
+  .taskbar-win:hover { background: rgba(24, 20, 16, 0.08); color: var(--ink); }
+  .taskbar-win.active { background: var(--espresso); color: var(--cream); }
+  .taskbar-spacer { flex: 1; }
+  .taskbar-credit {
+    font-family: var(--sans);
+    font-size: 9px;
+    color: var(--g7);
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    padding-right: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Toast notifications ── */
+  #toast-container {
+    position: fixed;
+    bottom: calc(var(--taskbar-h) + 10px);
+    right: 14px;
+    z-index: 70000;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--espresso);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    padding: 9px 16px;
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateX(20px);
+    border-radius: var(--radius-md);
+    transition: opacity var(--transition), transform var(--transition);
+  }
+  .toast.show { opacity: 1; transform: translateX(0); }
+
+  /* ── Context Menu ── */
+  #ctx-menu {
+    position: fixed;
+    background: var(--cream);
+    border: 2px solid var(--espresso);
+    box-shadow: var(--shadow-float);
+    z-index: 80000;
+    display: none;
+    flex-direction: column;
+    min-width: 168px;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+  }
+  #ctx-menu.open { display: flex; }
+  .ctx-item {
+    padding: 9px 14px;
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ga);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+  .ctx-item:hover { background: var(--espresso); color: var(--cream); }
+  .ctx-sep { height: 2px; background: var(--espresso); margin: 2px 0; }
+
+  /* ── Window focus indicator ── */
+  .window.focused { box-shadow: 0 0 0 4px rgba(246, 241, 228, 0.28), var(--shadow-soft); }
+  .window.focused .window-titlebar .title { color: var(--ink); }
+
+  @media (max-width: 760px) {
+    #desktop-icons { grid-template-columns: repeat(2, 64px); left:14px; top:14px; }
+    .desktop-icon { width:64px; }
+    #desktop-dock { max-width:calc(100vw - 20px); overflow-x:auto; gap:3px; padding:6px; border-radius:var(--radius-lg); }
+    .dock-icon { width:38px; height:38px; flex:0 0 38px; }
+    .app-launcher-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .app-launcher-panel { padding:16px; }
+    #topbar { left: 8px; right: 8px; }
+    #taskbar { left: 8px; right: 8px; }
+    body[data-desktop-mode="hybrid"] #desktop-dock { bottom: 58px; }
+  }
+
+  /* Paper studio — light wall, hairline chrome, soft lift.
+     Kengo Fable / Cool S / portraits: paper first, ink for type. */
+  #keyboard-hint {
+    bottom: 118px;
+    background: var(--glass);
+    border: var(--hairline);
+  }
+  #keyboard-hint kbd { border-radius: 6px; }
+  #topbar {
+    top: 10px; left: 14px; right: 14px;
+    height: 42px;
+    width: auto;
+    background: var(--glass);
+    border: var(--hairline);
+    border-bottom: var(--hairline);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-float);
+  }
+  #topbar .right .menu-btn {
+    border: none;
+    box-shadow: 0 4px 12px rgba(24, 20, 16, 0.14);
+  }
+  body[data-desktop-mode="hybrid"] #desktop-dock { bottom: 62px; }
+  body[data-desktop-mode="mac"] #desktop-dock { bottom: 16px; }
+  body[data-desktop-mode="hybrid"][data-dock-position="left"] #desktop-dock,
+  body[data-desktop-mode="mac"][data-dock-position="left"] #desktop-dock { bottom: 50%; }
+  #desktop-dock {
+    background: var(--glass);
+    border: var(--hairline);
+    border-radius: var(--radius-pill);
+    padding: 8px 10px;
+  }
+  .dock-icon {
+    border-radius: 50%;
+    background: rgba(24, 20, 16, 0.04);
+  }
+  .dock-icon:hover, .dock-icon.active {
+    background: #fff;
+    color: var(--ink);
+    transform: translateY(-10px) scale(1.18);
+    box-shadow: 0 16px 28px rgba(70, 42, 24, 0.14);
+  }
+  .dock-icon.active::after { background: var(--espresso); border-color: var(--espresso); }
+  #dock-menu { border: var(--hairline); }
+  .dock-menu-item:hover { background: rgba(24, 20, 16, 0.06); color: var(--ink); }
+  #desktop::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(24, 20, 16, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(24, 20, 16, 0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  #radiant-glow {
+    background: radial-gradient(circle,
+      rgba(232, 168, 120, 0.32) 0%,
+      rgba(212, 115, 94, 0.10) 42%,
+      transparent 70%);
+  }
+  .desktop-icon {
+    border: 1px solid rgba(24, 20, 16, 0.05);
+    background: rgba(255, 252, 246, 0.42);
+    border-radius: 18px;
+    transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+  }
+  .desktop-icon:hover {
+    border-color: rgba(24, 20, 16, 0.08);
+    background: rgba(255, 252, 246, 0.72);
+    box-shadow: var(--shadow-float);
+    transform: translateY(-2px);
+  }
+  .desktop-icon.selected {
+    border-color: rgba(24, 20, 16, 0.12);
+    background: var(--cream);
+    box-shadow: var(--shadow-float);
+  }
+  .desktop-icon svg { stroke: var(--ink); }
+  .desktop-icon span { color: var(--ga); }
+  .window {
+    border: var(--hairline);
+    border-radius: var(--radius-xl);
+    background: var(--cream);
+    animation-duration: 480ms;
+  }
+  .window-titlebar {
+    height: 38px;
+    border-bottom: var(--hairline);
+  }
+  .window-titlebar .controls button { border: 1px solid rgba(24, 20, 16, 0.16); }
+  .window.focused { box-shadow: 0 0 0 1px rgba(24, 20, 16, 0.06), var(--shadow-soft); }
+  .toggle { border: 1.5px solid rgba(24, 20, 16, 0.18); }
+  #cmd-palette { border: var(--hairline); }
+  #cmd-palette input { border-bottom: var(--hairline); }
+  #cmd-palette .result-item:hover,
+  #cmd-palette .result-item.active {
+    background: rgba(24, 20, 16, 0.06);
+    color: var(--ink);
+  }
+  #app-launcher { background: rgba(243, 235, 224, 0.42); backdrop-filter: blur(12px); }
+  .app-launcher-panel { border: var(--hairline); }
+  #about-modal { background: rgba(243, 235, 224, 0.55); }
+  #about-modal .modal-box { border: var(--hairline); }
+  #about-modal .modal-box .close-btn { border: none; }
+  #power-menu { background: rgba(243, 235, 224, 0.72); }
+  #power-menu .power-option {
+    border: var(--hairline);
+    border-radius: var(--radius-pill);
+  }
+  #power-menu .power-option:hover { background: var(--espresso); color: var(--cream); }
+  #footer-credit { color: rgba(24, 20, 16, 0.28); }
+  #taskbar {
+    bottom: 10px; left: 14px; right: 14px;
+    height: 38px;
+    width: auto;
+    background: var(--glass);
+    border: var(--hairline);
+    border-top: var(--hairline);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-float);
+  }
+  .taskbar-win { border: var(--hairline); }
+  .taskbar-win.active { background: rgba(24, 20, 16, 0.88); color: var(--cream); }
+  .toast { border: none; border-radius: var(--radius-pill); }
+  #ctx-menu { border: var(--hairline); }
+  .ctx-item:hover { background: rgba(24, 20, 16, 0.06); color: var(--ink); }
+  .ctx-sep { height: 1px; background: rgba(24, 20, 16, 0.08); }
+
+  /* Soft shell motion — overlays and windows should float, not snap */
+  #app-launcher {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 360ms;
+  }
+  #app-launcher.open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+  #app-launcher .app-launcher-panel {
+    transform: translateY(14px) scale(0.98);
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #app-launcher.open .app-launcher-panel { transform: translateY(0) scale(1); }
+  #cmd-palette {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(10px) scale(0.98);
+    transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1), visibility 320ms;
+  }
+  #cmd-palette.open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  .window {
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 360ms ease, transform 360ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 360ms ease;
+  }
+  .media-toolbar button,
+  .fm-action,
+  .browser-action,
+  .settings-action-btn {
+    border-radius: var(--radius-pill) !important;
+  }
+  .toast {
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+</style>
+</head>
+<body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
+
+<!-- Boot Screen -->
+<div id="boot-screen">
+  <div class="boot-logo">SoengOS</div>
+  <div class="boot-sub">fable edition</div>
+</div>
+
+<!-- Keyboard Hint -->
+<div id="keyboard-hint">
+  <span id="shortcut-mod"><kbd>Ctrl</kbd></span>+<kbd>K</kbd> Command Palette &nbsp;&middot;&nbsp;
+  <kbd>Esc</kbd> Close Window &nbsp;&middot;&nbsp;
+  <kbd>F11</kbd> Focus Mode
+</div>
+
+<!-- Top Bar -->
+<div id="topbar">
+  <div class="logo">SoengOS</div>
+  <div class="right">
+    <div class="clock" id="clock">00:00</div>
+    <div class="battery">
+      <svg width="18" height="10" viewBox="0 0 18 10" fill="none" stroke="#6b5f55" stroke-width="1">
+        <rect x="0.5" y="0.5" width="14" height="9" rx="2" />
+        <rect x="2" y="2" width="9" height="5" rx="1" fill="#7d9d72" stroke="none" />
+        <rect x="15" y="3" width="2" height="4" rx="1" />
+      </svg>
+      <span style="font-size:9px">87%</span>
+    </div>
+    <button class="menu-btn" onclick="toggleAppLauncher()" aria-haspopup="dialog" aria-controls="app-launcher">APPS</button>
+  </div>
+</div>
+
+<!-- Desktop -->
+<div id="desktop">
+  <div id="radiant-glow"></div>
+  <div id="desktop-icons">
+
+    <!-- File Manager -->
+    <div class="desktop-icon" ondblclick="openApp('filemanager')">
+      <svg viewBox="0 0 32 32">
+        <path d="M4 8h10l2 3h12v15H4z"/>
+      </svg>
+      <span>Files</span>
+    </div>
+
+    <!-- Notes -->
+    <div class="desktop-icon" ondblclick="openApp('notes')">
+      <svg viewBox="0 0 32 32">
+        <rect x="6" y="4" width="20" height="24"/>
+        <line x1="10" y1="10" x2="22" y2="10"/>
+        <line x1="10" y1="15" x2="22" y2="15"/>
+        <line x1="10" y1="20" x2="18" y2="20"/>
+      </svg>
+      <span>Notes</span>
+    </div>
+
+    <!-- Browser -->
+    <div class="desktop-icon" ondblclick="openApp('browser')">
+      <svg viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="12"/>
+        <ellipse cx="16" cy="16" rx="5" ry="12"/>
+        <line x1="4" y1="16" x2="28" y2="16"/>
+        <line x1="16" y1="4" x2="16" y2="28"/>
+      </svg>
+      <span>Browser</span>
+    </div>
+
+    <!-- Music -->
+    <div class="desktop-icon" ondblclick="openApp('music')">
+      <svg viewBox="0 0 32 32">
+        <circle cx="10" cy="24" r="3"/>
+        <circle cx="24" cy="20" r="3"/>
+        <line x1="13" y1="24" x2="13" y2="8"/>
+        <line x1="13" y1="8" x2="27" y2="6"/>
+        <line x1="27" y1="6" x2="27" y2="20"/>
+      </svg>
+      <span>Music</span>
+    </div>
+
+    <!-- Photos -->
+    <div class="desktop-icon" ondblclick="openApp('photos')">
+      <svg viewBox="0 0 32 32">
+        <rect x="4" y="6" width="24" height="20"/>
+        <circle cx="12" cy="14" r="3"/>
+        <path d="M4 22l8-8 6 6 4-4 6 6"/>
+      </svg>
+      <span>Photos</span>
+    </div>
+
+    <!-- Podcast -->
+    <div class="desktop-icon" ondblclick="openApp('podcast')">
+      <svg viewBox="0 0 32 32">
+        <rect x="12" y="4" width="8" height="14" rx="4"/>
+        <path d="M8 16a8 8 0 0016 0"/>
+        <line x1="16" y1="24" x2="16" y2="28"/>
+        <line x1="12" y1="28" x2="20" y2="28"/>
+      </svg>
+      <span>Podcast</span>
+    </div>
+
+    <!-- TV -->
+    <div class="desktop-icon" ondblclick="openApp('tv')">
+      <svg viewBox="0 0 32 32">
+        <rect x="4" y="6" width="24" height="16"/>
+        <line x1="16" y1="22" x2="16" y2="26"/>
+        <line x1="10" y1="26" x2="22" y2="26"/>
+      </svg>
+      <span>TV</span>
+    </div>
+
+    <!-- Terminal -->
+    <div class="desktop-icon" ondblclick="openApp('terminal')">
+      <svg viewBox="0 0 32 32">
+        <rect x="3" y="5" width="26" height="22"/>
+        <path d="M8 14l5 4-5 4"/>
+        <line x1="16" y1="22" x2="24" y2="22"/>
+      </svg>
+      <span>Terminal</span>
+    </div>
+
+    <!-- Settings -->
+    <div class="desktop-icon" ondblclick="openApp('settings')">
+      <svg viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="5"/>
+        <path d="M16 4v4M16 24v4M4 16h4M24 16h4M7.5 7.5l2.8 2.8M21.7 21.7l2.8 2.8M7.5 24.5l2.8-2.8M21.7 10.3l2.8-2.8"/>
+      </svg>
+      <span>Settings</span>
+    </div>
+
+    <!-- Workflow Hub -->
+    <div class="desktop-icon" ondblclick="openApp('workflow')">
+      <svg viewBox="0 0 32 32">
+        <rect x="5" y="5" width="8" height="8"/>
+        <rect x="19" y="5" width="8" height="8"/>
+        <rect x="5" y="19" width="8" height="8"/>
+        <rect x="19" y="19" width="8" height="8"/>
+      </svg>
+      <span>Workflow</span>
+    </div>
+
+    <!-- Automation Studio -->
+    <div class="desktop-icon" ondblclick="openApp('automation')">
+      <svg viewBox="0 0 32 32">
+        <path d="M16 3v6M16 23v6M5 16h6M21 16h6M7.5 7.5l4 4M20.5 20.5l4 4M7.5 24.5l4-4M20.5 11.5l4-4"/>
+        <circle cx="16" cy="16" r="4"/>
+      </svg>
+      <span>Automate</span>
+    </div>
+
+    <!-- Power -->
+    <div class="desktop-icon" ondblclick="openPower()">
+      <svg viewBox="0 0 32 32">
+        <path d="M16 4v12"/>
+        <path d="M10 8a10 10 0 1 0 12 0"/>
+      </svg>
+      <span>Power</span>
+    </div>
+
+  </div>
+
+  <!-- Windows render here -->
+  <div id="windows-container"></div>
+</div>
+
+<!-- Unified Dock (Mac / Hybrid mode) -->
+<div id="desktop-dock" aria-label="Application Dock">
+  <div class="dock-icon" data-app="notes" title="Notes">
+    <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
+  </div>
+  <div class="dock-icon" data-app="music" title="Music">
+    <svg viewBox="0 0 24 24"><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/><line x1="9" y1="18" x2="9" y2="6"/><line x1="9" y1="6" x2="19" y2="5"/><line x1="19" y1="5" x2="19" y2="16"/></svg>
+  </div>
+  <div class="dock-icon" data-app="photos" title="Photos">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14"/><circle cx="9" cy="11" r="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
+  </div>
+  <div class="dock-icon" data-app="podcast" title="Podcast">
+    <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="10" rx="3"/><path d="M6 13a6 6 0 0012 0"/><line x1="12" y1="19" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>
+  </div>
+  <div class="dock-icon" data-app="tv" title="TV">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12"/><line x1="12" y1="17" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+  </div>
+  <div class="dock-icon" data-app="browser" title="Browser">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18"/></svg>
+  </div>
+  <div class="dock-icon" data-app="filemanager" title="Files">
+    <svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/><path d="M3 7V5a2 2 0 012-2h4"/></svg>
+  </div>
+  <div class="dock-icon" data-app="terminal" title="Terminal">
+    <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="14" y1="17" x2="20" y2="17"/></svg>
+  </div>
+  <div class="dock-icon" data-app="settings" title="Settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+  </div>
+</div>
+
+<!-- Dock Context Menu -->
+<div id="dock-menu" role="menu" aria-label="Dock app actions">
+  <div class="dock-menu-item" data-action="activate" role="menuitem">Open / Restore</div>
+  <div class="dock-menu-item" data-action="new-window" role="menuitem">New Window</div>
+</div>
+
+<!-- Command Palette -->
+<div id="cmd-palette">
+  <input type="text" id="cmd-input" placeholder="Type a command…" autocomplete="off" />
+  <div class="results" id="cmd-results"></div>
+</div>
+
+<!-- App Launcher -->
+<div id="app-launcher" role="dialog" aria-modal="true" aria-labelledby="app-launcher-title">
+  <div class="app-launcher-panel">
+    <div class="app-launcher-head">
+      <div>
+        <h2 id="app-launcher-title">Applications</h2>
+        <p>Open a workspace. Your current windows stay exactly where you left them.</p>
+      </div>
+      <button class="app-launcher-close" onclick="toggleAppLauncher(false)" aria-label="Close application launcher">&times;</button>
+    </div>
+    <div class="app-launcher-grid">
+      <button class="app-launcher-item" onclick="launchFromLauncher('filemanager')"><strong>Files</strong><span>Browse, preview, create, and remove local files.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('notes')"><strong>Notes</strong><span>Write notes with automatic local saving.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('browser')"><strong>Browser</strong><span>Navigate Soeng pages and safe external links.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('music')"><strong>Music</strong><span>Browse tracks and control simulated playback.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('photos')"><strong>Photos</strong><span>Explore the local image library and metadata.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('podcast')"><strong>Podcast</strong><span>Select episodes and control listening progress.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('tv')"><strong>TV</strong><span>Choose a channel and start or stop viewing.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('terminal')"><strong>Terminal</strong><span>Use the working soeng-sh command environment.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('workflow')"><strong>Workflow Hub</strong><span>Create, move, run, and pause workflow cards.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('automation')"><strong>Automation Studio</strong><span>Turn a prompt into runnable workflow steps.</span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('settings')"><strong>Settings</strong><span>Adjust desktop mode, controls, scale, and system state.</span></button>
+    </div>
+    <div class="app-launcher-foot">
+      <span>Tip: Ctrl/Cmd + K opens the command palette.</span>
+      <button class="app-launcher-about" onclick="toggleAppLauncher(false);toggleAbout()">About SoengOS</button>
+    </div>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div id="about-modal">
+  <div class="modal-box">
+    <h2>About SoengOS</h2>
+    <p>SoengOS is a web-enabled Linux desktop contract. The Fable sitting is a paper studio: warm wall, espresso ink, and the same quiet motion as a Kengo wall — Fable, Cool S, portraits — not a black terminal room.</p>
+    <p>Built as a single-file browser prototype using vanilla JavaScript and CSS. All applications run entirely within the browser. No external dependencies, no frameworks, no runtime.</p>
+    <p style="color:var(--g7); font-size:10px; margin-top:8px;">Fable Edition &middot; Paper / espresso ink &middot; v1.2</p>
+    <button class="close-btn" onclick="toggleAbout()">CLOSE</button>
+  </div>
+</div>
+
+<!-- Power Menu -->
+<div id="power-menu">
+  <div class="power-option" onclick="doShutdown()">SHUT DOWN</div>
+  <div class="power-option" onclick="doRestart()">RESTART</div>
+  <div class="power-option" onclick="closePower()">CANCEL</div>
+</div>
+
+<!-- Context Menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="openApp('filemanager');closeCtxMenu()">Files</div>
+  <div class="ctx-item" onclick="openApp('notes');closeCtxMenu()">Notes</div>
+  <div class="ctx-item" onclick="openApp('browser');closeCtxMenu()">Browser</div>
+  <div class="ctx-item" onclick="openApp('music');closeCtxMenu()">Music</div>
+  <div class="ctx-item" onclick="openApp('photos');closeCtxMenu()">Photos</div>
+  <div class="ctx-item" onclick="openApp('podcast');closeCtxMenu()">Podcast</div>
+  <div class="ctx-item" onclick="openApp('tv');closeCtxMenu()">TV</div>
+  <div class="ctx-item" onclick="openApp('terminal');closeCtxMenu()">Terminal</div>
+  <div class="ctx-item" onclick="openApp('workflow');closeCtxMenu()">Workflow Hub</div>
+  <div class="ctx-item" onclick="openApp('automation');closeCtxMenu()">Automation Studio</div>
+  <div class="ctx-item" onclick="openApp('settings');closeCtxMenu()">Settings</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="toggleFocus();closeCtxMenu()">Toggle Focus Mode</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="openPower();closeCtxMenu()">Power&hellip;</div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Taskbar -->
+<div id="taskbar">
+  <div class="taskbar-spacer"></div>
+  <div class="workflow-status">Workflows: <span id="workflowCount">2</span></div>
+  <div class="workflow-status">Automations: <span id="automationCount">1</span></div>
+  <div class="taskbar-credit">Fable &bull; v1.2</div>
+</div>
+
+<script src="soengos-lib.js"></script>
+<script>
+/* ═══════════════════════════════════════
+   SoengOS — Core System
+   ═══════════════════════════════════════ */
+
+// ── Boot sequence ──
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('boot-screen').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('boot-screen').style.display = 'none';
+      // Show keyboard hint
+      const hint = document.getElementById('keyboard-hint');
+      hint.classList.add('visible');
+      setTimeout(() => hint.classList.remove('visible'), 4000);
+    }, 800);
+  }, 800);
+});
+
+// ── Radiant pointer glow ──
+const radiantGlow = document.getElementById('radiant-glow');
+if (radiantGlow) {
+  document.addEventListener('pointermove', (e) => {
+    radiantGlow.style.left = e.clientX + 'px';
+    radiantGlow.style.top = e.clientY + 'px';
+    radiantGlow.style.margin = '-310px 0 0 -310px';
+  }, { passive: true });
+}
+
+// ── Clock ──
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+function showDockMenu(event, appName) {
+  const menu = document.getElementById('dock-menu');
+  if (!menu) return;
+  menu.dataset.app = appName;
+  menu.style.left = `${event.clientX}px`;
+  menu.style.top = `${event.clientY}px`;
+  menu.classList.add('open');
+}
+
+function hideDockMenu() {
+  const menu = document.getElementById('dock-menu');
+  if (menu) menu.classList.remove('open');
+}
+
+document.querySelectorAll('.dock-icon[data-app]').forEach(icon => {
+  icon.addEventListener('click', () => {
+    hideDockMenu();
+    activateApp(icon.dataset.app);
+  });
+  icon.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    showDockMenu(event, icon.dataset.app);
+  });
+});
+
+document.querySelectorAll('#dock-menu .dock-menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const menu = document.getElementById('dock-menu');
+    const appName = menu?.dataset.app;
+    if (!appName) return;
+    if (item.dataset.action === 'new-window') {
+      openApp(appName, { forceNew: true });
+    } else {
+      activateApp(appName);
+    }
+    hideDockMenu();
+  });
+});
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('#dock-menu')) hideDockMenu();
+});
+
+// ── Window management ──
+let windowZ = 100;
+const openWindows = {};
+
+// ── Unified desktop platform model ──
+// desktopMode: 'hybrid' keeps Mac-style top bar/dock and Linux-style taskbar/menu together.
+let desktopMode = 'hybrid';
+let windowControls = 'linux';
+let dockPosition = 'center';
+let taskbarVisible = true;
+
+const desktopModeModels = {
+  hybrid: {
+    label: 'Hybrid',
+    chrome: 'Top system bar + Dock + bottom taskbar + desktop context menu',
+    shortcutMod: 'Ctrl/Cmd',
+    windowControls: 'linux',
+    dockPosition: 'center',
+    taskbarVisible: true,
+  },
+  mac: {
+    label: 'Mac',
+    chrome: 'Top system bar, centered/left Dock, left window control dots, Cmd hints',
+    shortcutMod: 'Cmd',
+    windowControls: 'mac',
+    dockPosition: 'center',
+    taskbarVisible: false,
+  },
+  linux: {
+    label: 'Linux',
+    chrome: 'Bottom taskbar, desktop right-click menu, right titlebar controls, Ctrl hints',
+    shortcutMod: 'Ctrl',
+    windowControls: 'linux',
+    dockPosition: 'center',
+    taskbarVisible: true,
+  },
+};
+
+function platformShortcutMod() {
+  return desktopMode === 'mac' ? 'Cmd' : (desktopMode === 'hybrid' ? 'Ctrl/Cmd' : 'Ctrl');
+}
+
+function applyDesktopMode(mode = desktopMode, overrides = {}) {
+  const model = desktopModeModels[mode] || desktopModeModels.hybrid;
+  desktopMode = mode;
+  windowControls = overrides.windowControls || (overrides.keepControls ? windowControls : model.windowControls);
+  dockPosition = overrides.dockPosition || (overrides.keepDock ? dockPosition : model.dockPosition);
+  taskbarVisible = typeof overrides.taskbarVisible === 'boolean'
+    ? overrides.taskbarVisible
+    : (overrides.keepTaskbar ? taskbarVisible : model.taskbarVisible);
+
+  document.body.dataset.desktopMode = desktopMode;
+  document.body.dataset.windowControls = windowControls;
+  document.body.dataset.dockPosition = dockPosition;
+  document.body.dataset.taskbarVisible = String(taskbarVisible);
+
+  const shortcutMod = document.getElementById('shortcut-mod');
+  if (shortcutMod) {
+    shortcutMod.textContent = '';
+    const keys = platformShortcutMod().split('/');
+    keys.forEach((key, index) => {
+      if (index) shortcutMod.appendChild(document.createTextNode('/'));
+      const kbd = document.createElement('kbd');
+      kbd.textContent = key;
+      shortcutMod.appendChild(kbd);
+    });
+  }
+
+  document.querySelectorAll('[data-platform-value]').forEach(el => {
+    const key = el.dataset.platformValue;
+    if (key === 'desktopMode') el.textContent = model.label;
+    if (key === 'windowControls') el.textContent = windowControls === 'mac' ? 'Mac left dots' : 'Linux right buttons';
+    if (key === 'dockPosition') el.textContent = dockPosition === 'left' ? 'Left Dock' : 'Centered Dock';
+    if (key === 'taskbarVisible') el.textContent = taskbarVisible ? 'Visible' : 'Hidden';
+    if (key === 'shortcutMod') el.textContent = platformShortcutMod();
+  });
+}
+
+applyDesktopMode('hybrid');
+
+function getAppWindows(appName) {
+  return Object.entries(openWindows)
+    .filter(([, meta]) => meta.appName === appName)
+    .map(([id, meta]) => ({ id, ...meta }));
+}
+
+function getMostRecentWindow(appWindows, includeMinimized = false) {
+  return appWindows
+    .filter(win => includeMinimized || !win.minimized)
+    .sort((a, b) => {
+      const aEl = document.getElementById('win-' + a.id);
+      const bEl = document.getElementById('win-' + b.id);
+      return (Number(bEl?.style.zIndex) || 0) - (Number(aEl?.style.zIndex) || 0);
+    })[0];
+}
+
+function makeWindowId(appName) {
+  if (!openWindows[appName]) return appName;
+  let index = 2;
+  while (openWindows[`${appName}-${index}`]) index++;
+  return `${appName}-${index}`;
+}
+
+function restoreWindow(id) {
+  const win = document.getElementById('win-' + id);
+  const meta = openWindows[id];
+  if (!win || !meta) return false;
+  win.classList.remove('minimized');
+  meta.minimized = false;
+  bringToFront(win);
+  return true;
+}
+
+function activateApp(appName, options = {}) {
+  if (!options.forceNew) {
+    const appWindows = getAppWindows(appName);
+    const minimizedWindow = getMostRecentWindow(appWindows.filter(win => win.minimized), true);
+    if (minimizedWindow && restoreWindow(minimizedWindow.id)) return;
+
+    const visibleWindow = getMostRecentWindow(appWindows);
+    if (visibleWindow) {
+      const win = document.getElementById('win-' + visibleWindow.id);
+      if (win) {
+        bringToFront(win);
+        return;
+      }
+    }
+  }
+
+  openApp(appName, { forceNew: true });
+}
+
+function updateDockIndicators() {
+  document.querySelectorAll('.dock-icon[data-app]').forEach(icon => {
+    const appWindows = getAppWindows(icon.dataset.app);
+    icon.classList.toggle('active', appWindows.some(win => win.active && !win.minimized));
+    icon.classList.toggle('minimized', appWindows.some(win => win.minimized));
+    icon.classList.toggle('multiple', appWindows.length > 1);
+  });
+}
+
+function createWindow(id, title, width, height, contentHTML, options = {}) {
+  const appName = options.appName || id;
+  if (!options.forceNew && openWindows[id]) {
+    const existing = document.getElementById('win-' + id);
+    if (existing) {
+      restoreWindow(id);
+      return id;
+    }
+  }
+
+  if (options.forceNew) id = makeWindowId(appName);
+
+  const container = document.getElementById('windows-container');
+  const desktop = document.getElementById('desktop');
+  const dw = desktop.clientWidth;
+  const dh = desktop.clientHeight;
+
+  const windowWidth = Math.min(width, Math.max(320, dw - 32));
+  const windowHeight = Math.min(height, Math.max(220, dh - 32));
+  const x = Math.max(16, Math.min(dw - windowWidth - 16, 64 + Object.keys(openWindows).length * 26));
+  const y = Math.max(16, Math.min(dh - windowHeight - 16, 32 + Object.keys(openWindows).length * 26));
+
+  const win = document.createElement('div');
+  win.className = 'window';
+  win.id = 'win-' + id;
+  win.style.cssText = `left:${x}px;top:${y}px;width:${windowWidth}px;height:${windowHeight}px;z-index:${++windowZ}`;
+
+  const titlebar = document.createElement('div');
+  titlebar.className = 'window-titlebar';
+  titlebar.dataset.win = id;
+
+  const titleEl = document.createElement('span');
+  titleEl.className = 'title';
+  titleEl.textContent = title;
+
+  const controls = document.createElement('div');
+  controls.className = 'controls';
+  const controlDefs = [
+    { label: 'Minimize', handler: () => minimizeWindow(id), svg: '<svg viewBox="0 0 8 8"><line x1="1" y1="7" x2="7" y2="7"/></svg>' },
+    { label: 'Maximize', handler: () => maximizeWindow(id), svg: '<svg viewBox="0 0 8 8"><rect x="1" y="1" width="6" height="6"/></svg>' },
+    { label: 'Close', handler: () => closeWindow(id), svg: '<svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>' },
+  ];
+  controlDefs.forEach(({ label, handler, svg }) => {
+    const btn = document.createElement('button');
+    btn.title = label;
+    btn.innerHTML = svg;
+    btn.addEventListener('click', handler);
+    controls.appendChild(btn);
+  });
+  titlebar.append(titleEl, controls);
+
+  const content = document.createElement('div');
+  content.className = 'window-content';
+  content.id = 'wc-' + id;
+  content.innerHTML = contentHTML;
+
+  const resize = document.createElement('div');
+  resize.className = 'window-resize';
+  resize.dataset.win = id;
+
+  win.append(titlebar, content, resize);
+  container.appendChild(win);
+  openWindows[id] = { appName, title, minimized: false, active: false };
+  addToTaskbar(id, title);
+  bringToFront(win);
+
+  win.addEventListener('mousedown', () => {
+    bringToFront(win);
+    if (typeof win.refreshFiles === 'function') win.refreshFiles();
+  });
+  initDrag(win);
+  initResize(win);
+
+  if (appName === 'terminal') initTerminal(win);
+  updateDockIndicators();
+  return id;
+}
+
+function bringToFront(win) {
+  win.style.zIndex = ++windowZ;
+  document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+  Object.values(openWindows).forEach(meta => { meta.active = false; });
+  win.classList.add('focused');
+  const id = win.id.replace('win-', '');
+  if (openWindows[id]) {
+    openWindows[id].minimized = false;
+    openWindows[id].active = true;
+  }
+  setTaskbarActive(id);
+  updateDockIndicators();
+}
+
+// ── Taskbar helpers ──
+function addToTaskbar(id, title) {
+  const taskbar = document.getElementById('taskbar');
+  const spacer = taskbar.querySelector('.taskbar-spacer');
+  const btn = document.createElement('button');
+  btn.className = 'taskbar-win';
+  btn.id = 'tb-' + id;
+  btn.textContent = title;
+  btn.onclick = () => {
+    const win = document.getElementById('win-' + id);
+    if (!win) return;
+    if (win.classList.contains('minimized')) {
+      restoreWindow(id);
+    } else if (win.classList.contains('focused')) {
+      minimizeWindow(id);
+    } else {
+      bringToFront(win);
+    }
+  };
+  taskbar.insertBefore(btn, spacer);
+}
+
+function removeFromTaskbar(id) {
+  const btn = document.getElementById('tb-' + id);
+  if (btn) btn.remove();
+}
+
+function setTaskbarActive(id) {
+  document.querySelectorAll('.taskbar-win').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tb-' + id);
+  if (btn) btn.classList.add('active');
+}
+
+function closeWindow(id) {
+  const win = document.getElementById('win-' + id);
+  if (win) {
+    win.dispatchEvent(new CustomEvent('soeng-close'));
+    if (win.querySelector('[data-music-app], [data-podcast-app]')) soengTone.stop();
+    win.querySelectorAll('video').forEach(video => {
+      try { video.pause(); video.removeAttribute('src'); video.load(); } catch (e) {}
+    });
+    win.remove();
+    delete openWindows[id];
+  }
+  removeFromTaskbar(id);
+  updateDockIndicators();
+}
+
+function minimizeWindow(id) {
+  const win = document.getElementById('win-' + id);
+  if (win) {
+    win.classList.add('minimized');
+    win.classList.remove('focused');
+  }
+  if (openWindows[id]) {
+    openWindows[id].minimized = true;
+    openWindows[id].active = false;
+  }
+  const btn = document.getElementById('tb-' + id);
+  if (btn) btn.classList.remove('active');
+  updateDockIndicators();
+}
+
+function maximizeWindow(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win) return;
+  win.classList.toggle('maximized');
+}
+
+// ── Drag ──
+function initDrag(win) {
+  const bar = win.querySelector('.window-titlebar');
+  let dragging = false, ox, oy;
+
+  bar.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.controls')) return;
+    dragging = true;
+    ox = e.clientX - win.offsetLeft;
+    oy = e.clientY - win.offsetTop;
+    win.classList.remove('maximized');
+    bringToFront(win);
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    win.style.left = (e.clientX - ox) + 'px';
+    win.style.top = (e.clientY - oy) + 'px';
+  });
+
+  document.addEventListener('mouseup', () => { dragging = false; });
+}
+
+// ── Resize ──
+function initResize(win) {
+  const handle = win.querySelector('.window-resize');
+  let resizing = false, sw, sh, sx, sy;
+
+  handle.addEventListener('mousedown', (e) => {
+    resizing = true;
+    sw = win.offsetWidth;
+    sh = win.offsetHeight;
+    sx = e.clientX;
+    sy = e.clientY;
+    win.classList.remove('maximized');
+    bringToFront(win);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!resizing) return;
+    const nw = Math.max(320, sw + (e.clientX - sx));
+    const nh = Math.max(200, sh + (e.clientY - sy));
+    win.style.width = nw + 'px';
+    win.style.height = nh + 'px';
+  });
+
+  document.addEventListener('mouseup', () => { resizing = false; });
+}
+
+// ── App launchers ──
+function openApp(name, options = {}) {
+  switch(name) {
+    case 'filemanager':
+    case 'files': openFileManager(options); break;
+    case 'notes': openNotes(options); break;
+    case 'music': openMusic(options); break;
+    case 'photos': openPhotos(options); break;
+    case 'podcast': openPodcast(options); break;
+    case 'tv': openTV(options); break;
+    case 'terminal': openTerminal(options); break;
+    case 'settings': openSettings(options); break;
+    case 'browser': openBrowser(options); break;
+    case 'workflow': openWorkflowHub(options); break;
+    case 'automation': openAutomationStudio(options); break;
+  }
+}
+
+// ── File Manager ──
+const fileContents = {
+  '/home/user/readme.md': '# SoengOS\n\nA native-ready Mac/Linux hybrid OS shell. The HTML demo represents the desktop contract, while native services would provide files, processes, hardware, and containers.',
+  '/home/user/notes.txt': 'TODO:\n- Keep Mac-like dock and top bar\n- Keep Linux terminal, taskbar, right-click menu\n- Wire every visible control to an action',
+  '/home/user/.bashrc': '# SoengOS .bashrc\nexport PS1="user@soeng:\\w$ "\nexport EDITOR=nano\nalias ll="ls -la"',
+  '/home/user/Documents/report.pdf': '[PDF preview] Quarterly workflow report generated by SoengOS.',
+  '/home/user/Documents/todo.txt': '[ ] Package native runtime bridge\n[x] Design window manager\n[x] Implement terminal and files',
+  '/etc/hosts': '127.0.0.1  localhost\n::1        localhost',
+  '/etc/passwd': 'root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:user:/home/user:/bin/bash',
+  '/etc/fstab': '/dev/sda1  /      ext4  defaults  0 1\n/dev/sda2  /home  ext4  defaults  0 2',
+};
+
+function entryType(path) {
+  if (termFS[path]) return 'folder';
+  if (fileContents[path] !== undefined) return 'file';
+  return null;
+}
+
+function uniqueEntryName(path, baseName) {
+  const entries = termFS[path] || [];
+  if (!entries.includes(baseName)) return baseName;
+  let i = 2;
+  const dot = baseName.lastIndexOf('.');
+  const stem = dot > 0 ? baseName.slice(0, dot) : baseName;
+  const ext = dot > 0 ? baseName.slice(dot) : '';
+  while (entries.includes(`${stem}-${i}${ext}`)) i++;
+  return `${stem}-${i}${ext}`;
+}
+
+function createFsEntry(path, name, type) {
+  if (!termFS[path]) return null;
+  const safeName = uniqueEntryName(path, sanitizeEntryName(name));
+  termFS[path].push(safeName);
+  const full = joinPath(path, safeName);
+  if (type === 'folder') termFS[full] = [];
+  else fileContents[full] = `New file created at ${new Date().toLocaleString()}`;
+  return safeName;
+}
+
+function deleteFsEntry(path, name) {
+  if (!termFS[path] || !termFS[path].includes(name)) return false;
+  const full = joinPath(path, name);
+  termFS[path] = termFS[path].filter(entry => entry !== name);
+  if (termFS[full]) {
+    Object.keys(termFS).forEach(key => { if (key === full || key.startsWith(full + '/')) delete termFS[key]; });
+    Object.keys(fileContents).forEach(key => { if (key.startsWith(full + '/')) delete fileContents[key]; });
+  } else {
+    delete fileContents[full];
+  }
+  return true;
+}
+
+function openFileManager(options = {}) {
+  const html = `
+    <div class="fm-toolbar">
+      <button class="fm-action" data-fm-action="back">Back</button>
+      <button class="fm-action" data-fm-action="up">Up</button>
+      <button class="fm-action" data-fm-action="new-folder">New Folder</button>
+      <button class="fm-action" data-fm-action="new-file">New File</button>
+      <button class="fm-action" data-fm-action="delete">Delete</button>
+      <input class="path" data-fm-path value="/home/user" spellcheck="false" />
+    </div>
+    <div class="fm-layout">
+      <div class="fm-sidebar">
+        <div class="fm-side-item" data-path="/home/user">Home</div>
+        <div class="fm-side-item" data-path="/home/user/Documents">Documents</div>
+        <div class="fm-side-item" data-path="/home/user/Downloads">Downloads</div>
+        <div class="fm-side-item" data-path="/home/user/Projects">Projects</div>
+        <div class="fm-side-item" data-path="/etc">/etc</div>
+        <div class="fm-side-item" data-path="/tmp">/tmp</div>
+      </div>
+      <div class="fm-main">
+        <div class="fm-grid" data-fm-grid></div>
+        <div class="fm-preview" data-fm-preview>Select a file or folder. Double-click folders to enter; double-click files to preview.</div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('filemanager', 'File Manager', 640, 430, html, { ...options, appName: 'filemanager' });
+  initFileManager(id);
+}
+
+function initFileManager(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.fmReady === '1') return;
+  win.dataset.fmReady = '1';
+  const state = { path: '/home/user', history: [], selected: null };
+  const pathInput = win.querySelector('[data-fm-path]');
+  const grid = win.querySelector('[data-fm-grid]');
+  const preview = win.querySelector('[data-fm-preview]');
+
+  function render(path = state.path, pushHistory = false) {
+    const normalized = normalizePath(path);
+    if (!termFS[normalized]) {
+      showToast('Folder does not exist');
+      pathInput.value = state.path;
+      return;
+    }
+    if (pushHistory && normalized !== state.path) state.history.push(state.path);
+    state.path = normalized;
+    state.selected = null;
+    pathInput.value = state.path;
+    const entries = [...termFS[state.path]].sort((a, b) => {
+      const ta = entryType(joinPath(state.path, a));
+      const tb = entryType(joinPath(state.path, b));
+      if (ta !== tb) return ta === 'folder' ? -1 : 1;
+      return a.localeCompare(b);
+    });
+    grid.textContent = '';
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:var(--g5);font-size:11px;padding:16px;';
+      empty.textContent = 'Empty folder';
+      grid.appendChild(empty);
+    } else {
+      entries.forEach(name => {
+        const full = joinPath(state.path, name);
+        const type = entryType(full) || 'file';
+        const item = createFileItemElement(name, type);
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 28 28');
+        if (type === 'folder') {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M3 7h9l2 2h11v14H3z');
+          icon.appendChild(path);
+        } else {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', '5');
+          rect.setAttribute('y', '2');
+          rect.setAttribute('width', '18');
+          rect.setAttribute('height', '24');
+          icon.appendChild(rect);
+          [['9', '10', '19', '10'], ['9', '14', '19', '14'], ['9', '18', '15', '18']].forEach(([x1, y1, x2, y2]) => {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            icon.appendChild(line);
+          });
+        }
+        item.insertBefore(icon, item.firstChild);
+        grid.appendChild(item);
+      });
+    }
+    preview.textContent = `${state.path}\n${entries.length} item(s)`;
+  }
+
+  grid.addEventListener('click', (event) => {
+    const item = event.target.closest('.fm-item');
+    if (!item) return;
+    grid.querySelectorAll('.fm-item').forEach(el => el.classList.remove('selected'));
+    item.classList.add('selected');
+    state.selected = item.dataset.name;
+    const full = joinPath(state.path, state.selected);
+    preview.textContent = item.dataset.type === 'folder'
+      ? `${full}\nFolder — double-click to open.`
+      : `${full}\n${fileContents[full] || '(binary or empty file)'}`;
+  });
+
+  grid.addEventListener('dblclick', (event) => {
+    const item = event.target.closest('.fm-item');
+    if (!item) return;
+    const full = joinPath(state.path, item.dataset.name);
+    if (item.dataset.type === 'folder') render(full, true);
+    else preview.textContent = `${full}\n\n${fileContents[full] || '(empty file)'}`;
+  });
+
+  win.querySelectorAll('.fm-side-item').forEach(item => {
+    item.addEventListener('click', () => render(item.dataset.path, true));
+  });
+
+  pathInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') render(pathInput.value, true);
+  });
+
+  win.querySelector('[data-fm-action="back"]').addEventListener('click', () => {
+    const previous = state.history.pop();
+    if (previous) render(previous);
+    else showToast('No previous folder');
+  });
+  win.querySelector('[data-fm-action="up"]').addEventListener('click', () => render(joinPath(state.path, '..'), true));
+  win.querySelector('[data-fm-action="new-folder"]').addEventListener('click', () => {
+    const name = createFsEntry(state.path, 'New Folder', 'folder');
+    render(state.path);
+    showToast(`Folder created: ${name}`);
+  });
+  win.querySelector('[data-fm-action="new-file"]').addEventListener('click', () => {
+    const name = createFsEntry(state.path, 'untitled.txt', 'file');
+    render(state.path);
+    showToast(`File created: ${name}`);
+  });
+  win.querySelector('[data-fm-action="delete"]').addEventListener('click', () => {
+    if (!state.selected) { showToast('Select an item first'); return; }
+    deleteFsEntry(state.path, state.selected);
+    showToast(`Deleted: ${state.selected}`);
+    render(state.path);
+  });
+
+  win.refreshFiles = () => render(state.path);
+  render('/home/user');
+}
+
+// ── Terminal ──
+function openTerminal(options = {}) {
+  const html = `
+    <div class="terminal-body" data-terminal-body>
+      <div class="line"><span class="prompt-color">SoengOS v1.2 — Fable Edition</span></div>
+      <div class="line"><span class="prompt-color">Type 'help' for available commands.</span></div>
+      <div class="line">&nbsp;</div>
+      <div class="input-line">
+        <span class="prompt-color">user@soeng:~$ </span>
+        <input type="text" data-terminal-input autocomplete="off" autofocus spellcheck="false" />
+      </div>
+    </div>
+  `;
+  createWindow('terminal', 'Terminal', 600, 360, html, { ...options, appName: 'terminal' });
+}
+
+// Terminal filesystem & commands
+const termFS = {
+  '/': ['home', 'etc', 'usr', 'var', 'tmp'],
+  '/home': ['user'],
+  '/home/user': ['Documents', 'Pictures', 'Downloads', 'Projects', 'readme.md', 'notes.txt', '.bashrc'],
+  '/home/user/Documents': ['report.pdf', 'todo.txt'],
+  '/home/user/Pictures': ['wallpaper.png', 'screenshot.png', 'zen-garden.jpg', 'city-night.jpg'],
+  '/home/user/Downloads': [],
+  '/home/user/Projects': ['soengos', 'webapp'],
+  '/etc': ['hosts', 'passwd', 'fstab'],
+  '/usr': ['bin', 'lib', 'share'],
+  '/var': ['log', 'cache'],
+  '/tmp': [],
+};
+
+let termCwd = '/home/user';
+let termHistory = loadStoredJsonArray('soeng-term-history');
+let termHistIdx = -1;
+
+function getActiveTerminalBody() {
+  return document.querySelector('.window.focused [data-terminal-body]')
+    || document.querySelector('[data-terminal-body]');
+}
+
+function initTerminal(win) {
+  const root = win || document;
+  const input = root.querySelector('[data-terminal-input]');
+  const tbody = root.querySelector('[data-terminal-body]');
+  if (!input || !tbody || tbody.dataset.ready === '1') return;
+  tbody.dataset.ready = '1';
+  input.focus();
+  tbody.addEventListener('click', () => input.focus());
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const cmd = input.value.trim();
+      if (cmd) {
+        termHistory.unshift(cmd);
+        if (termHistory.length > 100) termHistory.pop();
+        termHistIdx = -1;
+        try { localStorage.setItem('soeng-term-history', JSON.stringify(termHistory.slice(0, 50))); } catch(e) {}
+      }
+      execCommand(cmd, tbody);
+      input.value = '';
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (termHistIdx < termHistory.length - 1) {
+        termHistIdx++;
+        input.value = termHistory[termHistIdx];
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (termHistIdx > 0) {
+        termHistIdx--;
+        input.value = termHistory[termHistIdx];
+      } else {
+        termHistIdx = -1;
+        input.value = '';
+      }
+    }
+  });
+}
+
+function termPrint(text, body = getActiveTerminalBody()) {
+  if (!body) return;
+  const inputLine = body.querySelector('.input-line');
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.textContent = text;
+  body.insertBefore(line, inputLine);
+  body.scrollTop = body.scrollHeight;
+}
+
+function execCommand(raw, body = getActiveTerminalBody()) {
+  if (!body) return;
+  const inputLine = body.querySelector('.input-line');
+
+  const echo = document.createElement('div');
+  echo.className = 'line';
+  const prompt = document.createElement('span');
+  prompt.className = 'prompt-color';
+  prompt.textContent = `user@soeng:${termCwd === '/home/user' ? '~' : termCwd}$ `;
+  echo.append(prompt, document.createTextNode(raw));
+  body.insertBefore(echo, inputLine);
+
+  if (!raw) { body.scrollTop = body.scrollHeight; return; }
+
+  const parts = parseCommandLine(raw);
+  const cmd = parts[0];
+  const args = parts.slice(1);
+
+  switch(cmd) {
+    case 'help':
+      termPrint('Available commands:');
+      termPrint('  ls          List directory contents');
+      termPrint('  cd <dir>    Change directory');
+      termPrint('  pwd         Print working directory');
+      termPrint('  echo <msg>  Print a message');
+      termPrint('  cat <file>  Display file contents');
+      termPrint('  mkdir <dir> Create a folder');
+      termPrint('  touch <f>   Create a file');
+      termPrint('  rm <name>   Remove a file or folder');
+      termPrint('  open <app>  Open files, notes, music, photos, podcast, tv, browser, settings');
+      termPrint('  whoami      Current user');
+      termPrint('  uname       System information');
+      termPrint('  date        Current date/time');
+      termPrint('  clear       Clear the terminal');
+      termPrint('  neofetch    System info display');
+      termPrint('  history     Command history');
+      termPrint('  help        Show this help');
+      break;
+
+    case 'ls':
+      const entries = termFS[termCwd];
+      if (entries) {
+        if (entries.length === 0) termPrint('(empty directory)');
+        else termPrint(entries.join('  '));
+      } else {
+        termPrint('ls: cannot access directory');
+      }
+      break;
+
+    case 'cd':
+      if (!args[0] || args[0] === '~') {
+        termCwd = '/home/user';
+      } else {
+        const target = resolveFsPath(termCwd, args[0]);
+        if (termFS[target]) {
+          termCwd = target;
+        } else {
+          termPrint(`cd: ${args[0]}: No such directory`, body);
+        }
+      }
+      updatePrompt(body);
+      break;
+
+    case 'pwd':
+      termPrint(termCwd);
+      break;
+
+    case 'echo':
+      termPrint(args.join(' '));
+      break;
+
+    case 'cat':
+      if (!args[0]) { termPrint('cat: missing operand'); break; }
+      const catPath = args[0].startsWith('/') ? normalizePath(args[0]) : joinPath(termCwd, args[0]);
+      if (fileContents[catPath] !== undefined) {
+        fileContents[catPath].split('\n').forEach(l => termPrint(l));
+      } else {
+        termPrint(`cat: ${args[0]}: No such file`);
+      }
+      break;
+
+    case 'mkdir':
+      if (!args[0]) { termPrint('mkdir: missing operand'); break; }
+      termPrint(`created folder ${createFsEntry(termCwd, args[0], 'folder')}`);
+      break;
+
+    case 'touch':
+      if (!args[0]) { termPrint('touch: missing operand'); break; }
+      termPrint(`created file ${createFsEntry(termCwd, args[0], 'file')}`);
+      break;
+
+    case 'rm':
+      if (!args[0]) { termPrint('rm: missing operand'); break; }
+      if (deleteFsEntry(termCwd, args[0])) termPrint(`removed ${args[0]}`);
+      else termPrint(`rm: ${args[0]}: No such file or directory`);
+      break;
+
+    case 'open':
+      if (!args[0]) { termPrint('open: choose files, notes, music, photos, podcast, tv, terminal, settings, browser, workflow, automation, or native'); break; }
+      const targetApp = args[0] === 'files' ? 'filemanager' : (args[0] === 'native' ? 'settings' : args[0]);
+      if (args[0] === 'native') openNativeReadiness();
+      else openApp(targetApp);
+      termPrint(`opened ${args[0]}`);
+      break;
+
+    case 'whoami':
+      termPrint('user');
+      break;
+
+    case 'uname':
+      termPrint('SoengOS 1.0.0 x86_64 Engineering-Edition');
+      break;
+
+    case 'date':
+      termPrint(new Date().toString());
+      break;
+
+    case 'clear':
+      const lines = body.querySelectorAll('.line');
+      lines.forEach(l => l.remove());
+      break;
+
+    case 'neofetch':
+      const neoLines = [
+        '       ┌──────────┐      user@soeng',
+        '       │          │      ──────────',
+        '       │  SOENG   │      OS: SoengOS 1.0.0',
+        '       │    OS    │      Kernel: Linux + Web Shell',
+        '       │          │      Shell: soeng-sh',
+        '       └──────────┘      Resolution: ' + window.innerWidth + 'x' + window.innerHeight,
+        '                         WM: SoengWM',
+        '                         Theme: Fable',
+        '                         Terminal: SoengTerm',
+      ];
+      neoLines.forEach(l => termPrint(l));
+      break;
+
+    case 'history':
+      termHistory.slice().reverse().forEach((h, i) => {
+        termPrint(`  ${i + 1}  ${h}`);
+      });
+      break;
+
+    default:
+      termPrint(`${cmd}: command not found. Type 'help' for available commands.`);
+  }
+
+  updatePrompt(body);
+  body.scrollTop = body.scrollHeight;
+  const input = body.querySelector('[data-terminal-input]');
+  if (input) input.focus();
+}
+
+function updatePrompt(body = getActiveTerminalBody()) {
+  const inputLine = body && body.querySelector('.input-line .prompt-color');
+  if (inputLine) {
+    const display = termCwd === '/home/user' ? '~' : termCwd;
+    inputLine.textContent = `user@soeng:${display}$ `;
+  }
+}
+
+// ── Workflow Hub / Automation Studio (migrated from Workflow Edition) ──
+function openWorkflowHub(options = {}) {
+  const html = `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--gray-600);">
+        <button onclick="newWorkflow()" style="background:var(--white);color:var(--black);border:none;padding:6px 16px;font-size:12px;">New Workflow</button>
+        <button onclick="runAllWorkflows()" style="background:transparent;color:var(--white);border:1px solid var(--gray-500);padding:6px 16px;font-size:12px;">Run All</button>
+        <button onclick="pauseAllWorkflows()" style="background:transparent;color:var(--white);border:1px solid var(--gray-500);padding:6px 16px;font-size:12px;">Pause All</button>
+      </div>
+      <div style="flex:1;overflow-x:auto;padding:12px;">
+        <div style="display:flex;gap:12px;min-height:400px;">
+          <div class="kanban-column" style="flex:1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="todo">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-600);font-size:12px;color:var(--gray-400);">TO DO</div>
+            <div class="kanban-list" style="padding:8px;">
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="1"><div style="font-size:12px;margin-bottom:4px;">Data Export</div><div style="font-size:10px;color:var(--gray-500);">Priority: High</div></div>
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="2"><div style="font-size:12px;margin-bottom:4px;">Report Generation</div><div style="font-size:10px;color:var(--gray-500);">Priority: Medium</div></div>
+            </div>
+          </div>
+          <div class="kanban-column" style="flex:1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="progress">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-600);font-size:12px;color:var(--gray-400);">IN PROGRESS</div>
+            <div class="kanban-list" style="padding:8px;">
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="3"><div style="font-size:12px;margin-bottom:4px;">API Integration</div><div style="font-size:10px;color:var(--gray-500);">Priority: High</div></div>
+            </div>
+          </div>
+          <div class="kanban-column" style="flex:1;" ondrop="drop(event)" ondragover="allowDrop(event)" data-status="done">
+            <div style="padding:8px;border-bottom:1px solid var(--gray-600);font-size:12px;color:var(--gray-400);">DONE</div>
+            <div class="kanban-list" style="padding:8px;">
+              <div class="kanban-card" draggable="true" ondragstart="drag(event)" data-id="4"><div style="font-size:12px;margin-bottom:4px;">Backup Complete</div><div style="font-size:10px;color:var(--gray-500);">Priority: Low</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--gray-600);padding:12px;">
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">ACTIVE WORKFLOWS</div>
+        <table style="width:100%;font-size:11px;">
+          <tr><td style="padding:4px;color:var(--gray-400);">Name</td><td style="padding:4px;color:var(--gray-400);">Status</td><td style="padding:4px;color:var(--gray-400);">Last Run</td></tr>
+          <tr><td style="padding:4px;">Daily Sync</td><td style="padding:4px;color:var(--gray-400);">Running</td><td style="padding:4px;color:var(--gray-400);">2 min ago</td></tr>
+          <tr><td style="padding:4px;">Email Digest</td><td style="padding:4px;color:var(--gray-400);">Paused</td><td style="padding:4px;color:var(--gray-400);">1 hour ago</td></tr>
+        </table>
+      </div>
+    </div>
+  `;
+  createWindow('workflow', 'Workflow Hub', 900, 600, html, { ...options, appName: 'workflow' });
+}
+
+function openAutomationStudio(options = {}) {
+  const html = `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;flex:1;overflow:hidden;">
+        <div style="flex:1;padding:16px;border-right:1px solid var(--gray-600);">
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px;">NATURAL LANGUAGE PROMPT</div>
+          <textarea id="automationPrompt" placeholder="Describe the automation you want..." style="width:100%;height:150px;background:var(--gray-700);border:1px solid var(--gray-600);color:var(--white);padding:12px;font-size:13px;resize:none;outline:none;"></textarea>
+          <button onclick="generateAutomation()" style="margin-top:12px;background:var(--white);color:var(--black);border:none;padding:8px 24px;font-size:12px;width:100%;">Generate & Run</button>
+          <div style="margin-top:16px;">
+            <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">QUICK TEMPLATES</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <button onclick="setPrompt('Send daily report to email')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">Daily Report</button>
+              <button onclick="setPrompt('Monitor website for changes')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">Website Monitor</button>
+              <button onclick="setPrompt('Auto organize downloaded files')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">File Organizer</button>
+              <button onclick="setPrompt('Backup database every hour')" style="background:transparent;border:1px solid var(--gray-600);color:var(--gray-400);padding:4px 8px;font-size:10px;">DB Backup</button>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;padding:16px;overflow-y:auto;">
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px;">WORKFLOW PREVIEW</div>
+          <div id="workflowPreview" style="border:1px solid var(--gray-600);padding:12px;min-height:200px;">
+            <div style="font-size:11px;color:var(--gray-500);text-align:center;padding:40px 0;">Enter a prompt to generate workflow steps</div>
+          </div>
+        </div>
+      </div>
+      <div style="height:200px;border-top:1px solid var(--gray-600);">
+        <div style="font-size:12px;color:var(--gray-400);padding:8px 12px;border-bottom:1px solid var(--gray-700);">EXECUTION LOG</div>
+        <div id="automationLog" style="height:calc(100% - 32px);overflow-y:auto;padding:8px 12px;font-size:11px;">
+          <div style="color:var(--gray-500);">[System] Ready for automation commands...</div>
+        </div>
+      </div>
+    </div>
+  `;
+  createWindow('automation', 'Automation Studio', 900, 650, html, { ...options, appName: 'automation' });
+}
+
+function setPrompt(text) {
+  const textarea = document.querySelector('#win-automation #automationPrompt');
+  if (textarea) textarea.value = text;
+}
+
+function generateAutomation() {
+  const textarea = document.querySelector('#win-automation #automationPrompt');
+  const preview = document.querySelector('#win-automation #workflowPreview');
+  const log = document.querySelector('#win-automation #automationLog');
+  if (!textarea || !preview || !log) return;
+  const prompt = textarea.value.trim();
+  if (!prompt) return;
+  const timestamp = new Date().toLocaleTimeString();
+  let steps = [];
+  const lower = prompt.toLowerCase();
+  if (lower.includes('email') || lower.includes('report')) {
+    steps = ['Collect data from sources', 'Format report template', 'Generate PDF document', 'Send via email SMTP', 'Log completion status'];
+  } else if (lower.includes('monitor') || lower.includes('website')) {
+    steps = ['Fetch target URL content', 'Compare with baseline', 'Detect changes', 'Trigger notification', 'Update baseline'];
+  } else if (lower.includes('organize') || lower.includes('file')) {
+    steps = ['Scan download directory', 'Classify file types', 'Move to appropriate folders', 'Update file index', 'Generate summary report'];
+  } else if (lower.includes('backup') || lower.includes('database')) {
+    steps = ['Connect to database', 'Export database dump', 'Compress backup file', 'Upload to storage', 'Verify backup integrity'];
+  } else {
+    steps = ['Parse automation request', 'Identify required actions', 'Configure parameters', 'Execute workflow', 'Report results'];
+  }
+  preview.textContent = '';
+  steps.forEach((action, i) => {
+    const row = document.createElement('div');
+    row.className = 'automation-step';
+    row.style.cssText = 'display:flex;align-items:center;padding:8px;border-bottom:1px solid var(--gray-700);';
+
+    const number = document.createElement('div');
+    number.style.cssText = 'width:24px;height:24px;border:1px solid var(--gray-500);display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:12px;';
+    number.textContent = String(i + 1);
+
+    const actionEl = document.createElement('div');
+    actionEl.style.cssText = 'flex:1;font-size:12px;';
+    actionEl.textContent = action;
+
+    const status = document.createElement('div');
+    status.className = 'automation-status';
+    status.style.cssText = 'font-size:10px;color:var(--gray-500);';
+    status.textContent = 'PENDING';
+
+    row.append(number, actionEl, status);
+    preview.appendChild(row);
+  });
+  const logEntry = document.createElement('div');
+  logEntry.textContent = `[${timestamp}] Generated automation: ${prompt.substring(0, 50)}...`;
+  log.appendChild(logEntry);
+  setTimeout(() => executeWorkflow(steps, log), 1000);
+}
+
+function executeWorkflow(steps, log) {
+  let delay = 1500;
+  steps.forEach((action, index) => {
+    setTimeout(() => {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.textContent = `[${timestamp}] Step ${index + 1}: ${action} [COMPLETED]`;
+      log.appendChild(logEntry);
+      log.scrollTop = log.scrollHeight;
+      const statusEl = document.querySelectorAll('#win-automation .automation-status')[index];
+      if (statusEl) {
+        statusEl.textContent = 'COMPLETED';
+        statusEl.style.color = 'var(--white)';
+      }
+    }, delay);
+    delay += 1000;
+  });
+  setTimeout(() => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.textContent = `[${timestamp}] ✓ Automation completed successfully`;
+    logEntry.style.color = 'var(--white)';
+    log.appendChild(logEntry);
+    log.scrollTop = log.scrollHeight;
+    const count = document.getElementById('automationCount');
+    if (count) count.textContent = String(Number(count.textContent || 0) + 1);
+  }, delay);
+}
+
+function allowDrop(e) { e.preventDefault(); }
+function drag(e) { e.dataTransfer.setData('text', e.target.dataset.id); }
+function drop(e) {
+  e.preventDefault();
+  const data = e.dataTransfer.getData('text');
+  const card = document.querySelector(`[data-id="${data}"]`);
+  const column = e.target.closest('.kanban-column');
+  if (card && column) {
+    const list = column.querySelector('.kanban-list');
+    if (list) list.appendChild(card);
+  }
+}
+function newWorkflow() {
+  const list = document.querySelector('#win-workflow .kanban-column[data-status="todo"] .kanban-list');
+  if (!list) return;
+  const card = document.createElement('div');
+  card.className = 'kanban-card';
+  card.draggable = true;
+  card.dataset.id = `workflow-${Date.now()}`;
+  card.addEventListener('dragstart', drag);
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:12px;margin-bottom:4px;';
+  title.textContent = `New Workflow ${list.children.length + 1}`;
+  const priority = document.createElement('div');
+  priority.style.cssText = 'font-size:10px;color:var(--gray-500);';
+  priority.textContent = 'Priority: Medium';
+  card.append(title, priority);
+  list.prepend(card);
+
+  const count = document.getElementById('workflowCount');
+  if (count) count.textContent = String(Number(count.textContent || 0) + 1);
+  showToast('Workflow created in To Do');
+}
+function runAllWorkflows() {
+  showToast('Running all active workflows...');
+  const count = document.getElementById('workflowCount');
+  if (count) count.textContent = '5';
+}
+function pauseAllWorkflows() {
+  showToast('Pausing all workflows...');
+  const count = document.getElementById('workflowCount');
+  if (count) count.textContent = '0';
+}
+function addLogEntry(message) { console.log('[Workflow]', message); }
+
+// ── Notes ──
+const defaultNotes = [
+  { id: 'welcome', title: 'Welcome', body: 'SoengOS Notes — jot ideas, tasks, and meeting minutes.\n\nChanges save automatically.' },
+  { id: 'todo', title: 'Today', body: 'TODO:\n- Review hybrid desktop layout\n- Test Notes, Music, Photos, Podcast, TV\n- Wire every visible control to an action' },
+  { id: 'ideas', title: 'Ideas', body: 'Native bridge:\n- Wayland compositor\n- Audio output for Music/Podcast\n- Photo library sync\n- Live TV stream handoff' },
+];
+
+function loadNotesStore() {
+  try {
+    const raw = localStorage.getItem('soeng-notes');
+    if (!raw) return defaultNotes.map(note => ({ ...note }));
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length ? parsed : defaultNotes.map(note => ({ ...note }));
+  } catch (e) {
+    return defaultNotes.map(note => ({ ...note }));
+  }
+}
+
+function saveNotesStore(notes) {
+  try { localStorage.setItem('soeng-notes', JSON.stringify(notes)); } catch (e) {}
+}
+
+function openNotes(options = {}) {
+  const html = `
+    <div class="media-app" data-notes-app>
+      <div class="media-toolbar">
+        <button data-notes-action="new">New Note</button>
+        <button data-notes-action="delete">Delete</button>
+        <span style="margin-left:auto;color:var(--g7);">Auto-save enabled</span>
+      </div>
+      <div class="media-body">
+        <div class="media-sidebar" data-notes-list></div>
+        <div class="media-main">
+          <input type="text" data-notes-title spellcheck="false" style="width:100%;background:var(--g2);border:1px solid var(--g3);color:var(--white);padding:8px 10px;font-family:var(--mono);font-size:12px;margin-bottom:10px;outline:none;" />
+          <textarea class="notes-editor" data-notes-body spellcheck="true"></textarea>
+        </div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('notes', 'Notes', 620, 460, html, { ...options, appName: 'notes' });
+  initNotes(id);
+}
+
+function initNotes(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.notesReady === '1') return;
+  win.dataset.notesReady = '1';
+  const notes = loadNotesStore();
+  let activeId = notes[0]?.id || null;
+  const list = win.querySelector('[data-notes-list]');
+  const titleInput = win.querySelector('[data-notes-title]');
+  const bodyInput = win.querySelector('[data-notes-body]');
+
+  function renderList() {
+    list.textContent = '';
+    notes.forEach(note => {
+      const item = document.createElement('div');
+      item.className = 'media-list-item' + (note.id === activeId ? ' active' : '');
+      item.textContent = note.title || 'Untitled';
+      item.addEventListener('click', () => {
+        activeId = note.id;
+        renderList();
+        renderEditor();
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function renderEditor() {
+    const note = notes.find(n => n.id === activeId);
+    if (!note) return;
+    titleInput.value = note.title || '';
+    bodyInput.value = note.body || '';
+  }
+
+  function persist() {
+    const note = notes.find(n => n.id === activeId);
+    if (!note) return;
+    note.title = titleInput.value.trim() || 'Untitled';
+    note.body = bodyInput.value;
+    saveNotesStore(notes);
+    renderList();
+  }
+
+  titleInput.addEventListener('input', persist);
+  bodyInput.addEventListener('input', persist);
+  win.querySelector('[data-notes-action="new"]').addEventListener('click', () => {
+    const note = { id: 'note-' + Date.now(), title: 'Untitled', body: '' };
+    notes.unshift(note);
+    activeId = note.id;
+    saveNotesStore(notes);
+    renderList();
+    renderEditor();
+    titleInput.focus();
+    showToast('New note created');
+  });
+  win.querySelector('[data-notes-action="delete"]').addEventListener('click', () => {
+    if (notes.length <= 1) { showToast('Keep at least one note'); return; }
+    const idx = notes.findIndex(n => n.id === activeId);
+    if (idx === -1) return;
+    notes.splice(idx, 1);
+    activeId = notes[Math.max(0, idx - 1)].id;
+    saveNotesStore(notes);
+    renderList();
+    renderEditor();
+    showToast('Note deleted');
+  });
+
+  renderList();
+  renderEditor();
+}
+
+// ── Live tone desk (Web Audio — no fake progress) ──
+const soengTone = (() => {
+  let ctx = null;
+  const live = [];
+  let ticker = null;
+
+  function context() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ctx) ctx = new AC();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function keep(node) {
+    live.push(node);
+    return node;
+  }
+
+  function silence() {
+    live.splice(0).forEach(node => {
+      try { node.stop?.(); } catch (e) {}
+      try { node.disconnect?.(); } catch (e) {}
+    });
+    if (ticker) {
+      clearInterval(ticker);
+      ticker = null;
+    }
+  }
+
+  function patches(name, c, dest) {
+    if (name === 'rain') {
+      const buffer = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const noise = keep(c.createBufferSource());
+      noise.buffer = buffer;
+      noise.loop = true;
+      const filter = keep(c.createBiquadFilter());
+      filter.type = 'highpass';
+      filter.frequency.value = 1400;
+      const g = keep(c.createGain());
+      g.gain.value = 0.05;
+      noise.connect(filter);
+      filter.connect(g);
+      g.connect(dest);
+      noise.start();
+      const pad = keep(c.createOscillator());
+      pad.type = 'triangle';
+      pad.frequency.value = 110;
+      const pg = keep(c.createGain());
+      pg.gain.value = 0.03;
+      pad.connect(pg);
+      pg.connect(dest);
+      pad.start();
+      return;
+    }
+    if (name === 'drive') {
+      const kick = keep(c.createOscillator());
+      kick.type = 'sine';
+      kick.frequency.value = 52;
+      const kg = keep(c.createGain());
+      kg.gain.value = 0.08;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 1.6;
+      const lg = keep(c.createGain());
+      lg.gain.value = 0.05;
+      lfo.connect(lg);
+      lg.connect(kg.gain);
+      kick.connect(kg);
+      kg.connect(dest);
+      kick.start();
+      lfo.start();
+      const lead = keep(c.createOscillator());
+      lead.type = 'sawtooth';
+      lead.frequency.value = 196;
+      const lp = keep(c.createBiquadFilter());
+      lp.type = 'lowpass';
+      lp.frequency.value = 720;
+      const lg2 = keep(c.createGain());
+      lg2.gain.value = 0.025;
+      lead.connect(lp);
+      lp.connect(lg2);
+      lg2.connect(dest);
+      lead.start();
+      return;
+    }
+    if (name === 'voice') {
+      const osc = keep(c.createOscillator());
+      osc.type = 'sawtooth';
+      osc.frequency.value = 148;
+      const filter = keep(c.createBiquadFilter());
+      filter.type = 'bandpass';
+      filter.frequency.value = 620;
+      filter.Q.value = 4;
+      const g = keep(c.createGain());
+      g.gain.value = 0.035;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 2.4;
+      const lg = keep(c.createGain());
+      lg.gain.value = 80;
+      lfo.connect(lg);
+      lg.connect(filter.frequency);
+      osc.connect(filter);
+      filter.connect(g);
+      g.connect(dest);
+      osc.start();
+      lfo.start();
+      return;
+    }
+    const notes = name === 'focus' ? [196, 247, 294] : name === 'dock' ? [131, 196, 262] : [220, 247, 277, 330];
+    notes.forEach((freq, i) => {
+      const osc = keep(c.createOscillator());
+      osc.type = name === 'focus' ? 'square' : 'sine';
+      osc.frequency.value = freq;
+      const g = keep(c.createGain());
+      g.gain.value = 0;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 0.07 + i * 0.04;
+      const lg = keep(c.createGain());
+      lg.gain.value = name === 'focus' ? 0.018 : 0.035;
+      lfo.connect(lg);
+      lg.connect(g.gain);
+      osc.connect(g);
+      g.connect(dest);
+      osc.start();
+      lfo.start();
+    });
+  }
+
+  function play(name, seconds, onProgress) {
+    const c = context();
+    if (!c) {
+      onProgress?.(0, 0, false);
+      return false;
+    }
+    silence();
+    const dest = keep(c.createGain());
+    dest.gain.value = 0.95;
+    dest.connect(c.destination);
+    patches(name, c, dest);
+    const startedAt = c.currentTime;
+    ticker = setInterval(() => {
+      const elapsed = Math.min(seconds, c.currentTime - startedAt);
+      const progress = seconds ? elapsed / seconds : 0;
+      onProgress?.(progress, elapsed, true);
+      if (progress >= 1) {
+        silence();
+        onProgress?.(1, seconds, false);
+      }
+    }, 200);
+    return true;
+  }
+
+  return { play, stop: silence };
+})();
+
+// ── Music ──
+const musicLibrary = [
+  { id: '1', title: 'Morning Zen', artist: 'Soeng Collective', duration: 214, patch: 'zen' },
+  { id: '2', title: 'Terminal Rain', artist: 'Kernel Sound', duration: 198, patch: 'rain' },
+  { id: '3', title: 'Dock Ambient', artist: 'Hybrid Studio', duration: 256, patch: 'dock' },
+  { id: '4', title: 'Focus Mode', artist: 'Engineering Edition', duration: 302, patch: 'focus' },
+  { id: '5', title: 'Night Drive', artist: 'Soeng Collective', duration: 241, patch: 'drive' },
+];
+
+let musicState = { trackId: musicLibrary[0].id, playing: false, progress: 0 };
+
+function formatDuration(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function openMusic(options = {}) {
+  const html = `
+    <div class="media-app" data-music-app>
+      <div class="media-toolbar">
+        <button data-music-action="prev">Prev</button>
+        <button data-music-action="play">Play</button>
+        <button data-music-action="next">Next</button>
+        <span data-music-status style="margin-left:auto;color:var(--g7);">Ready</span>
+      </div>
+      <div class="media-main">
+        <div class="music-now-playing">
+          <h3 data-music-title>—</h3>
+          <p data-music-artist>—</p>
+          <div class="music-progress"><div class="music-progress-bar" data-music-bar></div></div>
+          <div style="font-size:10px;color:var(--g7);" data-music-time>0:00 / 0:00</div>
+        </div>
+        <div data-music-list></div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('music', 'Music', 520, 420, html, { ...options, appName: 'music' });
+  initMusic(id);
+}
+
+function initMusic(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.musicReady === '1') return;
+  win.dataset.musicReady = '1';
+  const list = win.querySelector('[data-music-list]');
+  const titleEl = win.querySelector('[data-music-title]');
+  const artistEl = win.querySelector('[data-music-artist]');
+  const barEl = win.querySelector('[data-music-bar]');
+  const timeEl = win.querySelector('[data-music-time]');
+  const statusEl = win.querySelector('[data-music-status]');
+  const playBtn = win.querySelector('[data-music-action="play"]');
+
+  function currentTrack() {
+    return musicLibrary.find(t => t.id === musicState.trackId) || musicLibrary[0];
+  }
+
+  function render() {
+    const track = currentTrack();
+    titleEl.textContent = track.title;
+    artistEl.textContent = track.artist;
+    const elapsed = Math.floor(track.duration * musicState.progress);
+    barEl.style.width = `${musicState.progress * 100}%`;
+    timeEl.textContent = `${formatDuration(elapsed)} / ${formatDuration(track.duration)}`;
+    statusEl.textContent = musicState.playing ? 'Playing through speakers' : 'Paused';
+    playBtn.textContent = musicState.playing ? 'Pause' : 'Play';
+    playBtn.classList.toggle('active', musicState.playing);
+    list.textContent = '';
+    musicLibrary.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'music-track' + (item.id === track.id ? ' active' : '');
+      const left = document.createElement('span');
+      left.textContent = `${item.title} — ${item.artist}`;
+      const right = document.createElement('span');
+      right.textContent = formatDuration(item.duration);
+      row.append(left, right);
+      row.addEventListener('click', () => {
+        musicState.trackId = item.id;
+        musicState.progress = 0;
+        if (musicState.playing) startPlayback();
+        else render();
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function startPlayback() {
+    const track = currentTrack();
+    musicState.playing = true;
+    const started = soengTone.play(track.patch, track.duration, (progress, elapsed, alive) => {
+      if (musicState.trackId !== track.id) return;
+      musicState.progress = progress;
+      if (!alive && progress >= 1) {
+        const idx = musicLibrary.findIndex(t => t.id === track.id);
+        musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
+        musicState.progress = 0;
+        startPlayback();
+        return;
+      }
+      musicState.playing = alive;
+      render();
+    });
+    if (!started) {
+      musicState.playing = false;
+      showToast('This browser blocked audio. Click Play again after a gesture.');
+    }
+    render();
+  }
+
+  function togglePlay() {
+    if (musicState.playing) {
+      musicState.playing = false;
+      soengTone.stop();
+      render();
+    } else {
+      startPlayback();
+    }
+  }
+
+  win.querySelector('[data-music-action="play"]').addEventListener('click', togglePlay);
+  win.querySelector('[data-music-action="prev"]').addEventListener('click', () => {
+    const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
+    musicState.trackId = musicLibrary[(idx - 1 + musicLibrary.length) % musicLibrary.length].id;
+    musicState.progress = 0;
+    if (musicState.playing) startPlayback();
+    else render();
+  });
+  win.querySelector('[data-music-action="next"]').addEventListener('click', () => {
+    const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
+    musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
+    musicState.progress = 0;
+    if (musicState.playing) startPlayback();
+    else render();
+  });
+
+  render();
+}
+
+// ── Photos ──
+const photoMeta = {
+  '/home/user/Pictures/wallpaper.png': { caption: 'Default SoengOS wallpaper', date: '2026-04-15', gradient: 'linear-gradient(135deg, #1a1a2e, #16213e)' },
+  '/home/user/Pictures/screenshot.png': { caption: 'Desktop screenshot', date: '2026-05-01', gradient: 'linear-gradient(135deg, #2d3436, #636e72)' },
+  '/home/user/Pictures/zen-garden.jpg': { caption: 'Zen garden at dawn', date: '2026-05-10', gradient: 'linear-gradient(135deg, #2f4f4f, #556b2f)' },
+  '/home/user/Pictures/city-night.jpg': { caption: 'City skyline at night', date: '2026-05-12', gradient: 'linear-gradient(135deg, #0f0c29, #302b63)' },
+};
+
+function openPhotos(options = {}) {
+  const html = `
+    <div class="media-app" data-photos-app>
+      <div class="media-toolbar">
+        <button data-photos-action="open-folder">Open in Files</button>
+        <span data-photos-count style="margin-left:auto;color:var(--g7);"></span>
+      </div>
+      <div class="media-main">
+        <div class="photo-grid" data-photos-grid></div>
+        <div class="photo-preview" data-photos-preview>
+          <div class="photo-preview-stage" data-photos-stage></div>
+          <h3 data-photos-caption>Select a photo</h3>
+          <p data-photos-meta>Photos from ~/Pictures</p>
+        </div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('photos', 'Photos', 640, 480, html, { ...options, appName: 'photos' });
+  initPhotos(id);
+}
+
+function initPhotos(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.photosReady === '1') return;
+  win.dataset.photosReady = '1';
+  const grid = win.querySelector('[data-photos-grid]');
+  const stage = win.querySelector('[data-photos-stage]');
+  const captionEl = win.querySelector('[data-photos-caption]');
+  const metaEl = win.querySelector('[data-photos-meta]');
+  const countEl = win.querySelector('[data-photos-count]');
+  const photosPath = '/home/user/Pictures';
+  const files = (termFS[photosPath] || []).slice().sort();
+  let active = files[0] || null;
+  countEl.textContent = `${files.length} photo(s)`;
+
+  function showPhoto(name) {
+    active = name;
+    const full = joinPath(photosPath, name);
+    const meta = photoMeta[full] || { caption: name, date: 'Unknown', gradient: 'linear-gradient(135deg, #222, #444)' };
+    stage.style.background = meta.gradient;
+    stage.textContent = '';
+    const label = document.createElement('span');
+    label.style.cssText = 'font-size:11px;color:var(--ga);font-family:var(--mono);';
+    label.textContent = name;
+    stage.appendChild(label);
+    captionEl.textContent = meta.caption;
+    metaEl.textContent = `${full}\nCaptured: ${meta.date}`;
+    grid.querySelectorAll('.photo-thumb').forEach(el => {
+      el.classList.toggle('active', el.dataset.name === name);
+    });
+  }
+
+  grid.textContent = '';
+  files.forEach(name => {
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb' + (name === active ? ' active' : '');
+    thumb.dataset.name = name;
+    const full = joinPath(photosPath, name);
+    const meta = photoMeta[full];
+    if (meta) thumb.style.background = meta.gradient;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 32 32');
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', '4'); rect.setAttribute('y', '6');
+    rect.setAttribute('width', '24'); rect.setAttribute('height', '20');
+    svg.appendChild(rect);
+    const span = document.createElement('span');
+    span.textContent = name;
+    thumb.append(svg, span);
+    thumb.addEventListener('click', () => showPhoto(name));
+    grid.appendChild(thumb);
+  });
+
+  if (active) showPhoto(active);
+  win.querySelector('[data-photos-action="open-folder"]').addEventListener('click', () => {
+    openFileManager();
+    showToast('Opened Pictures in Files');
+  });
+}
+
+// ── Podcast ──
+const podcastEpisodes = [
+  { id: '1', title: 'Designing a Hybrid Desktop', show: 'SoengOS Weekly', duration: 1820, summary: 'How Mac-like polish and Linux-like power share one window manager contract.', patch: 'voice' },
+  { id: '2', title: 'From HTML Shell to Native Runtime', show: 'Engineering Minimalism', duration: 2145, summary: 'Binding the desktop contract to Wayland, portals, and system services.', patch: 'dock' },
+  { id: '3', title: 'Focus Mode and Keyboard Model', show: 'SoengOS Weekly', duration: 1560, summary: 'Command palette, shortcuts, and distraction-free workflows.', patch: 'focus' },
+  { id: '4', title: 'Media Apps on SoengOS', show: 'Prototype Lab', duration: 1680, summary: 'Notes, Music, Photos, Podcast, and TV as first-class desktop windows.', patch: 'zen' },
+];
+
+let podcastState = { episodeId: podcastEpisodes[0].id, playing: false, progress: 0 };
+
+function openPodcast(options = {}) {
+  const html = `
+    <div class="media-app" data-podcast-app>
+      <div class="media-toolbar">
+        <button data-podcast-action="play">Play</button>
+        <button data-podcast-action="stop">Stop</button>
+        <span data-podcast-status style="margin-left:auto;color:var(--g7);">Ready</span>
+      </div>
+      <div class="media-main" data-podcast-list></div>
+    </div>
+  `;
+  const id = createWindow('podcast', 'Podcast', 560, 440, html, { ...options, appName: 'podcast' });
+  initPodcast(id);
+}
+
+function initPodcast(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.podcastReady === '1') return;
+  win.dataset.podcastReady = '1';
+  const list = win.querySelector('[data-podcast-list]');
+  const statusEl = win.querySelector('[data-podcast-status]');
+  const playBtn = win.querySelector('[data-podcast-action="play"]');
+
+  function currentEpisode() {
+    return podcastEpisodes.find(e => e.id === podcastState.episodeId) || podcastEpisodes[0];
+  }
+
+  function render() {
+    const episode = currentEpisode();
+    statusEl.textContent = podcastState.playing
+      ? `On air — ${episode.show}`
+      : `Paused — ${formatDuration(Math.floor(episode.duration * podcastState.progress))} / ${formatDuration(episode.duration)}`;
+    playBtn.textContent = podcastState.playing ? 'Pause' : 'Play';
+    playBtn.classList.toggle('active', podcastState.playing);
+    list.textContent = '';
+    podcastEpisodes.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'podcast-episode' + (item.id === episode.id ? ' active' : '');
+      const art = document.createElement('div');
+      art.className = 'podcast-art';
+      art.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="10" rx="3"/><path d="M6 13a6 6 0 0012 0"/></svg>';
+      const info = document.createElement('div');
+      info.className = 'podcast-info';
+      const h4 = document.createElement('h4');
+      h4.textContent = item.title;
+      const p = document.createElement('p');
+      p.textContent = `${item.show} · ${formatDuration(item.duration)}\n${item.summary}`;
+      info.append(h4, p);
+      row.append(art, info);
+      row.addEventListener('click', () => {
+        podcastState.episodeId = item.id;
+        podcastState.progress = 0;
+        if (podcastState.playing) startEpisode();
+        else render();
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function startEpisode() {
+    const episode = currentEpisode();
+    podcastState.playing = true;
+    const started = soengTone.play(episode.patch, episode.duration, (progress, elapsed, alive) => {
+      if (podcastState.episodeId !== episode.id) return;
+      podcastState.progress = progress;
+      podcastState.playing = alive && progress < 1;
+      if (!alive && progress >= 1) showToast(`Finished: ${episode.title}`);
+      render();
+    });
+    if (!started) {
+      podcastState.playing = false;
+      showToast('This browser blocked audio. Click Play again after a gesture.');
+    }
+    render();
+  }
+
+  win.querySelector('[data-podcast-action="play"]').addEventListener('click', () => {
+    if (podcastState.playing) {
+      podcastState.playing = false;
+      soengTone.stop();
+      render();
+    } else {
+      startEpisode();
+    }
+  });
+  win.querySelector('[data-podcast-action="stop"]').addEventListener('click', () => {
+    podcastState.playing = false;
+    podcastState.progress = 0;
+    soengTone.stop();
+    render();
+  });
+
+  render();
+}
+
+// ── TV ──
+const tvChannels = [
+  {
+    id: 'bunny',
+    name: 'Open Cinema',
+    program: 'Big Buck Bunny desk',
+    genre: 'Film',
+    stream: 'media/open-cinema.mp4',
+    youtubeId: 'aqz-KE-bpKQ',
+    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 55%, #dea864 120%)',
+  },
+  {
+    id: 'sintel',
+    name: 'Sintel Desk',
+    program: 'Warm violet reel',
+    genre: 'Film',
+    stream: 'media/sintel-desk.mp4',
+    youtubeId: 'eRsGyueVLvQ',
+    gradient: 'linear-gradient(135deg, #312e81 0%, #1e1b4b 55%, #c4a882 120%)',
+  },
+  {
+    id: 'studio',
+    name: 'Studio Reel',
+    program: 'Celadon studio wash',
+    genre: 'Short',
+    stream: 'media/studio-reel.mp4',
+    youtubeId: 'R6MlUcmOul8',
+    gradient: 'linear-gradient(135deg, #134e4a 0%, #065f46 55%, #7db88e 120%)',
+  },
+  {
+    id: 'garden',
+    name: 'Garden Desk',
+    program: 'Cinnabar garden light',
+    genre: 'Nature',
+    stream: 'media/garden-desk.mp4',
+    youtubeId: 'jfKfPfyJRdk',
+    gradient: 'linear-gradient(135deg, #831843 0%, #500724 55%, #e89a5a 120%)',
+  },
+  {
+    id: 'tram',
+    name: 'Tram Desk',
+    program: 'Night tram glow',
+    genre: 'Travel',
+    stream: 'media/tram-desk.mp4',
+    youtubeId: '21X5lGlDOfg',
+    gradient: 'linear-gradient(135deg, #44403c 0%, #1c1917 55%, #dea864 120%)',
+  },
+];
+
+let tvState = {
+  channelId: tvChannels[0].id,
+  watching: false,
+  theater: false,
+  customId: '',
+  sourceKey: '',
+};
+
+function openTV(options = {}) {
+  const html = `
+    <div class="tv-desk" data-tv-app tabindex="0">
+      <div class="tv-toolbar">
+        <button class="primary" data-tv-action="play">Play</button>
+        <button data-tv-action="pause">Pause</button>
+        <button data-tv-action="prev">Prev</button>
+        <button data-tv-action="next">Next</button>
+        <button data-tv-action="theater">Theater</button>
+        <input class="tv-url" data-tv-url placeholder="Paste a YouTube URL…" spellcheck="false" />
+        <button data-tv-action="tune">Tune YT</button>
+        <span class="tv-status" data-tv-status>Pick a desk</span>
+      </div>
+      <div class="tv-stage">
+        <div class="tv-screen" data-tv-screen>
+          <div class="tv-scrim" data-tv-scrim></div>
+          <div class="tv-live" data-tv-live hidden>ON AIR</div>
+          <div class="tv-screen-label">
+            <h2 data-tv-program>—</h2>
+            <p data-tv-channel>—</p>
+          </div>
+        </div>
+        <div class="tv-rail" data-tv-list></div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('tv', 'TV', 760, 620, html, { ...options, appName: 'tv' });
+  initTV(id);
+}
+
+function initTV(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.tvReady === '1') return;
+  win.dataset.tvReady = '1';
+  const root = win.querySelector('[data-tv-app]');
+  const screen = win.querySelector('[data-tv-screen]');
+  const scrim = win.querySelector('[data-tv-scrim]');
+  const liveEl = win.querySelector('[data-tv-live]');
+  const programEl = win.querySelector('[data-tv-program]');
+  const channelEl = win.querySelector('[data-tv-channel]');
+  const statusEl = win.querySelector('[data-tv-status]');
+  const list = win.querySelector('[data-tv-list]');
+  const urlInput = win.querySelector('[data-tv-url]');
+  const playBtn = win.querySelector('[data-tv-action="play"]');
+  let activeMedia = null;
+
+  function currentChannel() {
+    return tvChannels.find(c => c.id === tvState.channelId) || tvChannels[0];
+  }
+
+  function clearMedia() {
+    if (activeMedia) {
+      try { activeMedia.pause?.(); } catch (e) {}
+      activeMedia.remove();
+      activeMedia = null;
+    }
+    screen.querySelectorAll('.tv-video, .tv-frame').forEach(el => el.remove());
+    tvState.sourceKey = '';
+  }
+
+  function afterFade(fn) {
+    scrim.classList.add('on');
+    window.requestAnimationFrame(() => {
+      fn();
+      window.setTimeout(() => scrim.classList.remove('on'), 40);
+    });
+  }
+
+  function mountStream(src, autoplay) {
+    clearMedia();
+    const video = document.createElement('video');
+    video.className = 'tv-video';
+    video.controls = true;
+    video.playsInline = true;
+    video.loop = true;
+    video.preload = 'auto';
+    video.src = src;
+    screen.appendChild(video);
+    activeMedia = video;
+    tvState.sourceKey = `stream:${src}`;
+    const reveal = () => video.classList.add('show');
+    video.addEventListener('loadeddata', reveal, { once: true });
+    video.addEventListener('error', () => {
+      statusEl.textContent = 'Local reel failed — try Tune YT';
+      video.classList.remove('show');
+    });
+    if (autoplay) {
+      video.muted = true;
+      const playPromise = video.play();
+      if (playPromise?.then) {
+        playPromise.then(() => {
+          video.muted = false;
+          statusEl.textContent = `Watching ${programEl.textContent}`;
+        }).catch(() => {
+          statusEl.textContent = 'Click Play — the browser wants a gesture';
+        });
+      }
+    }
+    window.setTimeout(reveal, 60);
+  }
+
+  function mountYoutube(videoId, autoplay) {
+    clearMedia();
+    const embed = getYoutubeEmbedUrl(videoId);
+    if (!embed) return;
+    const frame = document.createElement('iframe');
+    frame.className = 'tv-frame';
+    frame.title = programEl.textContent || 'YouTube';
+    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.src = `${embed}?rel=0&modestbranding=1${autoplay ? '&autoplay=1' : ''}`;
+    screen.appendChild(frame);
+    activeMedia = frame;
+    tvState.sourceKey = `yt:${videoId}`;
+    window.setTimeout(() => frame.classList.add('show'), 40);
+  }
+
+  function paintChrome() {
+    const channel = currentChannel();
+    const custom = Boolean(tvState.customId);
+    programEl.textContent = custom ? 'Tuned YouTube' : channel.program;
+    channelEl.textContent = custom
+      ? `youtube-nocookie · ${tvState.customId}`
+      : `${channel.name} · ${channel.genre}`;
+    liveEl.hidden = !tvState.watching;
+    screen.classList.toggle('has-player', tvState.watching);
+    screen.classList.toggle('theater', tvState.theater);
+    playBtn.textContent = tvState.watching ? 'Replay' : 'Play';
+    statusEl.textContent = tvState.watching
+      ? (custom ? `Watching YouTube · ${tvState.customId}` : `Watching ${channel.program}`)
+      : 'Click a desk — playback starts right away';
+    if (!custom && urlInput && document.activeElement !== urlInput) {
+      urlInput.value = channel.stream;
+    }
+  }
+
+  function renderRail() {
+    const channel = currentChannel();
+    list.textContent = '';
+    tvChannels.forEach(item => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'tv-chip' + (item.id === channel.id && !tvState.customId ? ' active' : '');
+      chip.dataset.channelId = item.id;
+      const art = document.createElement('div');
+      art.className = 'tv-chip-art';
+      art.style.background = item.gradient;
+      art.textContent = item.genre;
+      const strong = document.createElement('strong');
+      strong.textContent = item.name;
+      const span = document.createElement('span');
+      span.textContent = item.program;
+      chip.append(art, strong, span);
+      list.appendChild(chip);
+    });
+  }
+
+  function ensurePlayback(force) {
+    const channel = currentChannel();
+    const key = tvState.customId ? `yt:${tvState.customId}` : `stream:${channel.stream}`;
+    if (!force && tvState.watching && tvState.sourceKey === key) {
+      if (activeMedia?.play) activeMedia.play().catch(() => {});
+      return;
+    }
+    soengTone.stop();
+    musicState.playing = false;
+    podcastState.playing = false;
+    afterFade(() => {
+      if (tvState.customId) mountYoutube(tvState.customId, true);
+      else mountStream(channel.stream, true);
+      paintChrome();
+    });
+  }
+
+  function tuneChannel(channelId, autoplay) {
+    tvState.channelId = channelId;
+    tvState.customId = '';
+    tvState.watching = Boolean(autoplay);
+    paintChrome();
+    renderRail();
+    if (autoplay) ensurePlayback(true);
+    else clearMedia();
+  }
+
+  function shiftChannel(delta) {
+    const idx = tvChannels.findIndex(c => c.id === tvState.channelId);
+    const next = tvChannels[(idx + delta + tvChannels.length) % tvChannels.length];
+    tuneChannel(next.id, true);
+    showToast(next.program);
+  }
+
+  function stopPlayback() {
+    tvState.watching = false;
+    afterFade(() => {
+      clearMedia();
+      paintChrome();
+    });
+  }
+
+  function pausePlayback() {
+    if (activeMedia?.pause) {
+      activeMedia.pause();
+      statusEl.textContent = 'Paused';
+      return;
+    }
+    stopPlayback();
+  }
+
+  list.addEventListener('click', (event) => {
+    const chip = event.target.closest('[data-channel-id]');
+    if (!chip) return;
+    event.preventDefault();
+    tuneChannel(chip.dataset.channelId, true);
+    showToast(currentChannel().program);
+  });
+  win.querySelector('[data-tv-action="play"]').addEventListener('click', () => {
+    tvState.watching = true;
+    ensurePlayback(true);
+  });
+  win.querySelector('[data-tv-action="pause"]').addEventListener('click', pausePlayback);
+  win.querySelector('[data-tv-action="prev"]').addEventListener('click', () => shiftChannel(-1));
+  win.querySelector('[data-tv-action="next"]').addEventListener('click', () => shiftChannel(1));
+  win.querySelector('[data-tv-action="theater"]').addEventListener('click', () => {
+    tvState.theater = !tvState.theater;
+    const el = document.getElementById('win-' + id);
+    el?.classList.toggle('maximized', tvState.theater);
+    paintChrome();
+  });
+  win.querySelector('[data-tv-action="tune"]').addEventListener('click', () => {
+    const yt = parseYoutubeVideoId(urlInput.value);
+    if (!yt) {
+      showToast('Paste a YouTube watch / youtu.be / shorts link');
+      return;
+    }
+    tvState.customId = yt;
+    tvState.watching = true;
+    paintChrome();
+    renderRail();
+    ensurePlayback(true);
+    showToast('Tuned YouTube');
+  });
+  urlInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') win.querySelector('[data-tv-action="tune"]').click();
+  });
+  root.addEventListener('keydown', (event) => {
+    if (event.target === urlInput) return;
+    if (event.key === 'ArrowRight') { event.preventDefault(); shiftChannel(1); }
+    if (event.key === 'ArrowLeft') { event.preventDefault(); shiftChannel(-1); }
+    if (event.key === ' ') {
+      event.preventDefault();
+      if (tvState.watching && activeMedia && !activeMedia.paused) pausePlayback();
+      else {
+        tvState.watching = true;
+        ensurePlayback(true);
+      }
+    }
+  });
+
+  win.addEventListener('soeng-close', () => {
+    clearMedia();
+  }, { once: true });
+
+  paintChrome();
+  renderRail();
+  tuneChannel(tvState.channelId, true);
+  root.focus({ preventScroll: true });
+}
+
+// ── Settings ──
+function setDesktopMode(value) {
+  applyDesktopMode(value);
+  showToast(`${desktopModeModels[value].label} desktop mode enabled`);
+}
+function setWindowControls(value) {
+  applyDesktopMode(desktopMode, { windowControls: value, keepDock: true, keepTaskbar: true });
+  showToast(value === 'mac' ? 'Mac left window dots enabled' : 'Linux right window buttons enabled');
+}
+function setDockPosition(value) {
+  applyDesktopMode(desktopMode, { dockPosition: value, keepControls: true, keepTaskbar: true });
+  showToast(value === 'left' ? 'Dock moved left' : 'Dock centered');
+}
+function setTaskbarVisibility(value) {
+  applyDesktopMode(desktopMode, { taskbarVisible: value === 'visible', keepControls: true, keepDock: true });
+  showToast(value === 'visible' ? 'Taskbar visible' : 'Taskbar hidden');
+}
+
+const systemToggles = {
+  darkMode: true,
+  desktopGrid: true,
+  animations: true,
+  sound: false,
+  autoLock: true,
+  wifi: true,
+  bluetooth: false,
+  vpn: false,
+};
+
+function setSystemToggle(key, el) {
+  systemToggles[key] = !systemToggles[key];
+  if (el) el.classList.toggle('on', systemToggles[key]);
+  if (key === 'desktopGrid') document.body.classList.toggle('no-grid', !systemToggles[key]);
+  if (key === 'animations') document.body.classList.toggle('reduced-motion', !systemToggles[key]);
+  if (key === 'darkMode' && !systemToggles[key]) {
+    systemToggles[key] = true;
+    if (el) el.classList.add('on');
+    showToast('Paper studio stays light — espresso is for ink, not the wall');
+    return;
+  }
+  showToast(`${key.replace(/([A-Z])/g, ' $1')} ${systemToggles[key] ? 'enabled' : 'disabled'}`);
+}
+
+function setAppFontSize(value) {
+  document.documentElement.style.setProperty('--app-font-size', `${value}px`);
+  showToast(`App font size: ${value}px`);
+}
+
+function setUiScale(value) {
+  const scale = Number(value) / 100;
+  document.documentElement.style.setProperty('--ui-scale', scale);
+  document.querySelectorAll('.window-content > *').forEach(el => { el.style.zoom = scale; });
+  showToast(`UI scale: ${value}%`);
+}
+
+function openNativeReadiness() {
+  const html = `
+    <div class="settings-body">
+      <div class="settings-section">
+        <h3>Native Runtime Readiness</h3>
+        <div class="native-card"><strong>Goal</strong><div class="sublabel">Keep this interface as the desktop contract, then connect it to real Linux services instead of treating it as only a webpage.</div></div>
+        <div class="native-grid">
+          <div class="native-card"><strong>Mac feel</strong><br><span class="native-pill">Top bar</span><span class="native-pill">Dock</span><span class="native-pill">Left dots</span><span class="native-pill">Cmd hints</span></div>
+          <div class="native-card"><strong>Linux power</strong><br><span class="native-pill">Terminal</span><span class="native-pill">Taskbar</span><span class="native-pill">Right-click menu</span><span class="native-pill">Containers</span></div>
+          <div class="native-card"><strong>System services</strong><br><span class="native-pill">Files</span><span class="native-pill">Network</span><span class="native-pill">Power</span><span class="native-pill">Audio</span></div>
+          <div class="native-card"><strong>App runtime</strong><br><span class="native-pill">PWAs</span><span class="native-pill">Native apps</span><span class="native-pill">Sandbox portals</span><span class="native-pill">IPC bridge</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+  createWindow('native-readiness', 'Native Runtime', 620, 430, html, { appName: 'native-readiness' });
+}
+
+function openSettings(options = {}) {
+  const html = `
+    <div class="settings-body">
+      <div class="settings-section">
+        <h3>Platform Model</h3>
+        <div class="settings-row">
+          <div><label>Desktop Mode</label><div class="sublabel">Hybrid combines Mac chrome with Linux taskbar/menu; current: <span data-platform-value="desktopMode"></span></div></div>
+          <select class="settings-select" onchange="setDesktopMode(this.value)">
+            <option value="hybrid" ${desktopMode === 'hybrid' ? 'selected' : ''}>Hybrid</option>
+            <option value="mac" ${desktopMode === 'mac' ? 'selected' : ''}>Mac</option>
+            <option value="linux" ${desktopMode === 'linux' ? 'selected' : ''}>Linux</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><label>Window Controls</label><div class="sublabel">Mac = left control dots; Linux = right titlebar buttons; current: <span data-platform-value="windowControls"></span></div></div>
+          <select class="settings-select" onchange="setWindowControls(this.value)">
+            <option value="linux" ${windowControls === 'linux' ? 'selected' : ''}>Linux right buttons</option>
+            <option value="mac" ${windowControls === 'mac' ? 'selected' : ''}>Mac left dots</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><label>Dock Position</label><div class="sublabel">Mac/hybrid Dock can be centered or pinned left; current: <span data-platform-value="dockPosition"></span></div></div>
+          <select class="settings-select" onchange="setDockPosition(this.value)">
+            <option value="center" ${dockPosition === 'center' ? 'selected' : ''}>Centered</option>
+            <option value="left" ${dockPosition === 'left' ? 'selected' : ''}>Left</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><label>Taskbar Visibility</label><div class="sublabel">Linux taskbar and workflow counters; current: <span data-platform-value="taskbarVisible"></span></div></div>
+          <select class="settings-select" onchange="setTaskbarVisibility(this.value)">
+            <option value="visible" ${taskbarVisible ? 'selected' : ''}>Visible</option>
+            <option value="hidden" ${!taskbarVisible ? 'selected' : ''}>Hidden</option>
+          </select>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+          <label>Shortcut Hint Model</label>
+          <div class="sublabel">Mac mode presents <span data-platform-value="shortcutMod"></span> shortcuts; Linux mode presents Ctrl shortcuts.</div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Appearance</h3>
+        <div class="settings-row">
+          <div><label>Fable Theme</label><div class="sublabel">Paper studio — always light, like the Fable wall</div></div>
+          <div class="toggle on" onclick="setSystemToggle('darkMode', this)"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Desktop Grid</label><div class="sublabel">Show background grid lines</div></div>
+          <div class="toggle on" onclick="setSystemToggle('desktopGrid', this)"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Font Size</label></div>
+          <input type="range" class="settings-slider" min="10" max="16" value="12" oninput="setAppFontSize(this.value)" />
+        </div>
+        <div class="settings-row">
+          <div><label>UI Scale</label></div>
+          <input type="range" class="settings-slider" min="80" max="120" value="100" oninput="setUiScale(this.value)" />
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>System</h3>
+        <div class="settings-row">
+          <div><label>Animations</label><div class="sublabel">420ms ease — windows lift, dock floats</div></div>
+          <div class="toggle on" onclick="setSystemToggle('animations', this)"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Sound</label><div class="sublabel">System notification sounds</div></div>
+          <div class="toggle" onclick="setSystemToggle('sound', this)"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Auto-lock</label><div class="sublabel">Lock after 5 minutes idle</div></div>
+          <div class="toggle on" onclick="setSystemToggle('autoLock', this)"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Network</h3>
+        <div class="settings-row">
+          <div><label>Wi-Fi</label><div class="sublabel">Connected — SoengNet_5G</div></div>
+          <div class="toggle on" onclick="setSystemToggle('wifi', this)"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>Bluetooth</label><div class="sublabel">Disabled</div></div>
+          <div class="toggle" onclick="setSystemToggle('bluetooth', this)"></div>
+        </div>
+        <div class="settings-row">
+          <div><label>VPN</label><div class="sublabel">Not configured</div></div>
+          <div class="toggle" onclick="setSystemToggle('vpn', this)"></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>About</h3>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+          <label>SoengOS v1.0.0</label>
+          <div class="sublabel">Fable Edition</div>
+          <div class="sublabel">Kernel: Web/JS &middot; WM: SoengWM &middot; Shell: soeng-sh</div>
+          <div class="sublabel">License: MIT &middot; Palette: Paper field / espresso ink</div>
+          <button class="settings-action-btn" onclick="openNativeReadiness()">Open Native Runtime Plan</button>
+        </div>
+      </div>
+    </div>
+  `;
+  createWindow('settings', 'Settings', 500, 620, html, { ...options, appName: 'settings' });
+  applyDesktopMode(desktopMode, { windowControls, dockPosition, taskbarVisible });
+}
+
+// ── Browser ──
+const soengPages = {
+  'soeng://welcome': {
+    title: 'Welcome to SoengBrowser',
+    body: 'Type a normal https address and press Enter. Wikipedia articles load as readable pages. YouTube links play in-place. Other sites open in a sandboxed frame — some hosts still refuse to be framed; use Open tab for those.',
+    status: 'Local system page',
+  },
+  'soeng://apps': {
+    title: 'Application Runtime',
+    body: 'Installed apps run as first-class desktop windows. Dock, taskbar, command palette, drag/resize, minimize, maximize, and close all share the same window manager contract.',
+    status: 'Native app contract',
+  },
+  'soeng://native': {
+    title: 'Native Bridge Plan',
+    body: 'The production OS should bind this desktop contract to Linux services: Wayland compositor, portals, filesystem, containers, power, network, audio, Bluetooth, and package management.',
+    status: 'Beyond web prototype',
+  },
+  'soeng://help': {
+    title: 'Keyboard and Mouse',
+    body: 'Use Ctrl/Cmd+K for commands, F11 for focus mode, desktop right-click for the Linux menu, dock click for Mac-style restore, and titlebars for drag/resize.',
+    status: 'Controls are interactive',
+  },
+};
+
+function renderBrowserChrome(page, { title, body, status, icon }) {
+  page.className = 'browser-page';
+  page.textContent = '';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '48');
+  svg.setAttribute('height', '48');
+  svg.setAttribute('viewBox', '0 0 48 48');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', '#333333');
+  svg.setAttribute('stroke-width', '1');
+  svg.innerHTML = icon;
+  const heading = document.createElement('h2');
+  heading.textContent = title;
+  const copy = document.createElement('p');
+  copy.textContent = body;
+  const meta = document.createElement('div');
+  meta.className = 'browser-status';
+  meta.textContent = status;
+  page.append(svg, heading, copy, meta);
+}
+
+function renderBrowserFrame(page, src, title) {
+  page.className = 'browser-page live';
+  page.textContent = '';
+  const frame = document.createElement('iframe');
+  frame.className = 'browser-frame';
+  frame.title = title || src;
+  frame.referrerPolicy = 'strict-origin-when-cross-origin';
+  frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation';
+  frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+  frame.src = src;
+  page.appendChild(frame);
+}
+
+async function renderWikipediaPage(page, safeUrl, wiki) {
+  page.className = 'browser-page wiki';
+  page.dataset.liveUrl = safeUrl;
+  page.textContent = '';
+  const heading = document.createElement('h2');
+  heading.textContent = 'Loading Wikipedia…';
+  page.appendChild(heading);
+  try {
+    const api = `https://${wiki.lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wiki.title)}`;
+    const res = await fetch(api, { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error('wiki');
+    const data = await res.json();
+    if (page.dataset.liveUrl !== safeUrl) return;
+    page.textContent = '';
+    const title = document.createElement('h2');
+    title.textContent = data.title || wiki.title.replace(/_/g, ' ');
+    const copy = document.createElement('p');
+    copy.textContent = data.extract || 'This article loaded, but the summary was empty.';
+    const meta = document.createElement('div');
+    meta.className = 'browser-status';
+    meta.textContent = `${wiki.lang}.wikipedia.org · live summary`;
+    page.append(title, copy, meta);
+  } catch (e) {
+    renderBrowserFrame(page, safeUrl, wiki.title);
+  }
+}
+
+function renderBrowserPage(win, state, url) {
+  const page = win.querySelector('[data-browser-page]');
+  const urlBar = win.querySelector('[data-browser-url]');
+  const safeUrl = getAllowedNavigationUrl(url);
+  if (!safeUrl) {
+    state.current = String(url || '');
+    if (urlBar) urlBar.value = state.current;
+    renderBrowserChrome(page, {
+      title: 'Navigation blocked',
+      body: 'Only http:, https:, soeng://, and about:blank URLs are allowed.',
+      status: 'Blocked protocol',
+      icon: '<rect x="8" y="8" width="32" height="32"/><line x1="14" y1="14" x2="34" y2="34"/><line x1="34" y1="14" x2="14" y2="34"/>',
+    });
+    return;
+  }
+  state.current = safeUrl;
+  if (urlBar) urlBar.value = safeUrl;
+  const local = soengPages[safeUrl];
+  if (local) {
+    renderBrowserChrome(page, {
+      title: local.title,
+      body: local.body,
+      status: `${local.status} · ${safeUrl}`,
+      icon: '<circle cx="24" cy="24" r="20"/><ellipse cx="24" cy="24" rx="8" ry="20"/><line x1="4" y1="24" x2="44" y2="24"/><line x1="24" y1="4" x2="24" y2="44"/>',
+    });
+    return;
+  }
+  if (safeUrl === 'about:blank') {
+    renderBrowserChrome(page, {
+      title: 'Blank',
+      body: 'about:blank',
+      status: 'Empty document',
+      icon: '<rect x="8" y="8" width="32" height="32"/>',
+    });
+    return;
+  }
+  const youtube = getYoutubeEmbedUrl(safeUrl);
+  if (youtube) {
+    renderBrowserFrame(page, `${youtube}?rel=0`, 'YouTube');
+    return;
+  }
+  const wiki = getWikipediaPageRef(safeUrl);
+  if (wiki) {
+    renderWikipediaPage(page, safeUrl, wiki);
+    return;
+  }
+  renderBrowserFrame(page, safeUrl, safeUrl);
+}
+
+function openBrowser(options = {}) {
+  const html = `
+    <div class="browser-app">
+      <div class="browser-toolbar">
+        <button class="nav-btn" data-browser-action="back">&#9664;</button>
+        <button class="nav-btn" data-browser-action="forward">&#9654;</button>
+        <button class="nav-btn" data-browser-action="refresh">&#8635;</button>
+        <button class="browser-action" data-browser-action="home">Home</button>
+        <input type="text" class="url-bar" value="soeng://welcome" data-browser-url spellcheck="false" />
+        <button class="browser-action" data-browser-action="open-tab">Open tab</button>
+      </div>
+      <div class="browser-bookmarks">
+        <button class="browser-action" data-url="soeng://welcome">Welcome</button>
+        <button class="browser-action" data-url="https://example.com">Example</button>
+        <button class="browser-action" data-url="https://en.wikipedia.org/wiki/Operating_system">Wikipedia</button>
+        <button class="browser-action" data-url="https://www.youtube.com/watch?v=aqz-KE-bpKQ">YouTube</button>
+        <button class="browser-action" data-url="soeng://help">Help</button>
+      </div>
+      <div class="browser-content">
+        <div class="browser-page" data-browser-page></div>
+      </div>
+    </div>
+  `;
+  const id = createWindow('browser', 'Browser', 760, 540, html, { ...options, appName: 'browser' });
+  initBrowser(id);
+}
+
+function initBrowser(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win) return;
+  const state = { back: [], forward: [], current: 'soeng://welcome' };
+  const go = (url, track = true) => {
+    if (track && state.current && state.current !== url) {
+      state.back.push(state.current);
+      state.forward = [];
+    }
+    renderBrowserPage(win, state, url);
+  };
+  win.querySelector('[data-browser-url]').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') go(event.target.value.trim() || 'soeng://welcome');
+  });
+  win.querySelectorAll('[data-url]').forEach(btn => btn.addEventListener('click', () => go(btn.dataset.url)));
+  win.querySelector('[data-browser-action="home"]').addEventListener('click', () => go('soeng://welcome'));
+  win.querySelector('[data-browser-action="open-tab"]').addEventListener('click', () => {
+    const href = getAllowedNavigationUrl(state.current);
+    if (!href || href.startsWith('soeng://') || href === 'about:blank') {
+      showToast('Nothing to open in a host tab');
+      return;
+    }
+    window.open(href, '_blank', 'noopener,noreferrer');
+  });
+  win.querySelector('[data-browser-action="refresh"]').addEventListener('click', () => { renderBrowserPage(win, state, state.current); showToast('Page refreshed'); });
+  win.querySelector('[data-browser-action="back"]').addEventListener('click', () => {
+    const previous = state.back.pop();
+    if (!previous) { showToast('No previous page'); return; }
+    state.forward.push(state.current);
+    go(previous, false);
+  });
+  win.querySelector('[data-browser-action="forward"]').addEventListener('click', () => {
+    const next = state.forward.pop();
+    if (!next) { showToast('No forward page'); return; }
+    state.back.push(state.current);
+    go(next, false);
+  });
+  renderBrowserPage(win, state, state.current);
+}
+
+// ── Command Palette ──
+const cmdActions = [
+  { name: 'Open File Manager', action: () => activateApp('filemanager'), shortcut: '' },
+  { name: 'Open Notes', action: () => activateApp('notes'), shortcut: '' },
+  { name: 'Open Browser', action: () => activateApp('browser'), shortcut: '' },
+  { name: 'Open Music', action: () => activateApp('music'), shortcut: '' },
+  { name: 'Open Photos', action: () => activateApp('photos'), shortcut: '' },
+  { name: 'Open Podcast', action: () => activateApp('podcast'), shortcut: '' },
+  { name: 'Open TV', action: () => activateApp('tv'), shortcut: '' },
+  { name: 'Open Terminal', action: () => activateApp('terminal'), shortcut: '' },
+  { name: 'Open Settings', action: () => activateApp('settings'), shortcut: '' },
+  { name: 'Open Workflow Hub', action: () => activateApp('workflow'), shortcut: '' },
+  { name: 'Open Automation Studio', action: () => activateApp('automation'), shortcut: '' },
+  { name: 'Open Native Runtime Plan', action: () => openNativeReadiness(), shortcut: '' },
+  { name: 'Switch to Hybrid Mode', action: () => setDesktopMode('hybrid'), shortcut: '' },
+  { name: 'Switch to Mac Mode', action: () => setDesktopMode('mac'), shortcut: '' },
+  { name: 'Switch to Linux Mode', action: () => setDesktopMode('linux'), shortcut: '' },
+  { name: 'Toggle Focus Mode', action: () => toggleFocus(), shortcut: 'F11' },
+  { name: 'About SoengOS', action: () => toggleAbout(), shortcut: '' },
+  { name: 'Close All Windows', action: () => closeAllWindows(), shortcut: '' },
+  { name: 'Minimize All Windows', action: () => Object.keys(openWindows).forEach(id => minimizeWindow(id)), shortcut: '' },
+  { name: 'Power Menu', action: () => openPower(), shortcut: '' },
+];
+
+function fuzzyMatch(str, query) {
+  if (!query) return true;
+  const s = str.toLowerCase();
+  const q = query.toLowerCase();
+  let si = 0;
+  for (let qi = 0; qi < q.length; qi++) {
+    while (si < s.length && s[si] !== q[qi]) si++;
+    if (si >= s.length) return false;
+    si++;
+  }
+  return true;
+}
+
+function openCmdPalette() {
+  toggleAppLauncher(false);
+  const pal = document.getElementById('cmd-palette');
+  pal.classList.add('open');
+  const input = document.getElementById('cmd-input');
+  input.value = '';
+  input.focus();
+  renderCmdResults('');
+}
+
+function closeCmdPalette() {
+  document.getElementById('cmd-palette').classList.remove('open');
+}
+
+// ── App launcher ──
+function toggleAppLauncher(force) {
+  const launcher = document.getElementById('app-launcher');
+  const shouldOpen = typeof force === 'boolean' ? force : !launcher.classList.contains('open');
+  launcher.classList.toggle('open', shouldOpen);
+  if (shouldOpen) {
+    closeCmdPalette();
+    launcher.querySelector('.app-launcher-item')?.focus();
+  }
+}
+
+function launchFromLauncher(appName) {
+  toggleAppLauncher(false);
+  activateApp(appName);
+}
+
+function renderCmdResults(query) {
+  const container = document.getElementById('cmd-results');
+  const filtered = cmdActions.filter(a => fuzzyMatch(a.name, query));
+
+  container.textContent = '';
+  filtered.forEach((a, i) => {
+    const item = document.createElement('div');
+    item.className = `result-item${i === 0 ? ' active' : ''}`;
+    item.dataset.idx = String(i);
+    const name = document.createElement('span');
+    name.textContent = a.name;
+    item.appendChild(name);
+    if (a.shortcut) {
+      const shortcut = document.createElement('span');
+      shortcut.className = 'shortcut';
+      shortcut.textContent = a.shortcut;
+      item.appendChild(shortcut);
+    }
+    container.appendChild(item);
+  });
+
+  container.querySelectorAll('.result-item').forEach((el, i) => {
+    el.addEventListener('click', () => {
+      filtered[i].action();
+      closeCmdPalette();
+    });
+    el.addEventListener('mouseenter', () => {
+      container.querySelectorAll('.result-item').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+    });
+  });
+}
+
+document.getElementById('cmd-input').addEventListener('input', (e) => {
+  renderCmdResults(e.target.value);
+});
+
+document.getElementById('cmd-input').addEventListener('keydown', (e) => {
+  const results = document.querySelectorAll('#cmd-results .result-item');
+  const activeIdx = [...results].findIndex(r => r.classList.contains('active'));
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    results.forEach(r => r.classList.remove('active'));
+    const next = (activeIdx + 1) % results.length;
+    if (results[next]) results[next].classList.add('active');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    results.forEach(r => r.classList.remove('active'));
+    const prev = (activeIdx - 1 + results.length) % results.length;
+    if (results[prev]) results[prev].classList.add('active');
+  } else if (e.key === 'Enter') {
+    const active = document.querySelector('#cmd-results .result-item.active');
+    if (active) active.click();
+  } else if (e.key === 'Escape') {
+    closeCmdPalette();
+  }
+});
+
+// ── Focus mode ──
+function toggleFocus() {
+  document.body.classList.toggle('focus-mode');
+  const on = document.body.classList.contains('focus-mode');
+  showToast(on ? 'Focus mode on — F11 to exit' : 'Focus mode off');
+}
+
+// ── About modal ──
+function toggleAbout() {
+  document.getElementById('about-modal').classList.toggle('open');
+}
+
+// ── Power menu ──
+function openPower() {
+  document.getElementById('power-menu').classList.add('open');
+}
+
+function closePower() {
+  document.getElementById('power-menu').classList.remove('open');
+}
+
+function closeAllWindows() {
+  Object.keys(openWindows).forEach(id => closeWindow(id));
+}
+
+// ── Toast notifications ──
+function showToast(msg, duration = 2500) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 250);
+  }, duration);
+}
+
+// ── Context menu ──
+const ctxMenu = document.getElementById('ctx-menu');
+
+function openCtxMenu(x, y) {
+  ctxMenu.classList.add('open');
+  const menuW = ctxMenu.offsetWidth || 160;
+  const menuH = ctxMenu.offsetHeight || 220;
+  ctxMenu.style.left = Math.min(x, window.innerWidth - menuW - 4) + 'px';
+  ctxMenu.style.top = Math.min(y, window.innerHeight - menuH - 4) + 'px';
+}
+
+function closeCtxMenu() {
+  ctxMenu.classList.remove('open');
+}
+
+document.getElementById('desktop').addEventListener('contextmenu', (e) => {
+  if (e.target.closest('.window')) return;
+  e.preventDefault();
+  openCtxMenu(e.clientX, e.clientY);
+});
+
+document.addEventListener('click', (e) => {
+  if (!ctxMenu.contains(e.target)) closeCtxMenu();
+});
+
+// ── Desktop icon single-click selection ──
+document.querySelectorAll('.desktop-icon').forEach(icon => {
+  icon.addEventListener('click', () => {
+    document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+    icon.classList.add('selected');
+  });
+});
+document.getElementById('desktop').addEventListener('click', (e) => {
+  if (!e.target.closest('.desktop-icon') && !e.target.closest('.window')) {
+    document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+  }
+});
+
+function doShutdown() {
+  closePower();
+  closeAllWindows();
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 600ms linear;';
+  overlay.innerHTML = '<span style="font-family:var(--mono);color:#555;font-size:12px;letter-spacing:3px;">SYSTEM HALTED</span>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.style.opacity = '1');
+}
+
+function doRestart() {
+  closePower();
+  closeAllWindows();
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;opacity:0;transition:opacity 400ms linear;';
+  overlay.innerHTML = `
+    <span style="font-family:var(--mono);color:#777;font-size:12px;letter-spacing:3px;">RESTARTING</span>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.style.opacity = '1');
+  setTimeout(() => location.reload(), 1600);
+}
+
+// ── Global keyboard shortcuts ──
+document.addEventListener('keydown', (e) => {
+  // Ctrl/Cmd + K → command palette
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const pal = document.getElementById('cmd-palette');
+    if (pal.classList.contains('open')) closeCmdPalette();
+    else openCmdPalette();
+  }
+
+  // Escape → close top-level overlays or frontmost window
+  if (e.key === 'Escape') {
+    if (document.getElementById('app-launcher').classList.contains('open')) {
+      toggleAppLauncher(false); return;
+    }
+    if (document.getElementById('cmd-palette').classList.contains('open')) {
+      closeCmdPalette(); return;
+    }
+    if (document.getElementById('about-modal').classList.contains('open')) {
+      toggleAbout(); return;
+    }
+    if (document.getElementById('power-menu').classList.contains('open')) {
+      closePower(); return;
+    }
+    // Close frontmost window
+    const wins = document.querySelectorAll('.window:not(.minimized)');
+    if (wins.length) {
+      let topWin = wins[0];
+      wins.forEach(w => {
+        if (parseInt(w.style.zIndex) > parseInt(topWin.style.zIndex)) topWin = w;
+      });
+      const id = topWin.id.replace('win-', '');
+      closeWindow(id);
+    }
+  }
+
+  // F11 → focus mode
+  if (e.key === 'F11') {
+    e.preventDefault();
+    toggleFocus();
+  }
+});
+
+// Close modals on backdrop click
+document.getElementById('about-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('about-modal')) toggleAbout();
+});
+document.getElementById('app-launcher').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('app-launcher')) toggleAppLauncher(false);
+});
+document.getElementById('power-menu').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('power-menu')) closePower();
+});
+document.getElementById('cmd-palette').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('cmd-palette')) closeCmdPalette();
+});
+</script>
+</body>
+</html>

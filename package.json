@@ -1,0 +1,12 @@
+{
+  "name": "soengos",
+  "private": true,
+  "description": "SoengOS desktop prototype tests",
+  "scripts": {
+    "dev": "vite",
+    "test": "node --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "vite": "^8.2.2"
+  }
+}
