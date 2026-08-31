@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f3ebe0">
 <title>SoengOS – A Web-Enabled Linux OS Inspired by Zen Minimalism</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@400;500;600&display=swap');
@@ -30,6 +31,15 @@
     --ge: #181410;      /* ink */
     --ink: #181410;
     --paper: #f6f1e4;
+    --wall: #f3ebe0;
+    --peach: #e8a878;
+    --clay: #ac8054;
+    --sage: #7d9d72;
+    --rose: #c4847a;
+    --blush: #edd8c8;
+    --seal: #c45c4a;
+    --ochre: #b08432;
+    --slate: #8898b8;
     --accent: #181410;        /* Fable inverts: accent is ink on cream */
     --accent-soft: rgba(24, 20, 16, 0.14);
     --accent-2: #181410;
@@ -108,7 +118,21 @@
     opacity: 0;
     animation: bootFadeIn 400ms 500ms ease forwards;
   }
-  @keyframes bootFadeIn { to { opacity: 1; } }
+  #boot-screen .boot-mark {
+    opacity: 0;
+    animation: bootFadeIn 700ms 100ms ease forwards;
+  }
+  #boot-screen .boot-mark svg {
+    animation: bootRing 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  @keyframes bootRing {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(8deg) scale(1.03); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #boot-screen .boot-mark svg { animation: none; }
+    html body::before, html body::after { animation: none !important; }
+  }
 
   /* ── Keyboard hint overlay ── */
   #keyboard-hint {
@@ -116,7 +140,7 @@
     bottom: 84px; left: 50%; transform: translateX(-50%);
     z-index: 90000;
     background: var(--cream);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     box-shadow: var(--shadow-float);
     padding: 10px 22px;
     font-family: var(--sans);
@@ -147,7 +171,7 @@
     position: fixed; top: 0; left: 0; right: 0;
     height: var(--topbar-h);
     background: var(--cream);
-    border-bottom: 2px solid var(--espresso);
+    border-bottom: var(--hairline);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 16px;
     z-index: 10000;
@@ -161,6 +185,15 @@
     color: var(--ink);
     letter-spacing: -0.015em;
     text-transform: lowercase;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+  }
+  #topbar .logo-primary { font-family: var(--display); font-size: 15px; }
+  #topbar .logo-sub {
+    font-size: 11px;
+    color: rgba(24, 20, 16, 0.42);
+    letter-spacing: -0.01em;
   }
   #topbar .right {
     display: flex; align-items: center; gap: 14px;
@@ -173,7 +206,7 @@
   }
   #topbar .right .battery svg { display: block; }
   #topbar .right .menu-btn {
-    background: var(--espresso); border: 2px solid var(--espresso);
+    background: var(--espresso); border: none;
     color: var(--cream);
     padding: 2px 12px;
     font-family: var(--sans); font-size: 10px;
@@ -211,7 +244,7 @@
     gap: 8px;
     padding: 8px;
     background: var(--cream);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     box-shadow: var(--shadow-float);
     border-radius: var(--radius-xl);
     backdrop-filter: var(--blur);
@@ -264,7 +297,7 @@
     min-width: 156px;
     display: none;
     background: var(--cream);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     box-shadow: var(--shadow-float);
     overflow: hidden;
     border-radius: var(--radius-md);
@@ -374,7 +407,7 @@
   .window {
     position: absolute;
     min-width: 320px; min-height: 200px;
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     display: flex; flex-direction: column;
     z-index: 100;
     overflow: hidden;
@@ -398,7 +431,7 @@
   .window-titlebar {
     height: 34px;
     background: var(--cream);
-    border-bottom: 2px solid var(--espresso);
+    border-bottom: var(--hairline);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 12px;
     cursor: grab;
@@ -457,8 +490,8 @@
     content: '';
     position: absolute; bottom: 5px; right: 5px;
     width: 9px; height: 9px;
-    border-right: 2px solid var(--espresso);
-    border-bottom: 2px solid var(--espresso);
+    border-right: var(--hairline);
+    border-bottom: var(--hairline);
   }
 
 
@@ -634,7 +667,7 @@
   .toggle {
     width: 38px; height: 20px;
     background: var(--cream);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     position: relative;
     cursor: pointer;
     transition: background var(--transition);
@@ -919,7 +952,7 @@
     top: 20%; left: 50%; transform: translateX(-50%);
     width: 460px;
     background: var(--cream);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     box-shadow: var(--shadow-soft);
     z-index: 50000;
     display: flex;
@@ -934,7 +967,7 @@
   #cmd-palette input {
     width: 100%; height: 44px;
     background: transparent;
-    border: none; border-bottom: 2px solid var(--espresso);
+    border: none; border-bottom: var(--hairline);
     padding: 0 18px;
     font-family: var(--sans); font-size: 15px;
     letter-spacing: -0.015em;
@@ -976,7 +1009,8 @@
     align-items: flex-start;
     justify-content: center;
     padding-top: 72px;
-    background: rgba(24, 20, 16, 0.56);
+    background: rgba(243, 235, 224, 0.52);
+    backdrop-filter: blur(10px);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -988,7 +1022,7 @@
     overflow: auto;
     padding: 20px;
     background: rgba(246, 241, 228, 0.97);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-soft);
   }
@@ -1048,7 +1082,7 @@
   #about-modal .modal-box {
     width: 480px;
     background: var(--cream);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     box-shadow: var(--shadow-soft);
     padding: 30px;
     border-radius: var(--radius-lg);
@@ -1070,7 +1104,7 @@
   #about-modal .modal-box .close-btn {
     margin-top: 12px;
     background: var(--espresso);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     color: var(--cream);
     padding: 8px 22px;
     font-family: var(--sans); font-size: 11px;
@@ -1140,7 +1174,7 @@
     bottom: 0; left: 0; right: 0;
     height: var(--taskbar-h);
     background: var(--cream);
-    border-top: 2px solid var(--espresso);
+    border-top: var(--hairline);
     z-index: 10000;
     display: flex; align-items: center;
     padding: 0 10px;
@@ -1188,7 +1222,7 @@
   }
   .toast {
     background: var(--espresso);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     box-shadow: var(--shadow-float);
     padding: 9px 16px;
     font-family: var(--sans);
@@ -1205,7 +1239,7 @@
   #ctx-menu {
     position: fixed;
     background: var(--cream);
-    border: 2px solid var(--espresso);
+    border: var(--hairline);
     box-shadow: var(--shadow-float);
     z-index: 80000;
     display: none;
@@ -1421,14 +1455,99 @@
   .toast {
     transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
   }
+
+  /* ── Kengo Works aesthetic pass (Fable / Cool S / portraits / incident) ── */
+  html::before,
+  html::after {
+    content: '';
+    position: fixed;
+    inset: -18%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  html::before {
+    background: radial-gradient(42% 38% at 14% 16%, rgba(232, 168, 120, 0.24) 0%, transparent 68%);
+    animation: kengoMist 30s ease-in-out infinite;
+  }
+  html::after {
+    background: radial-gradient(36% 32% at 86% 82%, rgba(196, 130, 122, 0.16) 0%, transparent 72%);
+    animation: kengoMist 36s ease-in-out infinite reverse;
+  }
+  @keyframes kengoMist {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(1.5%, -1.2%, 0) scale(1.03); }
+  }
+  #desktop,
+  #topbar,
+  #desktop-dock,
+  #taskbar,
+  #app-launcher,
+  #cmd-palette { position: relative; z-index: 1; }
+  #desktop::before {
+    background-image:
+      linear-gradient(rgba(24, 20, 16, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(24, 20, 16, 0.028) 1px, transparent 1px),
+      linear-gradient(rgba(24, 20, 16, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(24, 20, 16, 0.05) 1px, transparent 1px);
+    background-size: 16px 16px, 16px 16px, 80px 80px, 80px 80px;
+    opacity: 0.42;
+  }
+  .icon-well[data-tint="blush"],
+  .launcher-icon-well[data-tint="blush"] { background: rgba(237, 216, 200, 0.55); border-color: rgba(172, 128, 84, 0.12); }
+  .icon-well[data-tint="sage"],
+  .launcher-icon-well[data-tint="sage"] { background: rgba(104, 126, 86, 0.14); border-color: rgba(104, 126, 86, 0.18); }
+  .icon-well[data-tint="peach"],
+  .launcher-icon-well[data-tint="peach"] { background: rgba(232, 168, 120, 0.2); border-color: rgba(232, 168, 120, 0.22); }
+  .icon-well[data-tint="rose"],
+  .launcher-icon-well[data-tint="rose"] { background: rgba(196, 130, 122, 0.16); border-color: rgba(196, 130, 122, 0.2); }
+  .icon-well[data-tint="slate"],
+  .launcher-icon-well[data-tint="slate"] { background: rgba(136, 152, 184, 0.14); border-color: rgba(136, 152, 184, 0.18); }
+  .icon-well[data-tint="clay"],
+  .launcher-icon-well[data-tint="clay"] { background: rgba(172, 128, 84, 0.14); border-color: rgba(172, 128, 84, 0.18); }
+  .icon-well[data-tint="ochre"],
+  .launcher-icon-well[data-tint="ochre"] { background: rgba(176, 132, 50, 0.14); border-color: rgba(176, 132, 50, 0.18); }
+  .icon-well[data-tint="ink"],
+  .launcher-icon-well[data-tint="ink"] { background: rgba(24, 20, 16, 0.06); border-color: rgba(24, 20, 16, 0.1); }
+  .app-launcher-head h2 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .app-launcher-head p {
+    max-width: 28rem;
+    line-height: 1.55;
+    color: rgba(24, 20, 16, 0.48);
+  }
+  .window-titlebar .title {
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: -0.02em;
+  }
+  #about-modal .modal-box h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .browser-page h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
 </style>
 </head>
 <body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
 
 <!-- Boot Screen -->
 <div id="boot-screen">
-  <div class="boot-logo">SoengOS</div>
-  <div class="boot-sub">fable edition</div>
+  <div class="boot-mark" aria-hidden="true">
+    <svg viewBox="0 0 120 120" width="92" height="92" fill="none">
+      <circle cx="60" cy="60" r="44" stroke="#181410" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="1 7" opacity="0.85"/>
+      <circle cx="60" cy="60" r="3.2" fill="var(--seal)"/>
+    </svg>
+  </div>
+  <div class="boot-logo">soengos</div>
+  <div class="boot-sub">fable edition — paper studio</div>
 </div>
 
 <!-- Keyboard Hint -->
@@ -1440,7 +1559,7 @@
 
 <!-- Top Bar -->
 <div id="topbar">
-  <div class="logo">SoengOS</div>
+  <div class="logo"><span class="logo-primary">soengos</span><span class="logo-sub">— paper studio</span></div>
   <div class="right">
     <div class="clock" id="clock">00:00</div>
     <div class="battery">
@@ -1461,62 +1580,62 @@
   <div id="desktop-icons">
 
     <div class="desktop-icon" ondblclick="openApp('filemanager')">
-      <div class="icon-well" data-soeng-icon="filemanager" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="filemanager" data-icon-size="28" data-tint="blush"></div>
       <span>Files</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('notes')">
-      <div class="icon-well" data-soeng-icon="notes" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="notes" data-icon-size="28" data-tint="sage"></div>
       <span>Notes</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('browser')">
-      <div class="icon-well" data-soeng-icon="browser" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="browser" data-icon-size="28" data-tint="slate"></div>
       <span>Browser</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('music')">
-      <div class="icon-well" data-soeng-icon="music" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="music" data-icon-size="28" data-tint="peach"></div>
       <span>Music</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('photos')">
-      <div class="icon-well" data-soeng-icon="photos" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="photos" data-icon-size="28" data-tint="rose"></div>
       <span>Photos</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('podcast')">
-      <div class="icon-well" data-soeng-icon="podcast" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="podcast" data-icon-size="28" data-tint="clay"></div>
       <span>Podcast</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('tv')">
-      <div class="icon-well" data-soeng-icon="tv" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="tv" data-icon-size="28" data-tint="ink"></div>
       <span>TV</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('terminal')">
-      <div class="icon-well" data-soeng-icon="terminal" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="terminal" data-icon-size="28" data-tint="ink"></div>
       <span>Terminal</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('settings')">
-      <div class="icon-well" data-soeng-icon="settings" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="settings" data-icon-size="28" data-tint="sage"></div>
       <span>Settings</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('workflow')">
-      <div class="icon-well" data-soeng-icon="workflow" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="workflow" data-icon-size="28" data-tint="ochre"></div>
       <span>Workflow</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openApp('automation')">
-      <div class="icon-well" data-soeng-icon="automation" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="automation" data-icon-size="28" data-tint="peach"></div>
       <span>Automate</span>
     </div>
 
     <div class="desktop-icon" ondblclick="openPower()">
-      <div class="icon-well" data-soeng-icon="power" data-icon-size="28"></div>
+      <div class="icon-well" data-soeng-icon="power" data-icon-size="28" data-tint="rose"></div>
       <span>Power</span>
     </div>
 
@@ -1556,23 +1675,23 @@
   <div class="app-launcher-panel">
     <div class="app-launcher-head">
       <div>
-        <h2 id="app-launcher-title">Applications</h2>
-        <p>Open a workspace. Your current windows stay exactly where you left them.</p>
+        <h2 id="app-launcher-title">applications</h2>
+        <p>Pick a desk on the paper wall. Your open windows stay exactly where you left them — warm field, hairline chrome, ink only in the content.</p>
       </div>
       <button class="app-launcher-close" onclick="toggleAppLauncher(false)" aria-label="Close application launcher">&times;</button>
     </div>
     <div class="app-launcher-grid">
-      <button class="app-launcher-item" onclick="launchFromLauncher('filemanager')"><span class="launcher-icon-well" data-soeng-icon="filemanager" data-icon-size="22"></span><span class="launcher-copy"><strong>Files</strong><span>Browse, preview, create, and remove local files.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('notes')"><span class="launcher-icon-well" data-soeng-icon="notes" data-icon-size="22"></span><span class="launcher-copy"><strong>Notes</strong><span>Write notes with automatic local saving.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('browser')"><span class="launcher-icon-well" data-soeng-icon="browser" data-icon-size="22"></span><span class="launcher-copy"><strong>Browser</strong><span>Navigate Soeng pages and safe external links.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('music')"><span class="launcher-icon-well" data-soeng-icon="music" data-icon-size="22"></span><span class="launcher-copy"><strong>Music</strong><span>Browse tracks and control simulated playback.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('photos')"><span class="launcher-icon-well" data-soeng-icon="photos" data-icon-size="22"></span><span class="launcher-copy"><strong>Photos</strong><span>Explore the local image library and metadata.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('podcast')"><span class="launcher-icon-well" data-soeng-icon="podcast" data-icon-size="22"></span><span class="launcher-copy"><strong>Podcast</strong><span>Select episodes and control listening progress.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('tv')"><span class="launcher-icon-well" data-soeng-icon="tv" data-icon-size="22"></span><span class="launcher-copy"><strong>TV</strong><span>Choose a channel and start or stop viewing.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('terminal')"><span class="launcher-icon-well" data-soeng-icon="terminal" data-icon-size="22"></span><span class="launcher-copy"><strong>Terminal</strong><span>Use the working soeng-sh command environment.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('workflow')"><span class="launcher-icon-well" data-soeng-icon="workflow" data-icon-size="22"></span><span class="launcher-copy"><strong>Workflow Hub</strong><span>Create, move, run, and pause workflow cards.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('automation')"><span class="launcher-icon-well" data-soeng-icon="automation" data-icon-size="22"></span><span class="launcher-copy"><strong>Automation Studio</strong><span>Turn a prompt into runnable workflow steps.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('settings')"><span class="launcher-icon-well" data-soeng-icon="settings" data-icon-size="22"></span><span class="launcher-copy"><strong>Settings</strong><span>Adjust desktop mode, controls, scale, and system state.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('filemanager')"><span class="launcher-icon-well" data-soeng-icon="filemanager" data-icon-size="22" data-tint="blush"></span><span class="launcher-copy"><strong>Files</strong><span>Browse, preview, create, and remove local files.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('notes')"><span class="launcher-icon-well" data-soeng-icon="notes" data-icon-size="22" data-tint="sage"></span><span class="launcher-copy"><strong>Notes</strong><span>Write notes with automatic local saving.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('browser')"><span class="launcher-icon-well" data-soeng-icon="browser" data-icon-size="22" data-tint="slate"></span><span class="launcher-copy"><strong>Browser</strong><span>Navigate Soeng pages and safe external links.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('music')"><span class="launcher-icon-well" data-soeng-icon="music" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Music</strong><span>Browse tracks and control simulated playback.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('photos')"><span class="launcher-icon-well" data-soeng-icon="photos" data-icon-size="22" data-tint="rose"></span><span class="launcher-copy"><strong>Photos</strong><span>Explore the local image library and metadata.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('podcast')"><span class="launcher-icon-well" data-soeng-icon="podcast" data-icon-size="22" data-tint="clay"></span><span class="launcher-copy"><strong>Podcast</strong><span>Select episodes and control listening progress.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('tv')"><span class="launcher-icon-well" data-soeng-icon="tv" data-icon-size="22" data-tint="ink"></span><span class="launcher-copy"><strong>TV</strong><span>Choose a channel and start or stop viewing.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('terminal')"><span class="launcher-icon-well" data-soeng-icon="terminal" data-icon-size="22" data-tint="ink"></span><span class="launcher-copy"><strong>Terminal</strong><span>Use the working soeng-sh command environment.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('workflow')"><span class="launcher-icon-well" data-soeng-icon="workflow" data-icon-size="22" data-tint="ochre"></span><span class="launcher-copy"><strong>Workflow Hub</strong><span>Create, move, run, and pause workflow cards.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('automation')"><span class="launcher-icon-well" data-soeng-icon="automation" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Automation Studio</strong><span>Turn a prompt into runnable workflow steps.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('settings')"><span class="launcher-icon-well" data-soeng-icon="settings" data-icon-size="22" data-tint="sage"></span><span class="launcher-copy"><strong>Settings</strong><span>Adjust desktop mode, controls, scale, and system state.</span></span></button>
     </div>
     <div class="app-launcher-foot">
       <span>Tip: Ctrl/Cmd + K opens the command palette.</span>
