@@ -14,7 +14,10 @@
   input[type="text"], textarea, select { border-radius: var(--radius-sm); }
 
   :root {
-    --taskbar-h: 58px;
+    --chrome-gap: 10px;
+    --chrome-bar-h: 42px;
+    --topbar-h: calc(var(--chrome-gap) + var(--chrome-bar-h));
+    --taskbar-h: calc(var(--chrome-gap) + var(--chrome-bar-h));
     /* Fable palette — paper field, cream surfaces, espresso ink.
        The wall is light, like kengoworks.com/fable. Ink is for type, not the room. */
     --espresso: #181410;
@@ -59,7 +62,6 @@
     --mono: 'IBM Plex Mono', monospace;
     --sans: "Helvetica Neue", Helvetica, 'Inter', "Segoe UI", system-ui, sans-serif;
     --transition: 420ms cubic-bezier(0.22, 1, 0.36, 1);
-    --topbar-h: 62px;
     --display: "Fraunces", "Helvetica Neue", Georgia, serif;
     --app-font-size: 12px;
     --ui-scale: 1;
@@ -343,6 +345,22 @@
     gap: 8px;
     max-height: calc(100% - 48px);
     overflow-y: auto;
+    justify-items: center;
+  }
+  .desktop-icon-spacer {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .desktop-section-label {
+    grid-column: 1 / -1;
+    font-family: var(--sans);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: lowercase;
+    color: rgba(24, 20, 16, 0.38);
+    padding: 4px 4px 2px;
+    text-align: left;
+    width: 100%;
   }
   .desktop-icon {
     display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -1369,20 +1387,20 @@
     .app-launcher-panel { padding:16px; }
     #topbar { left: 8px; right: 8px; }
     #taskbar { left: 8px; right: 8px; }
-    body[data-desktop-mode="hybrid"] #desktop-dock { bottom: 58px; }
+    body[data-desktop-mode="hybrid"] #desktop-dock { bottom: calc(var(--taskbar-h) + var(--chrome-gap)); }
   }
 
   /* Paper studio — light wall, hairline chrome, soft lift.
      Kengo Fable / Cool S / portraits: paper first, ink for type. */
   #keyboard-hint {
-    bottom: 118px;
+    bottom: calc(var(--taskbar-h) + var(--chrome-gap) + 56px);
     background: var(--glass);
     border: var(--hairline);
   }
   #keyboard-hint kbd { border-radius: 6px; }
   #topbar {
-    top: 10px; left: 14px; right: 14px;
-    height: 42px;
+    top: var(--chrome-gap); left: 14px; right: 14px;
+    height: var(--chrome-bar-h);
     width: auto;
     background: var(--glass);
     border: var(--hairline);
@@ -1394,7 +1412,7 @@
     border: none;
     box-shadow: 0 4px 12px rgba(24, 20, 16, 0.14);
   }
-  body[data-desktop-mode="hybrid"] #desktop-dock { bottom: 62px; }
+  body[data-desktop-mode="hybrid"] #desktop-dock { bottom: calc(var(--taskbar-h) + var(--chrome-gap)); }
   body[data-desktop-mode="mac"] #desktop-dock { bottom: 16px; }
   body[data-desktop-mode="hybrid"][data-dock-position="left"] #desktop-dock,
   body[data-desktop-mode="mac"][data-dock-position="left"] #desktop-dock { bottom: 50%; }
@@ -1493,8 +1511,8 @@
   #power-menu .power-option:hover { background: var(--espresso); color: var(--cream); }
   #footer-credit { color: rgba(24, 20, 16, 0.28); }
   #taskbar {
-    bottom: 10px; left: 14px; right: 14px;
-    height: 38px;
+    bottom: var(--chrome-gap); left: 14px; right: 14px;
+    height: var(--chrome-bar-h);
     width: auto;
     background: var(--glass);
     border: var(--hairline);
@@ -1573,12 +1591,12 @@
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
     50% { transform: translate3d(1.5%, -1.2%, 0) scale(1.03); }
   }
-  #desktop,
-  #topbar,
-  #desktop-dock,
-  #taskbar,
-  #app-launcher,
-  #cmd-palette { position: relative; z-index: 1; }
+  #desktop { z-index: 1; }
+  #topbar { z-index: 10000; }
+  #desktop-dock { z-index: 11000; }
+  #taskbar { z-index: 10000; }
+  #app-launcher { z-index: 55000; }
+  #cmd-palette { z-index: 50000; }
   #desktop::before {
     background-image:
       linear-gradient(rgba(24, 20, 16, 0.028) 1px, transparent 1px),
@@ -1675,6 +1693,8 @@
   <div id="radiant-glow"></div>
   <div id="desktop-icons">
 
+    <div class="desktop-section-label">apps</div>
+
     <div class="desktop-icon" ondblclick="openApp('filemanager')">
       <div class="icon-well" data-soeng-icon="filemanager" data-icon-size="28" data-tint="blush"></div>
       <span>Files</span>
@@ -1730,30 +1750,16 @@
       <span>Automate</span>
     </div>
 
-    <div class="desktop-icon" ondblclick="openPower()">
-      <div class="icon-well" data-soeng-icon="power" data-icon-size="28" data-tint="rose"></div>
-      <span>Power</span>
-    </div>
+    <div class="desktop-section-label">galleries</div>
 
     <div class="desktop-icon" ondblclick="openApp('exhibitions')">
       <div class="icon-well" data-soeng-icon="exhibitions" data-icon-size="28" data-tint="ochre"></div>
       <span>Galleries</span>
     </div>
-    <div class="desktop-icon" ondblclick="openApp('fable')">
-      <div class="icon-well" data-soeng-icon="fable" data-icon-size="28" data-tint="peach"></div>
-      <span>Fable</span>
-    </div>
-    <div class="desktop-icon" ondblclick="openApp('cools')">
-      <div class="icon-well" data-soeng-icon="cools" data-icon-size="28" data-tint="slate"></div>
-      <span>Cool S</span>
-    </div>
-    <div class="desktop-icon" ondblclick="openApp('portraits')">
-      <div class="icon-well" data-soeng-icon="portraits" data-icon-size="28" data-tint="rose"></div>
-      <span>Portraits</span>
-    </div>
-    <div class="desktop-icon" ondblclick="openApp('incident')">
-      <div class="icon-well" data-soeng-icon="incident" data-icon-size="28" data-tint="ink"></div>
-      <span>Incident</span>
+
+    <div class="desktop-icon" ondblclick="openPower()">
+      <div class="icon-well" data-soeng-icon="power" data-icon-size="28" data-tint="rose"></div>
+      <span>Power</span>
     </div>
 
   </div>
@@ -1774,7 +1780,6 @@
   <div class="dock-icon" data-app="terminal" title="Terminal" data-soeng-icon="terminal" data-icon-size="24"></div>
   <div class="dock-icon" data-app="settings" title="Settings" data-soeng-icon="settings" data-icon-size="24"></div>
   <div class="dock-icon" data-app="exhibitions" title="Galleries" data-soeng-icon="exhibitions" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="fable" title="Fable Wall" data-soeng-icon="fable" data-icon-size="24"></div>
 </div>
 
 <!-- Dock Context Menu -->
