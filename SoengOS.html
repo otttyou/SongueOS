@@ -3372,45 +3372,45 @@ const tvChannels = [
   {
     id: 'bunny',
     name: 'Open Cinema',
-    program: 'Big Buck Bunny',
+    program: 'Big Buck Bunny desk',
     genre: 'Film',
-    stream: 'https://media.w3.org/2010/05/bunny/movie.mp4',
+    stream: 'media/open-cinema.mp4',
     youtubeId: 'aqz-KE-bpKQ',
     gradient: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 55%, #dea864 120%)',
   },
   {
     id: 'sintel',
     name: 'Sintel Desk',
-    program: 'Sintel trailer',
+    program: 'Warm violet reel',
     genre: 'Film',
-    stream: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
+    stream: 'media/sintel-desk.mp4',
     youtubeId: 'eRsGyueVLvQ',
     gradient: 'linear-gradient(135deg, #312e81 0%, #1e1b4b 55%, #c4a882 120%)',
   },
   {
     id: 'studio',
     name: 'Studio Reel',
-    program: 'W3C sample reel',
+    program: 'Celadon studio wash',
     genre: 'Short',
-    stream: 'https://media.w3.org/2010/05/video/movie_300.mp4',
+    stream: 'media/studio-reel.mp4',
     youtubeId: 'R6MlUcmOul8',
     gradient: 'linear-gradient(135deg, #134e4a 0%, #065f46 55%, #7db88e 120%)',
   },
   {
     id: 'garden',
     name: 'Garden Desk',
-    program: 'Flower — MDN',
+    program: 'Cinnabar garden light',
     genre: 'Nature',
-    stream: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    stream: 'media/garden-desk.mp4',
     youtubeId: 'jfKfPfyJRdk',
     gradient: 'linear-gradient(135deg, #831843 0%, #500724 55%, #e89a5a 120%)',
   },
   {
     id: 'tram',
     name: 'Tram Desk',
-    program: 'Schlossbergbahn',
+    program: 'Night tram glow',
     genre: 'Travel',
-    stream: 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/87/Schlossbergbahn.webm/Schlossbergbahn.webm.480p.vp9.webm',
+    stream: 'media/tram-desk.mp4',
     youtubeId: '21X5lGlDOfg',
     gradient: 'linear-gradient(135deg, #44403c 0%, #1c1917 55%, #dea864 120%)',
   },
@@ -3486,10 +3486,10 @@ function initTV(id) {
 
   function afterFade(fn) {
     scrim.classList.add('on');
-    window.setTimeout(() => {
+    window.requestAnimationFrame(() => {
       fn();
-      window.requestAnimationFrame(() => scrim.classList.remove('on'));
-    }, 180);
+      window.setTimeout(() => scrim.classList.remove('on'), 40);
+    });
   }
 
   function mountStream(src, autoplay) {
@@ -3498,7 +3498,8 @@ function initTV(id) {
     video.className = 'tv-video';
     video.controls = true;
     video.playsInline = true;
-    video.preload = 'metadata';
+    video.loop = true;
+    video.preload = 'auto';
     video.src = src;
     screen.appendChild(video);
     activeMedia = video;
@@ -3506,16 +3507,22 @@ function initTV(id) {
     const reveal = () => video.classList.add('show');
     video.addEventListener('loadeddata', reveal, { once: true });
     video.addEventListener('error', () => {
-      statusEl.textContent = 'Stream stalled — try Tune YT or another desk';
+      statusEl.textContent = 'Local reel failed — try Tune YT';
       video.classList.remove('show');
     });
     if (autoplay) {
+      video.muted = true;
       const playPromise = video.play();
-      if (playPromise?.catch) playPromise.catch(() => {
-        statusEl.textContent = 'Click Play — the browser wants a gesture';
-      });
+      if (playPromise?.then) {
+        playPromise.then(() => {
+          video.muted = false;
+          statusEl.textContent = `Watching ${programEl.textContent}`;
+        }).catch(() => {
+          statusEl.textContent = 'Click Play — the browser wants a gesture';
+        });
+      }
     }
-    window.setTimeout(reveal, 80);
+    window.setTimeout(reveal, 60);
   }
 
   function mountYoutube(videoId, autoplay) {

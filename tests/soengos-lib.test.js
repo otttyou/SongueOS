@@ -235,7 +235,7 @@ test('SoengOS.html plays live music, YouTube TV, and framed web pages', () => {
   assert.match(html, /AudioContext/);
   assert.match(html, /youtube-nocookie/);
   assert.match(html, /data-tv-url/);
-  assert.match(html, /media\.w3\.org\/2010\/05\/bunny\/movie\.mp4/);
+  assert.match(html, /media\/open-cinema\.mp4/);
   assert.match(html, /function renderBrowserFrame/);
   assert.match(html, /wikipedia\.org\/api\/rest_v1\/page\/summary/);
   assert.match(html, /sandbox = 'allow-scripts/);
