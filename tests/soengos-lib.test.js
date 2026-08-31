@@ -219,8 +219,13 @@ test('SoengOS.html exposes media and productivity apps', () => {
   assert.match(html, /function openTV/);
 });
 
-test('SoengOS.html ships the Fable theme', () => {
+test('SoengOS.html ships Kengo paper studio tokens', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  assert.match(html, /--wall: #f3ebe0/);
+  assert.match(html, /data-tint="peach"/);
+  assert.match(html, /boot-mark/);
+  assert.match(html, /logo-sub/);
+  assert.match(html, /kengoMist/);
   for (const token of ['--espresso: #181410', '--cream: #f6f1e4', 'id="radiant-glow"', '"Helvetica Neue"']) {
     assert.ok(html.includes(token), token);
   }

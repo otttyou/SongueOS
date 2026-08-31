@@ -119,12 +119,13 @@ Useful controls (both sittings):
 
 ## Visual style
 
-v1 Fable sitting is a **paper studio**, not a black terminal room:
+v1 Fable sitting is a **paper studio**, not a black terminal room — drawn from [Kengo Fable](https://www.kengoworks.com/fable), [Cool S](https://www.kengoworks.com/work/cool-s), and the portrait / incident work pages:
 
-- Wall: warm paper `#f3ebe0` with peach mist — same light field as [Kengo Fable](https://www.kengoworks.com/fable)
-- Ink: espresso `#181410` for type and wells, not the desktop
-- Chrome: hairline borders, 18–24px radii, pill dock / top bar / taskbar
-- Motion: 420ms ease, windows lift in, dock icons float
+- Wall: warm paper `#f3ebe0` with drifting peach mist — ink stays in the content
+- Palette: cream, blush, sage, rose, clay accents on icon tiles (Fable wall colours)
+- Chrome: hairline borders, 18–28px radii, pill dock / top bar / taskbar
+- Type: Fraunces display + lowercase Helvetica labels (`soengos — paper studio`)
+- Motion: 420ms ease, soft overlay fades, boot ink ring with seal dot
 
 v2 still points at rice paper, celadon, and the Song desk. Both sittings stay SoengOS.
 

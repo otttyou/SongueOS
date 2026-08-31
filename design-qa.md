@@ -1,8 +1,8 @@
 # SoengOS Paper Studio Design QA
 
-**Source visual truth:** kengoworks.com/fable, /work/cool-s, /work/self-portraits, /work/hugging-face-incident — paper walls, hairline chrome, rounded cards, dark only as content.
+**Source visual truth:** [kengoworks.com/fable](https://www.kengoworks.com/fable), [cool-s](https://www.kengoworks.com/work/cool-s), [self-portraits](https://www.kengoworks.com/work/self-portraits), [hugging-face-incident](https://www.kengoworks.com/work/hugging-face-incident) — cream paper, hairline chrome, tinted tiles, Fraunces display, graph grid, dark only inside wells.
 
-**Implementation:** `SoengOS.html` on `cursor/fable-paper-studio-f72d`, captured in the cloud browser at `http://127.0.0.1:8000/SoengOS.html`.
+**Implementation:** `SoengOS.html` on `cursor/kengo-aesthetic-f72d`.
 
 **Viewport:** Desktop hybrid, Fable tokens, Files / Terminal / Settings / launcher.
 
