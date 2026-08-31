@@ -89,6 +89,18 @@ python3 -m http.server 8000
 
 A compatibility redirect lives at `soengos-workflow.html`.
 
+### GitHub Pages demo
+
+The `Deploy GitHub Pages` workflow publishes the v1 desk on every push to `main`.
+
+**One-time setup (repo owner):** GitHub Actions cannot create a Pages site — `GITHUB_TOKEN` is not allowed to administer the repository. Before the first deploy succeeds:
+
+1. Open **Settings → Pages**
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**
+3. Re-run the workflow (or push to `main`)
+
+After that, the site is served from the filtered `_site/` artifact (`SoengOS.html`, `media/`, shared JS, etc.). URL: `https://otttyou.github.io/SongueOS/SoengOS.html` (or your org/user Pages root).
+
 ### v2 — React desktop
 
 The v2 sitting is the React rewrite of this contract (TanStack Start, Song materials). Source snapshots live in `web/`. The original HTML prototype stays at the repo root so the interaction contract remains cloneable.
