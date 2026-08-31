@@ -93,6 +93,12 @@ A compatibility redirect lives at `soengos-workflow.html`.
 
 The v2 sitting is the React rewrite of this contract (TanStack Start, Song materials). Source snapshots live in `web/`. The original HTML prototype stays at the repo root so the interaction contract remains cloneable.
 
+The v1 desk now plays sound, tunes YouTube, and loads live pages:
+
+- **Music / Podcast** — Web Audio desk. Play is a real speaker, not a fake bar.
+- **TV** — Theater desk with local reels under `media/` (same-origin, always playable). Click a chip to tune with a soft fade. Prev / Next / Space / Theater. Optional YouTube paste still available.
+- **Browser** — `http(s)` opens in a sandboxed frame. Wikipedia summaries load live. YouTube watch links play. Sites that send `X-Frame-Options` stay blank in-frame; use **Open tab**.
+
 Useful controls (both sittings):
 
 - `Ctrl/Cmd + K`: Spotlight / command palette

@@ -679,10 +679,12 @@
     border-radius: var(--radius-sm);
   }
   .browser-toolbar .url-bar:focus { border-color: var(--g5); }
+  .browser-app { display:flex; flex-direction:column; height:100%; min-height:0; }
   .browser-content {
     flex: 1;
+    min-height: 0;
     background: var(--paper);
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: stretch; justify-content: center;
   }
   .browser-page {
     width: 100%; height: 100%;
@@ -691,11 +693,87 @@
     background: var(--cream);
     color: var(--gc);
     font-family: var(--sans);
+    overflow: auto;
   }
+  .browser-page.live { align-items: stretch; justify-content: stretch; padding: 0; gap: 0; background: #fff; }
+  .browser-page.wiki { align-items: flex-start; justify-content: flex-start; padding: 22px 26px; }
   .browser-page h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
   .browser-page p { font-size: 12px; color: var(--g7); max-width: 400px; text-align: center; line-height: 1.6; }
+  .browser-page.wiki h2, .browser-page.wiki p { text-align: left; max-width: 52rem; }
+  .browser-page.wiki p { font-size: 13px; line-height: 1.7; color: var(--gc); }
+  .browser-frame { width: 100%; height: 100%; border: 0; background: #fff; }
   .browser-bookmarks { display:flex; gap:6px; padding:6px 8px; border-bottom:1px solid var(--g3); background:var(--g1); overflow-x:auto; }
   .browser-status { margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--g7); }
+  .tv-url { flex:1; min-width:140px; height:28px; background:rgba(255,252,246,0.7); border:1px solid rgba(24,20,16,0.10); color:var(--gc); padding:0 12px; font-family:var(--sans); font-size:11px; outline:none; border-radius:var(--radius-pill); }
+  .tv-desk { display:flex; flex-direction:column; height:100%; min-height:0; background:linear-gradient(180deg, #f7f1e6 0%, #efe6d8 100%); }
+  .tv-toolbar {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    padding:12px 14px; border-bottom:1px solid rgba(24,20,16,0.08);
+  }
+  .tv-toolbar button {
+    height:28px; padding:0 14px; border:none; cursor:pointer;
+    border-radius:var(--radius-pill); background:rgba(24,20,16,0.06); color:var(--ink);
+    font-family:var(--sans); font-size:11px;
+    transition:transform 280ms cubic-bezier(0.22,1,0.36,1), background 280ms ease, color 280ms ease, box-shadow 280ms ease;
+  }
+  .tv-toolbar button:hover { transform:translateY(-1px); background:rgba(24,20,16,0.10); box-shadow:0 8px 18px rgba(70,42,24,0.10); }
+  .tv-toolbar button.primary { background:var(--espresso); color:var(--cream); }
+  .tv-toolbar button.primary:hover { background:#2a221b; color:var(--cream); }
+  .tv-status { margin-left:auto; color:var(--g7); font-size:11px; white-space:nowrap; }
+  .tv-stage { flex:1; min-height:0; display:flex; flex-direction:column; padding:14px; gap:14px; }
+  .tv-screen {
+    position:relative; flex:1; min-height:220px; border:1px solid rgba(24,20,16,0.08);
+    background:#120e0b; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; border-radius:22px; box-shadow:0 18px 40px rgba(70,42,24,0.14);
+    transition:transform 480ms cubic-bezier(0.22,1,0.36,1), box-shadow 480ms ease;
+  }
+  .tv-screen.theater { border-radius:18px; box-shadow:0 28px 60px rgba(70,42,24,0.22); }
+  .tv-screen::before {
+    content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.55));
+    opacity:1; transition:opacity 420ms ease;
+  }
+  .tv-screen.has-player::before { opacity:0; }
+  .tv-screen-label { position:relative; z-index:2; text-align:center; padding:20px; transition:opacity 360ms ease, transform 360ms ease; }
+  .tv-screen.has-player .tv-screen-label { opacity:0; transform:translateY(8px); pointer-events:none; }
+  .tv-screen-label h2 { font-family:var(--display); font-size:22px; color:#f6f1e4; margin-bottom:6px; font-weight:400; }
+  .tv-screen-label p { font-size:12px; color:rgba(246,241,228,0.65); }
+  .tv-live {
+    position:absolute; top:14px; right:14px; z-index:4;
+    background:rgba(246,241,228,0.92); color:#181410; font-size:9px;
+    padding:4px 10px; letter-spacing:0.08em; font-weight:600;
+    border-radius:var(--radius-pill); box-shadow:0 6px 16px rgba(0,0,0,0.18);
+  }
+  .tv-scrim {
+    position:absolute; inset:0; z-index:3; background:#120e0b;
+    opacity:0; pointer-events:none; transition:opacity 420ms ease;
+  }
+  .tv-scrim.on { opacity:1; }
+  .tv-video, .tv-frame {
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+    background:#000; object-fit:contain; opacity:0;
+    transition:opacity 480ms ease;
+  }
+  .tv-video.show, .tv-frame.show { opacity:1; }
+  .tv-rail {
+    display:flex; gap:10px; overflow-x:auto; padding:2px 2px 6px;
+    scroll-snap-type:x mandatory; scrollbar-width:thin;
+  }
+  .tv-chip {
+    flex:0 0 168px; scroll-snap-align:start; cursor:pointer;
+    border:1px solid rgba(24,20,16,0.08); border-radius:18px;
+    background:rgba(255,252,246,0.72); padding:10px; text-align:left;
+    transition:transform 320ms cubic-bezier(0.22,1,0.36,1), box-shadow 320ms ease, border-color 320ms ease, background 320ms ease;
+  }
+  .tv-chip:hover { transform:translateY(-4px) scale(1.02); box-shadow:0 14px 28px rgba(70,42,24,0.12); }
+  .tv-chip.active { border-color:rgba(24,20,16,0.28); background:#fff; box-shadow:0 16px 32px rgba(70,42,24,0.14); transform:translateY(-2px); }
+  .tv-chip-art {
+    height:72px; border-radius:12px; margin-bottom:8px;
+    display:flex; align-items:flex-end; justify-content:flex-start; padding:8px;
+    color:rgba(246,241,228,0.9); font-size:10px; letter-spacing:0.04em;
+  }
+  .tv-chip strong { display:block; font-size:12px; color:var(--ink); margin-bottom:2px; }
+  .tv-chip span { display:block; font-size:10px; color:var(--g7); line-height:1.4; }
 
   /* ── Media apps (Notes, Music, Photos, Podcast, TV) ── */
   .media-app { display:flex; flex-direction:column; height:100%; background:var(--g1); }
@@ -801,25 +879,6 @@
   .podcast-info, .tv-info { flex:1; }
   .podcast-info h4, .tv-info h4 { font-size:12px; color:var(--white); margin-bottom:4px; }
   .podcast-info p, .tv-info p { font-size:10px; color:var(--g7); line-height:1.5; }
-  .tv-screen {
-    aspect-ratio:16/9; border:1px solid var(--g3); background:#000;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    margin-bottom:16px; position:relative; overflow:hidden;
-    border-radius:var(--radius-lg);
-  }
-  .tv-screen::before {
-    content:''; position:absolute; inset:0;
-    background:linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.8));
-  }
-  .tv-screen-label { position:relative; z-index:1; text-align:center; }
-  .tv-screen-label h2 { font-size:18px; color:var(--white); margin-bottom:6px; }
-  .tv-screen-label p { font-size:11px; color:var(--ga); }
-  .tv-live {
-    position:absolute; top:12px; right:12px; z-index:2;
-    background:#f6f1e4; color:#181410; font-size:9px;
-    padding:2px 8px; letter-spacing:1px; font-weight:600;
-    border-radius:var(--radius-pill);
-  }
   .native-card { border:1px solid var(--g3); background:var(--g1); padding:10px; margin-top:8px; }
   .native-card { border-radius:var(--radius-md); }
   .native-card strong { color:var(--white); font-weight:500; }
@@ -836,12 +895,15 @@
     border: 2px solid var(--espresso);
     box-shadow: var(--shadow-soft);
     z-index: 50000;
-    display: none;
+    display: flex;
     flex-direction: column;
     overflow: hidden;
     border-radius: var(--radius-lg);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
-  #cmd-palette.open { display: flex; }
+  #cmd-palette.open { opacity: 1; visibility: visible; pointer-events: auto; }
   #cmd-palette input {
     width: 100%; height: 44px;
     background: transparent;
@@ -883,13 +945,16 @@
     position: fixed;
     inset: 0;
     z-index: 55000;
-    display: none;
+    display: flex;
     align-items: flex-start;
     justify-content: center;
     padding-top: 72px;
     background: rgba(24, 20, 16, 0.56);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
-  #app-launcher.open { display: flex; }
+  #app-launcher.open { opacity: 1; visibility: visible; pointer-events: auto; }
   .app-launcher-panel {
     width: min(640px, calc(100vw - 32px));
     max-height: calc(100vh - 116px);
@@ -1262,6 +1327,49 @@
   #ctx-menu { border: var(--hairline); }
   .ctx-item:hover { background: rgba(24, 20, 16, 0.06); color: var(--ink); }
   .ctx-sep { height: 1px; background: rgba(24, 20, 16, 0.08); }
+
+  /* Soft shell motion — overlays and windows should float, not snap */
+  #app-launcher {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), visibility 360ms;
+  }
+  #app-launcher.open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+  #app-launcher .app-launcher-panel {
+    transform: translateY(14px) scale(0.98);
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #app-launcher.open .app-launcher-panel { transform: translateY(0) scale(1); }
+  #cmd-palette {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(10px) scale(0.98);
+    transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1), visibility 320ms;
+  }
+  #cmd-palette.open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  .window {
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 360ms ease, transform 360ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 360ms ease;
+  }
+  .media-toolbar button,
+  .fm-action,
+  .browser-action,
+  .settings-action-btn {
+    border-radius: var(--radius-pill) !important;
+  }
+  .toast {
+    transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1), transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 </style>
 </head>
 <body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
@@ -1901,7 +2009,15 @@ function setTaskbarActive(id) {
 
 function closeWindow(id) {
   const win = document.getElementById('win-' + id);
-  if (win) { win.remove(); delete openWindows[id]; }
+  if (win) {
+    win.dispatchEvent(new CustomEvent('soeng-close'));
+    if (win.querySelector('[data-music-app], [data-podcast-app]')) soengTone.stop();
+    win.querySelectorAll('video').forEach(video => {
+      try { video.pause(); video.removeAttribute('src'); video.load(); } catch (e) {}
+    });
+    win.remove();
+    delete openWindows[id];
+  }
   removeFromTaskbar(id);
   updateDockIndicators();
 }
@@ -2771,16 +2887,173 @@ function initNotes(id) {
   renderEditor();
 }
 
+// ── Live tone desk (Web Audio — no fake progress) ──
+const soengTone = (() => {
+  let ctx = null;
+  const live = [];
+  let ticker = null;
+
+  function context() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ctx) ctx = new AC();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function keep(node) {
+    live.push(node);
+    return node;
+  }
+
+  function silence() {
+    live.splice(0).forEach(node => {
+      try { node.stop?.(); } catch (e) {}
+      try { node.disconnect?.(); } catch (e) {}
+    });
+    if (ticker) {
+      clearInterval(ticker);
+      ticker = null;
+    }
+  }
+
+  function patches(name, c, dest) {
+    if (name === 'rain') {
+      const buffer = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const noise = keep(c.createBufferSource());
+      noise.buffer = buffer;
+      noise.loop = true;
+      const filter = keep(c.createBiquadFilter());
+      filter.type = 'highpass';
+      filter.frequency.value = 1400;
+      const g = keep(c.createGain());
+      g.gain.value = 0.05;
+      noise.connect(filter);
+      filter.connect(g);
+      g.connect(dest);
+      noise.start();
+      const pad = keep(c.createOscillator());
+      pad.type = 'triangle';
+      pad.frequency.value = 110;
+      const pg = keep(c.createGain());
+      pg.gain.value = 0.03;
+      pad.connect(pg);
+      pg.connect(dest);
+      pad.start();
+      return;
+    }
+    if (name === 'drive') {
+      const kick = keep(c.createOscillator());
+      kick.type = 'sine';
+      kick.frequency.value = 52;
+      const kg = keep(c.createGain());
+      kg.gain.value = 0.08;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 1.6;
+      const lg = keep(c.createGain());
+      lg.gain.value = 0.05;
+      lfo.connect(lg);
+      lg.connect(kg.gain);
+      kick.connect(kg);
+      kg.connect(dest);
+      kick.start();
+      lfo.start();
+      const lead = keep(c.createOscillator());
+      lead.type = 'sawtooth';
+      lead.frequency.value = 196;
+      const lp = keep(c.createBiquadFilter());
+      lp.type = 'lowpass';
+      lp.frequency.value = 720;
+      const lg2 = keep(c.createGain());
+      lg2.gain.value = 0.025;
+      lead.connect(lp);
+      lp.connect(lg2);
+      lg2.connect(dest);
+      lead.start();
+      return;
+    }
+    if (name === 'voice') {
+      const osc = keep(c.createOscillator());
+      osc.type = 'sawtooth';
+      osc.frequency.value = 148;
+      const filter = keep(c.createBiquadFilter());
+      filter.type = 'bandpass';
+      filter.frequency.value = 620;
+      filter.Q.value = 4;
+      const g = keep(c.createGain());
+      g.gain.value = 0.035;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 2.4;
+      const lg = keep(c.createGain());
+      lg.gain.value = 80;
+      lfo.connect(lg);
+      lg.connect(filter.frequency);
+      osc.connect(filter);
+      filter.connect(g);
+      g.connect(dest);
+      osc.start();
+      lfo.start();
+      return;
+    }
+    const notes = name === 'focus' ? [196, 247, 294] : name === 'dock' ? [131, 196, 262] : [220, 247, 277, 330];
+    notes.forEach((freq, i) => {
+      const osc = keep(c.createOscillator());
+      osc.type = name === 'focus' ? 'square' : 'sine';
+      osc.frequency.value = freq;
+      const g = keep(c.createGain());
+      g.gain.value = 0;
+      const lfo = keep(c.createOscillator());
+      lfo.frequency.value = 0.07 + i * 0.04;
+      const lg = keep(c.createGain());
+      lg.gain.value = name === 'focus' ? 0.018 : 0.035;
+      lfo.connect(lg);
+      lg.connect(g.gain);
+      osc.connect(g);
+      g.connect(dest);
+      osc.start();
+      lfo.start();
+    });
+  }
+
+  function play(name, seconds, onProgress) {
+    const c = context();
+    if (!c) {
+      onProgress?.(0, 0, false);
+      return false;
+    }
+    silence();
+    const dest = keep(c.createGain());
+    dest.gain.value = 0.95;
+    dest.connect(c.destination);
+    patches(name, c, dest);
+    const startedAt = c.currentTime;
+    ticker = setInterval(() => {
+      const elapsed = Math.min(seconds, c.currentTime - startedAt);
+      const progress = seconds ? elapsed / seconds : 0;
+      onProgress?.(progress, elapsed, true);
+      if (progress >= 1) {
+        silence();
+        onProgress?.(1, seconds, false);
+      }
+    }, 200);
+    return true;
+  }
+
+  return { play, stop: silence };
+})();
+
 // ── Music ──
 const musicLibrary = [
-  { id: '1', title: 'Morning Zen', artist: 'Soeng Collective', duration: 214 },
-  { id: '2', title: 'Terminal Rain', artist: 'Kernel Sound', duration: 198 },
-  { id: '3', title: 'Dock Ambient', artist: 'Hybrid Studio', duration: 256 },
-  { id: '4', title: 'Focus Mode', artist: 'Engineering Edition', duration: 302 },
-  { id: '5', title: 'Night Drive', artist: 'Soeng Collective', duration: 241 },
+  { id: '1', title: 'Morning Zen', artist: 'Soeng Collective', duration: 214, patch: 'zen' },
+  { id: '2', title: 'Terminal Rain', artist: 'Kernel Sound', duration: 198, patch: 'rain' },
+  { id: '3', title: 'Dock Ambient', artist: 'Hybrid Studio', duration: 256, patch: 'dock' },
+  { id: '4', title: 'Focus Mode', artist: 'Engineering Edition', duration: 302, patch: 'focus' },
+  { id: '5', title: 'Night Drive', artist: 'Soeng Collective', duration: 241, patch: 'drive' },
 ];
 
-let musicState = { trackId: musicLibrary[0].id, playing: false, progress: 0, timer: null };
+let musicState = { trackId: musicLibrary[0].id, playing: false, progress: 0 };
 
 function formatDuration(seconds) {
   const m = Math.floor(seconds / 60);
@@ -2828,13 +3101,6 @@ function initMusic(id) {
     return musicLibrary.find(t => t.id === musicState.trackId) || musicLibrary[0];
   }
 
-  function stopTimer() {
-    if (musicState.timer) {
-      clearInterval(musicState.timer);
-      musicState.timer = null;
-    }
-  }
-
   function render() {
     const track = currentTrack();
     titleEl.textContent = track.title;
@@ -2842,7 +3108,7 @@ function initMusic(id) {
     const elapsed = Math.floor(track.duration * musicState.progress);
     barEl.style.width = `${musicState.progress * 100}%`;
     timeEl.textContent = `${formatDuration(elapsed)} / ${formatDuration(track.duration)}`;
-    statusEl.textContent = musicState.playing ? 'Playing' : 'Paused';
+    statusEl.textContent = musicState.playing ? 'Playing through speakers' : 'Paused';
     playBtn.textContent = musicState.playing ? 'Pause' : 'Play';
     playBtn.classList.toggle('active', musicState.playing);
     list.textContent = '';
@@ -2857,36 +3123,43 @@ function initMusic(id) {
       row.addEventListener('click', () => {
         musicState.trackId = item.id;
         musicState.progress = 0;
-        render();
-        if (musicState.playing) startTimer();
+        if (musicState.playing) startPlayback();
+        else render();
       });
       list.appendChild(row);
     });
   }
 
-  function startTimer() {
-    stopTimer();
+  function startPlayback() {
+    const track = currentTrack();
     musicState.playing = true;
-    musicState.timer = setInterval(() => {
-      const track = currentTrack();
-      musicState.progress += 1 / track.duration;
-      if (musicState.progress >= 1) {
+    const started = soengTone.play(track.patch, track.duration, (progress, elapsed, alive) => {
+      if (musicState.trackId !== track.id) return;
+      musicState.progress = progress;
+      if (!alive && progress >= 1) {
         const idx = musicLibrary.findIndex(t => t.id === track.id);
         musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
         musicState.progress = 0;
+        startPlayback();
+        return;
       }
+      musicState.playing = alive;
       render();
-    }, 1000);
+    });
+    if (!started) {
+      musicState.playing = false;
+      showToast('This browser blocked audio. Click Play again after a gesture.');
+    }
     render();
   }
 
   function togglePlay() {
     if (musicState.playing) {
       musicState.playing = false;
-      stopTimer();
+      soengTone.stop();
       render();
     } else {
-      startTimer();
+      startPlayback();
     }
   }
 
@@ -2895,15 +3168,15 @@ function initMusic(id) {
     const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
     musicState.trackId = musicLibrary[(idx - 1 + musicLibrary.length) % musicLibrary.length].id;
     musicState.progress = 0;
-    render();
-    if (musicState.playing) startTimer();
+    if (musicState.playing) startPlayback();
+    else render();
   });
   win.querySelector('[data-music-action="next"]').addEventListener('click', () => {
     const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
     musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
     musicState.progress = 0;
-    render();
-    if (musicState.playing) startTimer();
+    if (musicState.playing) startPlayback();
+    else render();
   });
 
   render();
@@ -2999,13 +3272,13 @@ function initPhotos(id) {
 
 // ── Podcast ──
 const podcastEpisodes = [
-  { id: '1', title: 'Designing a Hybrid Desktop', show: 'SoengOS Weekly', duration: 1820, summary: 'How Mac-like polish and Linux-like power share one window manager contract.' },
-  { id: '2', title: 'From HTML Shell to Native Runtime', show: 'Engineering Minimalism', duration: 2145, summary: 'Binding the desktop contract to Wayland, portals, and system services.' },
-  { id: '3', title: 'Focus Mode and Keyboard Model', show: 'SoengOS Weekly', duration: 1560, summary: 'Command palette, shortcuts, and distraction-free workflows.' },
-  { id: '4', title: 'Media Apps on SoengOS', show: 'Prototype Lab', duration: 1680, summary: 'Notes, Music, Photos, Podcast, and TV as first-class desktop windows.' },
+  { id: '1', title: 'Designing a Hybrid Desktop', show: 'SoengOS Weekly', duration: 1820, summary: 'How Mac-like polish and Linux-like power share one window manager contract.', patch: 'voice' },
+  { id: '2', title: 'From HTML Shell to Native Runtime', show: 'Engineering Minimalism', duration: 2145, summary: 'Binding the desktop contract to Wayland, portals, and system services.', patch: 'dock' },
+  { id: '3', title: 'Focus Mode and Keyboard Model', show: 'SoengOS Weekly', duration: 1560, summary: 'Command palette, shortcuts, and distraction-free workflows.', patch: 'focus' },
+  { id: '4', title: 'Media Apps on SoengOS', show: 'Prototype Lab', duration: 1680, summary: 'Notes, Music, Photos, Podcast, and TV as first-class desktop windows.', patch: 'zen' },
 ];
 
-let podcastState = { episodeId: podcastEpisodes[0].id, playing: false, progress: 0, timer: null };
+let podcastState = { episodeId: podcastEpisodes[0].id, playing: false, progress: 0 };
 
 function openPodcast(options = {}) {
   const html = `
@@ -3034,17 +3307,10 @@ function initPodcast(id) {
     return podcastEpisodes.find(e => e.id === podcastState.episodeId) || podcastEpisodes[0];
   }
 
-  function stopTimer() {
-    if (podcastState.timer) {
-      clearInterval(podcastState.timer);
-      podcastState.timer = null;
-    }
-  }
-
   function render() {
     const episode = currentEpisode();
     statusEl.textContent = podcastState.playing
-      ? `Playing — ${episode.show}`
+      ? `On air — ${episode.show}`
       : `Paused — ${formatDuration(Math.floor(episode.duration * podcastState.progress))} / ${formatDuration(episode.duration)}`;
     playBtn.textContent = podcastState.playing ? 'Pause' : 'Play';
     playBtn.classList.toggle('active', podcastState.playing);
@@ -3066,24 +3332,26 @@ function initPodcast(id) {
       row.addEventListener('click', () => {
         podcastState.episodeId = item.id;
         podcastState.progress = 0;
-        render();
-        if (podcastState.playing) {
-          stopTimer();
-          podcastState.timer = setInterval(tick, 1000);
-        }
+        if (podcastState.playing) startEpisode();
+        else render();
       });
       list.appendChild(row);
     });
   }
 
-  function tick() {
+  function startEpisode() {
     const episode = currentEpisode();
-    podcastState.progress += 1 / episode.duration;
-    if (podcastState.progress >= 1) {
+    podcastState.playing = true;
+    const started = soengTone.play(episode.patch, episode.duration, (progress, elapsed, alive) => {
+      if (podcastState.episodeId !== episode.id) return;
+      podcastState.progress = progress;
+      podcastState.playing = alive && progress < 1;
+      if (!alive && progress >= 1) showToast(`Finished: ${episode.title}`);
+      render();
+    });
+    if (!started) {
       podcastState.playing = false;
-      podcastState.progress = 1;
-      stopTimer();
-      showToast(`Finished: ${episode.title}`);
+      showToast('This browser blocked audio. Click Play again after a gesture.');
     }
     render();
   }
@@ -3091,17 +3359,16 @@ function initPodcast(id) {
   win.querySelector('[data-podcast-action="play"]').addEventListener('click', () => {
     if (podcastState.playing) {
       podcastState.playing = false;
-      stopTimer();
+      soengTone.stop();
+      render();
     } else {
-      podcastState.playing = true;
-      podcastState.timer = setInterval(tick, 1000);
+      startEpisode();
     }
-    render();
   });
   win.querySelector('[data-podcast-action="stop"]').addEventListener('click', () => {
     podcastState.playing = false;
     podcastState.progress = 0;
-    stopTimer();
+    soengTone.stop();
     render();
   });
 
@@ -3110,36 +3377,88 @@ function initPodcast(id) {
 
 // ── TV ──
 const tvChannels = [
-  { id: 'news', name: 'Soeng News', program: 'Engineering Brief', genre: 'News', gradient: 'linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%)' },
-  { id: 'nature', name: 'Zen Channel', program: 'Garden Walk', genre: 'Nature', gradient: 'linear-gradient(180deg, #134e4a 0%, #065f46 100%)' },
-  { id: 'tech', name: 'Dev TV', program: 'Native Runtime Deep Dive', genre: 'Technology', gradient: 'linear-gradient(180deg, #312e81 0%, #1e1b4b 100%)' },
-  { id: 'music', name: 'Soeng Music TV', program: 'Live Sessions', genre: 'Music', gradient: 'linear-gradient(180deg, #831843 0%, #500724 100%)' },
-  { id: 'classic', name: 'Archive', program: 'Classic Demos', genre: 'Retro', gradient: 'linear-gradient(180deg, #44403c 0%, #1c1917 100%)' },
+  {
+    id: 'bunny',
+    name: 'Open Cinema',
+    program: 'Big Buck Bunny desk',
+    genre: 'Film',
+    stream: 'media/open-cinema.mp4',
+    youtubeId: 'aqz-KE-bpKQ',
+    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 55%, #dea864 120%)',
+  },
+  {
+    id: 'sintel',
+    name: 'Sintel Desk',
+    program: 'Warm violet reel',
+    genre: 'Film',
+    stream: 'media/sintel-desk.mp4',
+    youtubeId: 'eRsGyueVLvQ',
+    gradient: 'linear-gradient(135deg, #312e81 0%, #1e1b4b 55%, #c4a882 120%)',
+  },
+  {
+    id: 'studio',
+    name: 'Studio Reel',
+    program: 'Celadon studio wash',
+    genre: 'Short',
+    stream: 'media/studio-reel.mp4',
+    youtubeId: 'R6MlUcmOul8',
+    gradient: 'linear-gradient(135deg, #134e4a 0%, #065f46 55%, #7db88e 120%)',
+  },
+  {
+    id: 'garden',
+    name: 'Garden Desk',
+    program: 'Cinnabar garden light',
+    genre: 'Nature',
+    stream: 'media/garden-desk.mp4',
+    youtubeId: 'jfKfPfyJRdk',
+    gradient: 'linear-gradient(135deg, #831843 0%, #500724 55%, #e89a5a 120%)',
+  },
+  {
+    id: 'tram',
+    name: 'Tram Desk',
+    program: 'Night tram glow',
+    genre: 'Travel',
+    stream: 'media/tram-desk.mp4',
+    youtubeId: '21X5lGlDOfg',
+    gradient: 'linear-gradient(135deg, #44403c 0%, #1c1917 55%, #dea864 120%)',
+  },
 ];
 
-let tvState = { channelId: tvChannels[0].id, watching: false };
+let tvState = {
+  channelId: tvChannels[0].id,
+  watching: false,
+  theater: false,
+  customId: '',
+  sourceKey: '',
+};
 
 function openTV(options = {}) {
   const html = `
-    <div class="media-app" data-tv-app>
-      <div class="media-toolbar">
-        <button data-tv-action="watch">Watch</button>
-        <button data-tv-action="stop">Stop</button>
-        <span data-tv-status style="margin-left:auto;color:var(--g7);">Channel guide</span>
+    <div class="tv-desk" data-tv-app tabindex="0">
+      <div class="tv-toolbar">
+        <button class="primary" data-tv-action="play">Play</button>
+        <button data-tv-action="pause">Pause</button>
+        <button data-tv-action="prev">Prev</button>
+        <button data-tv-action="next">Next</button>
+        <button data-tv-action="theater">Theater</button>
+        <input class="tv-url" data-tv-url placeholder="Paste a YouTube URL…" spellcheck="false" />
+        <button data-tv-action="tune">Tune YT</button>
+        <span class="tv-status" data-tv-status>Pick a desk</span>
       </div>
-      <div class="media-main">
+      <div class="tv-stage">
         <div class="tv-screen" data-tv-screen>
-          <div class="tv-live" data-tv-live hidden>LIVE</div>
+          <div class="tv-scrim" data-tv-scrim></div>
+          <div class="tv-live" data-tv-live hidden>ON AIR</div>
           <div class="tv-screen-label">
             <h2 data-tv-program>—</h2>
             <p data-tv-channel>—</p>
           </div>
         </div>
-        <div data-tv-list></div>
+        <div class="tv-rail" data-tv-list></div>
       </div>
     </div>
   `;
-  const id = createWindow('tv', 'TV', 620, 500, html, { ...options, appName: 'tv' });
+  const id = createWindow('tv', 'TV', 760, 620, html, { ...options, appName: 'tv' });
   initTV(id);
 }
 
@@ -3147,60 +3466,239 @@ function initTV(id) {
   const win = document.getElementById('win-' + id);
   if (!win || win.dataset.tvReady === '1') return;
   win.dataset.tvReady = '1';
+  const root = win.querySelector('[data-tv-app]');
   const screen = win.querySelector('[data-tv-screen]');
+  const scrim = win.querySelector('[data-tv-scrim]');
   const liveEl = win.querySelector('[data-tv-live]');
   const programEl = win.querySelector('[data-tv-program]');
   const channelEl = win.querySelector('[data-tv-channel]');
   const statusEl = win.querySelector('[data-tv-status]');
   const list = win.querySelector('[data-tv-list]');
+  const urlInput = win.querySelector('[data-tv-url]');
+  const playBtn = win.querySelector('[data-tv-action="play"]');
+  let activeMedia = null;
 
   function currentChannel() {
     return tvChannels.find(c => c.id === tvState.channelId) || tvChannels[0];
   }
 
-  function render() {
-    const channel = currentChannel();
-    screen.style.background = channel.gradient;
-    programEl.textContent = channel.program;
-    channelEl.textContent = `${channel.name} · ${channel.genre}`;
-    liveEl.hidden = !tvState.watching;
-    statusEl.textContent = tvState.watching ? `Watching ${channel.name}` : 'Channel guide';
-    list.textContent = '';
-    tvChannels.forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'tv-channel' + (item.id === channel.id ? ' active' : '');
-      const art = document.createElement('div');
-      art.className = 'tv-art';
-      art.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12"/><line x1="12" y1="17" x2="12" y2="20"/></svg>';
-      const info = document.createElement('div');
-      info.className = 'tv-info';
-      const h4 = document.createElement('h4');
-      h4.textContent = item.name;
-      const p = document.createElement('p');
-      p.textContent = `${item.program} · ${item.genre}`;
-      info.append(h4, p);
-      row.append(art, info);
-      row.addEventListener('click', () => {
-        tvState.channelId = item.id;
-        render();
-        if (tvState.watching) showToast(`Switched to ${item.name}`);
-      });
-      list.appendChild(row);
+  function clearMedia() {
+    if (activeMedia) {
+      try { activeMedia.pause?.(); } catch (e) {}
+      activeMedia.remove();
+      activeMedia = null;
+    }
+    screen.querySelectorAll('.tv-video, .tv-frame').forEach(el => el.remove());
+    tvState.sourceKey = '';
+  }
+
+  function afterFade(fn) {
+    scrim.classList.add('on');
+    window.requestAnimationFrame(() => {
+      fn();
+      window.setTimeout(() => scrim.classList.remove('on'), 40);
     });
   }
 
-  win.querySelector('[data-tv-action="watch"]').addEventListener('click', () => {
-    tvState.watching = true;
-    render();
-    showToast(`Now watching ${currentChannel().name}`);
-  });
-  win.querySelector('[data-tv-action="stop"]').addEventListener('click', () => {
+  function mountStream(src, autoplay) {
+    clearMedia();
+    const video = document.createElement('video');
+    video.className = 'tv-video';
+    video.controls = true;
+    video.playsInline = true;
+    video.loop = true;
+    video.preload = 'auto';
+    video.src = src;
+    screen.appendChild(video);
+    activeMedia = video;
+    tvState.sourceKey = `stream:${src}`;
+    const reveal = () => video.classList.add('show');
+    video.addEventListener('loadeddata', reveal, { once: true });
+    video.addEventListener('error', () => {
+      statusEl.textContent = 'Local reel failed — try Tune YT';
+      video.classList.remove('show');
+    });
+    if (autoplay) {
+      video.muted = true;
+      const playPromise = video.play();
+      if (playPromise?.then) {
+        playPromise.then(() => {
+          video.muted = false;
+          statusEl.textContent = `Watching ${programEl.textContent}`;
+        }).catch(() => {
+          statusEl.textContent = 'Click Play — the browser wants a gesture';
+        });
+      }
+    }
+    window.setTimeout(reveal, 60);
+  }
+
+  function mountYoutube(videoId, autoplay) {
+    clearMedia();
+    const embed = getYoutubeEmbedUrl(videoId);
+    if (!embed) return;
+    const frame = document.createElement('iframe');
+    frame.className = 'tv-frame';
+    frame.title = programEl.textContent || 'YouTube';
+    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.src = `${embed}?rel=0&modestbranding=1${autoplay ? '&autoplay=1' : ''}`;
+    screen.appendChild(frame);
+    activeMedia = frame;
+    tvState.sourceKey = `yt:${videoId}`;
+    window.setTimeout(() => frame.classList.add('show'), 40);
+  }
+
+  function paintChrome() {
+    const channel = currentChannel();
+    const custom = Boolean(tvState.customId);
+    programEl.textContent = custom ? 'Tuned YouTube' : channel.program;
+    channelEl.textContent = custom
+      ? `youtube-nocookie · ${tvState.customId}`
+      : `${channel.name} · ${channel.genre}`;
+    liveEl.hidden = !tvState.watching;
+    screen.classList.toggle('has-player', tvState.watching);
+    screen.classList.toggle('theater', tvState.theater);
+    playBtn.textContent = tvState.watching ? 'Replay' : 'Play';
+    statusEl.textContent = tvState.watching
+      ? (custom ? `Watching YouTube · ${tvState.customId}` : `Watching ${channel.program}`)
+      : 'Click a desk — playback starts right away';
+    if (!custom && urlInput && document.activeElement !== urlInput) {
+      urlInput.value = channel.stream;
+    }
+  }
+
+  function renderRail() {
+    const channel = currentChannel();
+    list.textContent = '';
+    tvChannels.forEach(item => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'tv-chip' + (item.id === channel.id && !tvState.customId ? ' active' : '');
+      chip.dataset.channelId = item.id;
+      const art = document.createElement('div');
+      art.className = 'tv-chip-art';
+      art.style.background = item.gradient;
+      art.textContent = item.genre;
+      const strong = document.createElement('strong');
+      strong.textContent = item.name;
+      const span = document.createElement('span');
+      span.textContent = item.program;
+      chip.append(art, strong, span);
+      list.appendChild(chip);
+    });
+  }
+
+  function ensurePlayback(force) {
+    const channel = currentChannel();
+    const key = tvState.customId ? `yt:${tvState.customId}` : `stream:${channel.stream}`;
+    if (!force && tvState.watching && tvState.sourceKey === key) {
+      if (activeMedia?.play) activeMedia.play().catch(() => {});
+      return;
+    }
+    soengTone.stop();
+    musicState.playing = false;
+    podcastState.playing = false;
+    afterFade(() => {
+      if (tvState.customId) mountYoutube(tvState.customId, true);
+      else mountStream(channel.stream, true);
+      paintChrome();
+    });
+  }
+
+  function tuneChannel(channelId, autoplay) {
+    tvState.channelId = channelId;
+    tvState.customId = '';
+    tvState.watching = Boolean(autoplay);
+    paintChrome();
+    renderRail();
+    if (autoplay) ensurePlayback(true);
+    else clearMedia();
+  }
+
+  function shiftChannel(delta) {
+    const idx = tvChannels.findIndex(c => c.id === tvState.channelId);
+    const next = tvChannels[(idx + delta + tvChannels.length) % tvChannels.length];
+    tuneChannel(next.id, true);
+    showToast(next.program);
+  }
+
+  function stopPlayback() {
     tvState.watching = false;
-    render();
-    showToast('Playback stopped');
+    afterFade(() => {
+      clearMedia();
+      paintChrome();
+    });
+  }
+
+  function pausePlayback() {
+    if (activeMedia?.pause) {
+      activeMedia.pause();
+      statusEl.textContent = 'Paused';
+      return;
+    }
+    stopPlayback();
+  }
+
+  list.addEventListener('click', (event) => {
+    const chip = event.target.closest('[data-channel-id]');
+    if (!chip) return;
+    event.preventDefault();
+    tuneChannel(chip.dataset.channelId, true);
+    showToast(currentChannel().program);
+  });
+  win.querySelector('[data-tv-action="play"]').addEventListener('click', () => {
+    tvState.watching = true;
+    ensurePlayback(true);
+  });
+  win.querySelector('[data-tv-action="pause"]').addEventListener('click', pausePlayback);
+  win.querySelector('[data-tv-action="prev"]').addEventListener('click', () => shiftChannel(-1));
+  win.querySelector('[data-tv-action="next"]').addEventListener('click', () => shiftChannel(1));
+  win.querySelector('[data-tv-action="theater"]').addEventListener('click', () => {
+    tvState.theater = !tvState.theater;
+    const el = document.getElementById('win-' + id);
+    el?.classList.toggle('maximized', tvState.theater);
+    paintChrome();
+  });
+  win.querySelector('[data-tv-action="tune"]').addEventListener('click', () => {
+    const yt = parseYoutubeVideoId(urlInput.value);
+    if (!yt) {
+      showToast('Paste a YouTube watch / youtu.be / shorts link');
+      return;
+    }
+    tvState.customId = yt;
+    tvState.watching = true;
+    paintChrome();
+    renderRail();
+    ensurePlayback(true);
+    showToast('Tuned YouTube');
+  });
+  urlInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') win.querySelector('[data-tv-action="tune"]').click();
+  });
+  root.addEventListener('keydown', (event) => {
+    if (event.target === urlInput) return;
+    if (event.key === 'ArrowRight') { event.preventDefault(); shiftChannel(1); }
+    if (event.key === 'ArrowLeft') { event.preventDefault(); shiftChannel(-1); }
+    if (event.key === ' ') {
+      event.preventDefault();
+      if (tvState.watching && activeMedia && !activeMedia.paused) pausePlayback();
+      else {
+        tvState.watching = true;
+        ensurePlayback(true);
+      }
+    }
   });
 
-  render();
+  win.addEventListener('soeng-close', () => {
+    clearMedia();
+  }, { once: true });
+
+  paintChrome();
+  renderRail();
+  tuneChannel(tvState.channelId, true);
+  root.focus({ preventScroll: true });
 }
 
 // ── Settings ──
@@ -3384,7 +3882,7 @@ function openSettings(options = {}) {
 const soengPages = {
   'soeng://welcome': {
     title: 'Welcome to SoengBrowser',
-    body: 'A minimal browser shell with working navigation, history, refresh, bookmarks, and local SoengOS pages. External URLs are represented by a sandbox card so the OS shell remains safe and deterministic.',
+    body: 'Type a normal https address and press Enter. Wikipedia articles load as readable pages. YouTube links play in-place. Other sites open in a sandboxed frame — some hosts still refuse to be framed; use Open tab for those.',
     status: 'Local system page',
   },
   'soeng://apps': {
@@ -3405,6 +3903,7 @@ const soengPages = {
 };
 
 function renderBrowserChrome(page, { title, body, status, icon }) {
+  page.className = 'browser-page';
   page.textContent = '';
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '48');
@@ -3422,6 +3921,46 @@ function renderBrowserChrome(page, { title, body, status, icon }) {
   meta.className = 'browser-status';
   meta.textContent = status;
   page.append(svg, heading, copy, meta);
+}
+
+function renderBrowserFrame(page, src, title) {
+  page.className = 'browser-page live';
+  page.textContent = '';
+  const frame = document.createElement('iframe');
+  frame.className = 'browser-frame';
+  frame.title = title || src;
+  frame.referrerPolicy = 'strict-origin-when-cross-origin';
+  frame.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation';
+  frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+  frame.src = src;
+  page.appendChild(frame);
+}
+
+async function renderWikipediaPage(page, safeUrl, wiki) {
+  page.className = 'browser-page wiki';
+  page.dataset.liveUrl = safeUrl;
+  page.textContent = '';
+  const heading = document.createElement('h2');
+  heading.textContent = 'Loading Wikipedia…';
+  page.appendChild(heading);
+  try {
+    const api = `https://${wiki.lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wiki.title)}`;
+    const res = await fetch(api, { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error('wiki');
+    const data = await res.json();
+    if (page.dataset.liveUrl !== safeUrl) return;
+    page.textContent = '';
+    const title = document.createElement('h2');
+    title.textContent = data.title || wiki.title.replace(/_/g, ' ');
+    const copy = document.createElement('p');
+    copy.textContent = data.extract || 'This article loaded, but the summary was empty.';
+    const meta = document.createElement('div');
+    meta.className = 'browser-status';
+    meta.textContent = `${wiki.lang}.wikipedia.org · live summary`;
+    page.append(title, copy, meta);
+  } catch (e) {
+    renderBrowserFrame(page, safeUrl, wiki.title);
+  }
 }
 
 function renderBrowserPage(win, state, url) {
@@ -3451,34 +3990,52 @@ function renderBrowserPage(win, state, url) {
     });
     return;
   }
-  renderBrowserChrome(page, {
-    title: safeUrl,
-    body: 'External content is opened as a safe sandbox placeholder in this demo. A native build would hand this URL to the embedded browser engine or system browser service.',
-    status: 'Sandboxed external page · Network bridge ready',
-    icon: '<rect x="8" y="8" width="32" height="32"/><line x1="8" y1="16" x2="40" y2="16"/><circle cx="14" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
-  });
+  if (safeUrl === 'about:blank') {
+    renderBrowserChrome(page, {
+      title: 'Blank',
+      body: 'about:blank',
+      status: 'Empty document',
+      icon: '<rect x="8" y="8" width="32" height="32"/>',
+    });
+    return;
+  }
+  const youtube = getYoutubeEmbedUrl(safeUrl);
+  if (youtube) {
+    renderBrowserFrame(page, `${youtube}?rel=0`, 'YouTube');
+    return;
+  }
+  const wiki = getWikipediaPageRef(safeUrl);
+  if (wiki) {
+    renderWikipediaPage(page, safeUrl, wiki);
+    return;
+  }
+  renderBrowserFrame(page, safeUrl, safeUrl);
 }
 
 function openBrowser(options = {}) {
   const html = `
-    <div class="browser-toolbar">
-      <button class="nav-btn" data-browser-action="back">&#9664;</button>
-      <button class="nav-btn" data-browser-action="forward">&#9654;</button>
-      <button class="nav-btn" data-browser-action="refresh">&#8635;</button>
-      <button class="browser-action" data-browser-action="home">Home</button>
-      <input type="text" class="url-bar" value="soeng://welcome" data-browser-url spellcheck="false" />
-    </div>
-    <div class="browser-bookmarks">
-      <button class="browser-action" data-url="soeng://welcome">Welcome</button>
-      <button class="browser-action" data-url="soeng://apps">Apps</button>
-      <button class="browser-action" data-url="soeng://native">Native Bridge</button>
-      <button class="browser-action" data-url="soeng://help">Help</button>
-    </div>
-    <div class="browser-content">
-      <div class="browser-page" data-browser-page></div>
+    <div class="browser-app">
+      <div class="browser-toolbar">
+        <button class="nav-btn" data-browser-action="back">&#9664;</button>
+        <button class="nav-btn" data-browser-action="forward">&#9654;</button>
+        <button class="nav-btn" data-browser-action="refresh">&#8635;</button>
+        <button class="browser-action" data-browser-action="home">Home</button>
+        <input type="text" class="url-bar" value="soeng://welcome" data-browser-url spellcheck="false" />
+        <button class="browser-action" data-browser-action="open-tab">Open tab</button>
+      </div>
+      <div class="browser-bookmarks">
+        <button class="browser-action" data-url="soeng://welcome">Welcome</button>
+        <button class="browser-action" data-url="https://example.com">Example</button>
+        <button class="browser-action" data-url="https://en.wikipedia.org/wiki/Operating_system">Wikipedia</button>
+        <button class="browser-action" data-url="https://www.youtube.com/watch?v=aqz-KE-bpKQ">YouTube</button>
+        <button class="browser-action" data-url="soeng://help">Help</button>
+      </div>
+      <div class="browser-content">
+        <div class="browser-page" data-browser-page></div>
+      </div>
     </div>
   `;
-  const id = createWindow('browser', 'Browser', 680, 470, html, { ...options, appName: 'browser' });
+  const id = createWindow('browser', 'Browser', 760, 540, html, { ...options, appName: 'browser' });
   initBrowser(id);
 }
 
@@ -3498,6 +4055,14 @@ function initBrowser(id) {
   });
   win.querySelectorAll('[data-url]').forEach(btn => btn.addEventListener('click', () => go(btn.dataset.url)));
   win.querySelector('[data-browser-action="home"]').addEventListener('click', () => go('soeng://welcome'));
+  win.querySelector('[data-browser-action="open-tab"]').addEventListener('click', () => {
+    const href = getAllowedNavigationUrl(state.current);
+    if (!href || href.startsWith('soeng://') || href === 'about:blank') {
+      showToast('Nothing to open in a host tab');
+      return;
+    }
+    window.open(href, '_blank', 'noopener,noreferrer');
+  });
   win.querySelector('[data-browser-action="refresh"]').addEventListener('click', () => { renderBrowserPage(win, state, state.current); showToast('Page refreshed'); });
   win.querySelector('[data-browser-action="back"]').addEventListener('click', () => {
     const previous = state.back.pop();

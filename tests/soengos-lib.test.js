@@ -11,6 +11,9 @@ const lib = require('../soengos-lib.js');
 const {
   escapeHtml,
   getAllowedNavigationUrl,
+  parseYoutubeVideoId,
+  getYoutubeEmbedUrl,
+  getWikipediaPageRef,
   normalizePath,
   joinPath,
   resolveFsPath,
@@ -69,6 +72,33 @@ test('getAllowedNavigationUrl blocks javascript, data, and malformed schemes', (
   assert.equal(getAllowedNavigationUrl('soeng://welcome<script>'), null);
   assert.equal(getAllowedNavigationUrl('soeng://welcome/../x'), null);
   assert.equal(getAllowedNavigationUrl(''), null);
+});
+
+test('parseYoutubeVideoId reads watch, short, embed, and bare ids', () => {
+  assert.equal(parseYoutubeVideoId('aqz-KE-bpKQ'), 'aqz-KE-bpKQ');
+  assert.equal(parseYoutubeVideoId('https://www.youtube.com/watch?v=aqz-KE-bpKQ'), 'aqz-KE-bpKQ');
+  assert.equal(parseYoutubeVideoId('https://youtu.be/aqz-KE-bpKQ?t=12'), 'aqz-KE-bpKQ');
+  assert.equal(parseYoutubeVideoId('https://www.youtube.com/embed/aqz-KE-bpKQ'), 'aqz-KE-bpKQ');
+  assert.equal(parseYoutubeVideoId('https://www.youtube.com/shorts/aqz-KE-bpKQ'), 'aqz-KE-bpKQ');
+  assert.equal(parseYoutubeVideoId('javascript:alert(1)'), null);
+  assert.equal(parseYoutubeVideoId('https://example.com/watch?v=aqz-KE-bpKQ'), null);
+  assert.equal(getYoutubeEmbedUrl('https://youtu.be/aqz-KE-bpKQ'), 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ');
+});
+
+test('getWikipediaPageRef reads language and title', () => {
+  assert.deepEqual(getWikipediaPageRef('https://en.wikipedia.org/wiki/Operating_system'), {
+    lang: 'en',
+    title: 'Operating_system',
+  });
+  assert.deepEqual(getWikipediaPageRef('https://zh.wikipedia.org/wiki/操作系统'), {
+    lang: 'zh',
+    title: '操作系统',
+  });
+  assert.deepEqual(getWikipediaPageRef('https://en.m.wikipedia.org/wiki/Linux'), {
+    lang: 'en',
+    title: 'Linux',
+  });
+  assert.equal(getWikipediaPageRef('https://example.com/wiki/Linux'), null);
 });
 
 test('normalizePath and joinPath collapse traversal', () => {
@@ -150,6 +180,7 @@ test('library attaches the same exports in a browser-like global', () => {
   const sandbox = { globalThis: {} };
   sandbox.globalThis = sandbox;
   vm.runInNewContext(source, sandbox);
+  assert.equal(typeof sandbox.parseYoutubeVideoId, 'function');
   assert.equal(typeof sandbox.escapeHtml, 'function');
   assert.equal(sandbox.escapeHtml('<x>'), '&lt;x&gt;');
   assert.equal(sandbox.getAllowedNavigationUrl('javascript:alert(1)'), null);
@@ -197,6 +228,20 @@ test('SoengOS.html ships the Fable theme', () => {
   assert.ok(html.includes('#f3ebe0'), 'paper studio field');
   assert.equal(html.includes('Zen Dawn'), false);
   assert.equal(html.includes('Engineering Minimalism Edition'), false);
+});
+
+test('SoengOS.html plays live music, YouTube TV, and framed web pages', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  assert.match(html, /AudioContext/);
+  assert.match(html, /youtube-nocookie/);
+  assert.match(html, /data-tv-url/);
+  assert.match(html, /media\/open-cinema\.mp4/);
+  assert.match(html, /function renderBrowserFrame/);
+  assert.match(html, /wikipedia\.org\/api\/rest_v1\/page\/summary/);
+  assert.match(html, /sandbox = 'allow-scripts/);
+  assert.match(html, /class="tv-desk"/);
+  assert.match(html, /data-tv-action="theater"/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'soengos-lib.js'), 'utf8'), /youtube-nocookie\.com\/embed/);
 });
 
 test('SoengOS.html exposes the practical app launcher and curved motion system', () => {
