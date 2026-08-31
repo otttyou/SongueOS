@@ -213,6 +213,16 @@
       '<circle cx="12" cy="12" r="2.6"/><path d="M12 5.5v2.2M12 16.3v2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M5.5 12h2.2M16.3 12h2.2M6.1 17.9l1.6-1.6M16.3 6.1l1.6-1.6"/>',
     power:
       '<path d="M12 6v5.5"/><path d="M8.5 8.8a5.2 5.2 0 1 0 7 0"/>',
+    exhibitions:
+      '<rect x="4.5" y="4.5" width="6.5" height="6.5" rx="2"/><rect x="14.5" y="4.5" width="6.5" height="6.5" rx="2"/><rect x="4.5" y="14.5" width="6.5" height="6.5" rx="2"/><circle cx="17.5" cy="17.5" r="2.2"/>',
+    fable:
+      '<circle cx="12" cy="12" r="7.5" stroke-dasharray="2 6"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/>',
+    cools:
+      '<path d="M8 7h8M16 11H9M16 15H8M8 19h8M16 13H9"/><path d="M8 11h8M8 15h6"/>',
+    portraits:
+      '<ellipse cx="12" cy="11" rx="5.5" ry="6.5"/><path d="M6.5 20c1.2-3 3.4-4.5 5.5-4.5s4.3 1.5 5.5 4.5"/>',
+    incident:
+      '<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/><rect x="7" y="8" width="10" height="8" rx="1.5"/>',
   };
 
   function getSoengIconSvg(id, size) {

@@ -946,6 +946,102 @@
   .native-pill { display:inline-flex; border:1px solid var(--g5); color:var(--ga); padding:2px 7px; margin:3px 4px 0 0; font-size:10px; }
   .native-pill { border-radius:var(--radius-pill); }
 
+  /* ── Kengo exhibition apps ── */
+  .exhibit-app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 280px;
+    background: var(--wall, #f3ebe0);
+  }
+  .exhibit-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: var(--hairline);
+    background: rgba(255, 252, 246, 0.72);
+    flex-shrink: 0;
+  }
+  .exhibit-caption {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--g7);
+    letter-spacing: -0.01em;
+  }
+  .exhibit-stage {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    background:
+      linear-gradient(rgba(24, 20, 16, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(24, 20, 16, 0.028) 1px, transparent 1px),
+      #f6f1e4;
+    background-size: 16px 16px, 16px 16px, auto;
+  }
+  .exhibit-stage canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .exhibit-wall-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    position: relative;
+    background: #f6f1e4;
+  }
+  .exhibit-wall-inner canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .exhibit-trail {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .exhibitions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px;
+  }
+  .exhibition-card {
+    border: var(--hairline);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 252, 246, 0.85);
+    padding: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .exhibition-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-float);
+  }
+  .exhibition-card canvas {
+    width: 100%;
+    height: 88px;
+    display: block;
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+  }
+  .exhibition-card strong {
+    display: block;
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .exhibition-card span {
+    font-size: 10px;
+    color: var(--g7);
+    line-height: 1.45;
+  }
+
   /* ── Command Palette ── */
   #cmd-palette {
     position: fixed;
@@ -1639,6 +1735,27 @@
       <span>Power</span>
     </div>
 
+    <div class="desktop-icon" ondblclick="openApp('exhibitions')">
+      <div class="icon-well" data-soeng-icon="exhibitions" data-icon-size="28" data-tint="ochre"></div>
+      <span>Galleries</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('fable')">
+      <div class="icon-well" data-soeng-icon="fable" data-icon-size="28" data-tint="peach"></div>
+      <span>Fable</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('cools')">
+      <div class="icon-well" data-soeng-icon="cools" data-icon-size="28" data-tint="slate"></div>
+      <span>Cool S</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('portraits')">
+      <div class="icon-well" data-soeng-icon="portraits" data-icon-size="28" data-tint="rose"></div>
+      <span>Portraits</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('incident')">
+      <div class="icon-well" data-soeng-icon="incident" data-icon-size="28" data-tint="ink"></div>
+      <span>Incident</span>
+    </div>
+
   </div>
 
   <!-- Windows render here -->
@@ -1656,6 +1773,8 @@
   <div class="dock-icon" data-app="filemanager" title="Files" data-soeng-icon="filemanager" data-icon-size="24"></div>
   <div class="dock-icon" data-app="terminal" title="Terminal" data-soeng-icon="terminal" data-icon-size="24"></div>
   <div class="dock-icon" data-app="settings" title="Settings" data-soeng-icon="settings" data-icon-size="24"></div>
+  <div class="dock-icon" data-app="exhibitions" title="Galleries" data-soeng-icon="exhibitions" data-icon-size="24"></div>
+  <div class="dock-icon" data-app="fable" title="Fable Wall" data-soeng-icon="fable" data-icon-size="24"></div>
 </div>
 
 <!-- Dock Context Menu -->
@@ -1692,6 +1811,11 @@
       <button class="app-launcher-item" onclick="launchFromLauncher('workflow')"><span class="launcher-icon-well" data-soeng-icon="workflow" data-icon-size="22" data-tint="ochre"></span><span class="launcher-copy"><strong>Workflow Hub</strong><span>Create, move, run, and pause workflow cards.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('automation')"><span class="launcher-icon-well" data-soeng-icon="automation" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Automation Studio</strong><span>Turn a prompt into runnable workflow steps.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('settings')"><span class="launcher-icon-well" data-soeng-icon="settings" data-icon-size="22" data-tint="sage"></span><span class="launcher-copy"><strong>Settings</strong><span>Adjust desktop mode, controls, scale, and system state.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('exhibitions')"><span class="launcher-icon-well" data-soeng-icon="exhibitions" data-icon-size="22" data-tint="ochre"></span><span class="launcher-copy"><strong>Galleries</strong><span>Kengo Works exhibitions — ink walls, graph paper, portraits.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('fable')"><span class="launcher-icon-well" data-soeng-icon="fable" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Fable Wall</strong><span>Scroll a generative ink wall on cream paper.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('cools')"><span class="launcher-icon-well" data-soeng-icon="cools" data-icon-size="22" data-tint="slate"></span><span class="launcher-copy"><strong>Cool S</strong><span>Graph-paper doodle desk with wandering S curves.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('portraits')"><span class="launcher-icon-well" data-soeng-icon="portraits" data-icon-size="22" data-tint="rose"></span><span class="launcher-copy"><strong>Self Portraits</strong><span>Oval frames, blush fields, stripe bands.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('incident')"><span class="launcher-icon-well" data-soeng-icon="incident" data-icon-size="22" data-tint="ink"></span><span class="launcher-copy"><strong>Hugging Face Incident</strong><span>Striped explainer frame and ink circle.</span></span></button>
     </div>
     <div class="app-launcher-foot">
       <span>Tip: Ctrl/Cmd + K opens the command palette.</span>
@@ -1732,6 +1856,12 @@
   <div class="ctx-item" onclick="openApp('automation');closeCtxMenu()">Automation Studio</div>
   <div class="ctx-item" onclick="openApp('settings');closeCtxMenu()">Settings</div>
   <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="openApp('exhibitions');closeCtxMenu()">Galleries</div>
+  <div class="ctx-item" onclick="openApp('fable');closeCtxMenu()">Fable Wall</div>
+  <div class="ctx-item" onclick="openApp('cools');closeCtxMenu()">Cool S</div>
+  <div class="ctx-item" onclick="openApp('portraits');closeCtxMenu()">Self Portraits</div>
+  <div class="ctx-item" onclick="openApp('incident');closeCtxMenu()">Hugging Face Incident</div>
+  <div class="ctx-sep"></div>
   <div class="ctx-item" onclick="toggleFocus();closeCtxMenu()">Toggle Focus Mode</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" onclick="openPower();closeCtxMenu()">Power&hellip;</div>
@@ -1749,6 +1879,7 @@
 </div>
 
 <script src="soengos-lib.js"></script>
+<script src="kengo-exhibit.js"></script>
 <script>
 /* ═══════════════════════════════════════
    SoengOS — Core System
@@ -2104,6 +2235,7 @@ function closeWindow(id) {
   if (win) {
     win.dispatchEvent(new CustomEvent('soeng-close'));
     if (win.querySelector('[data-music-app], [data-podcast-app]')) soengTone.stop();
+    if (win.querySelector('[data-exhibit-app], [data-exhibitions-hub]')) destroyExhibit(id);
     win.querySelectorAll('video').forEach(video => {
       try { video.pause(); video.removeAttribute('src'); video.load(); } catch (e) {}
     });
@@ -2202,7 +2334,91 @@ function openApp(name, options = {}) {
     case 'browser': openBrowser(options); break;
     case 'workflow': openWorkflowHub(options); break;
     case 'automation': openAutomationStudio(options); break;
+    case 'exhibitions': openExhibitionsHub(options); break;
+    case 'fable': openKengoExhibit('fable', options); break;
+    case 'cools': openKengoExhibit('cools', options); break;
+    case 'portraits': openKengoExhibit('portraits', options); break;
+    case 'incident': openKengoExhibit('incident', options); break;
   }
+}
+
+// ── Kengo Works exhibitions ──
+function exhibitShellHtml(meta) {
+  const toolbar = `
+    <div class="exhibit-toolbar">
+      <button class="fm-action" data-exhibit-action="regen">Redraw</button>
+      <button class="fm-action" data-exhibit-action="open-live">Open on Kengo Works</button>
+      <span class="exhibit-caption">${escapeHtml(meta.subtitle)}</span>
+    </div>`;
+  if (meta.mode === 'wall') {
+    return `
+      <div class="exhibit-app" data-exhibit-app="${meta.id}">
+        ${toolbar}
+        <div class="exhibit-wall-scroll" data-exhibit-scroll>
+          <div class="exhibit-wall-inner" data-exhibit-wall></div>
+          <canvas class="exhibit-trail" data-exhibit-trail aria-hidden="true"></canvas>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="exhibit-app" data-exhibit-app="${meta.id}">
+      ${toolbar}
+      <div class="exhibit-stage" data-exhibit-stage>
+        <canvas data-exhibit-canvas aria-label="${escapeHtml(meta.title)} preview"></canvas>
+      </div>
+    </div>`;
+}
+
+function initKengoExhibitWindow(winId, exhibitId) {
+  const win = document.getElementById('win-' + winId);
+  if (!win || win.dataset.exhibitReady === '1') return;
+  win.dataset.exhibitReady = '1';
+  const root = win.querySelector('[data-exhibit-app]');
+  if (root) mountExhibit(winId, root, exhibitId);
+  win.addEventListener('soeng-close', () => destroyExhibit(winId));
+}
+
+function openKengoExhibit(exhibitId, options = {}) {
+  const meta = getExhibitById(exhibitId) || KENGO_EXHIBITS[0];
+  const id = createWindow(meta.id, meta.title, meta.mode === 'wall' ? 560 : 640, meta.mode === 'wall' ? 520 : 480, exhibitShellHtml(meta), { ...options, appName: meta.id });
+  initKengoExhibitWindow(id, meta.id);
+}
+
+function openExhibitionsHub(options = {}) {
+  const html = `
+    <div class="exhibit-app" data-exhibitions-hub>
+      <div class="exhibit-toolbar">
+        <span class="exhibit-caption">Kengo Works — paper, stripes, wandering ink</span>
+      </div>
+      <div class="exhibitions-grid" data-exhibitions-grid></div>
+    </div>`;
+  const id = createWindow('exhibitions', 'Galleries', 620, 500, html, { ...options, appName: 'exhibitions' });
+  initExhibitionsHub(id);
+}
+
+function initExhibitionsHub(winId) {
+  const win = document.getElementById('win-' + winId);
+  if (!win || win.dataset.exhibitionsReady === '1') return;
+  win.dataset.exhibitionsReady = '1';
+  const grid = win.querySelector('[data-exhibitions-grid]');
+  if (!grid) return;
+  grid.textContent = '';
+  KENGO_EXHIBITS.forEach((meta, index) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'exhibition-card';
+    const preview = document.createElement('canvas');
+    preview.width = 280;
+    preview.height = 88;
+    paintExhibit(meta.mode === 'wall' ? 'wall' : meta.mode, preview, 280, 88, 1000 + index * 53);
+    const title = document.createElement('strong');
+    title.textContent = meta.title;
+    const copy = document.createElement('span');
+    copy.textContent = meta.subtitle;
+    card.append(preview, title, copy);
+    card.addEventListener('click', () => openKengoExhibit(meta.id));
+    grid.appendChild(card);
+  });
 }
 
 // ── File Manager ──
@@ -4164,6 +4380,11 @@ const cmdActions = [
   { name: 'Open Settings', action: () => activateApp('settings'), shortcut: '' },
   { name: 'Open Workflow Hub', action: () => activateApp('workflow'), shortcut: '' },
   { name: 'Open Automation Studio', action: () => activateApp('automation'), shortcut: '' },
+  { name: 'Open Galleries', action: () => activateApp('exhibitions'), shortcut: '' },
+  { name: 'Open Fable Wall', action: () => activateApp('fable'), shortcut: '' },
+  { name: 'Open Cool S Studio', action: () => activateApp('cools'), shortcut: '' },
+  { name: 'Open Self Portraits', action: () => activateApp('portraits'), shortcut: '' },
+  { name: 'Open Hugging Face Incident', action: () => activateApp('incident'), shortcut: '' },
   { name: 'Open Native Runtime Plan', action: () => openNativeReadiness(), shortcut: '' },
   { name: 'Switch to Hybrid Mode', action: () => setDesktopMode('hybrid'), shortcut: '' },
   { name: 'Switch to Mac Mode', action: () => setDesktopMode('mac'), shortcut: '' },

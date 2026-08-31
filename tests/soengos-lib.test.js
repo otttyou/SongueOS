@@ -235,6 +235,27 @@ test('SoengOS.html ships Kengo paper studio tokens', () => {
   assert.equal(html.includes('Engineering Minimalism Edition'), false);
 });
 
+test('SoengOS.html ships Kengo exhibition gallery apps', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
+  assert.match(html, /kengo-exhibit\.js/);
+  assert.match(html, /function openKengoExhibit/);
+  assert.match(html, /function openExhibitionsHub/);
+  for (const app of ['exhibitions', 'fable', 'cools', 'portraits', 'incident']) {
+    assert.match(html, new RegExp(`case '${app}'`));
+    assert.match(html, new RegExp(`launchFromLauncher\\('${app}'\\)`));
+  }
+});
+
+test('kengo-exhibit.js exposes gallery renderer', () => {
+  const exhibit = require('../kengo-exhibit.js');
+  assert.equal(exhibit.KENGO_EXHIBITS.length, 4);
+  assert.equal(exhibit.getExhibitById('fable').mode, 'wall');
+  const result = spawnSync(process.execPath, ['--check', path.join(__dirname, '..', 'kengo-exhibit.js')], {
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
 test('SoengOS.html plays live music, YouTube TV, and framed web pages', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /AudioContext/);
