@@ -91,16 +91,11 @@ A compatibility redirect lives at `soengos-workflow.html`.
 
 ### GitHub Pages demo
 
-The `Deploy GitHub Pages` workflow pushes the v1 desk to the `gh-pages` branch on every push to `main`. This succeeds without pre-creating a Pages site (unlike the official `deploy-pages` action, which needs Pages enabled first).
+The `Deploy GitHub Pages` workflow publishes the v1 desk on every push to `main` via GitHub Actions (`deploy-pages`). The staged site includes `index.html` (copy of `SoengOS.html`) so the project root loads the desk.
 
-**One-time setup (repo owner) so the site is public:**
+Live URL: `https://otttyou.github.io/SongueOS/`
 
-1. Open **Settings → Pages**
-2. Under **Build and deployment**, set **Source** to **Deploy from a branch**
-3. Choose branch **gh-pages** and folder **/ (root)**
-4. Save — the demo appears at `https://otttyou.github.io/SongueOS/` (`index.html` is a copy of `SoengOS.html`)
-
-If you prefer **GitHub Actions** as the Pages source instead, switch Source to **GitHub Actions** after Pages exists; the workflow still only updates `gh-pages` today.
+If deploy ever fails with **Not Found** on a fresh repo, enable Pages once under **Settings → Pages → Source: GitHub Actions**, then re-run the workflow.
 
 ### v2 — React desktop
 
