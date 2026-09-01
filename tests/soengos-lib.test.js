@@ -86,7 +86,14 @@ test('parseYoutubeVideoId reads watch, short, embed, and bare ids', () => {
 });
 
 test('looksLikeWebAddress distinguishes URLs from search phrases', () => {
-  const { looksLikeWebAddress, getWikipediaSearchApi, getWikipediaSummaryApi } = lib;
+  const {
+    looksLikeWebAddress,
+    getWikipediaSearchApi,
+    getWikipediaSummaryApi,
+    getDuckDuckGoApi,
+    flattenDuckDuckGoTopics,
+    hostQueryFromUrl,
+  } = lib;
   assert.equal(looksLikeWebAddress('https://example.com'), true);
   assert.equal(looksLikeWebAddress('example.com/docs'), true);
   assert.equal(looksLikeWebAddress('soeng://welcome'), true);
@@ -95,6 +102,19 @@ test('looksLikeWebAddress distinguishes URLs from search phrases', () => {
   assert.match(getWikipediaSearchApi('operating system'), /opensearch/);
   assert.match(getWikipediaSummaryApi('en', 'Linux'), /rest_v1\/page\/summary\/Linux/);
   assert.equal(getWikipediaSearchApi(''), null);
+  assert.match(getDuckDuckGoApi('linux kernel'), /api\.duckduckgo\.com\/\?q=linux/);
+  assert.equal(getDuckDuckGoApi(''), null);
+  assert.equal(hostQueryFromUrl('https://www.example.com/path'), 'example.com');
+  assert.deepEqual(
+    flattenDuckDuckGoTopics([
+      { Text: 'Alpha - note', FirstURL: 'https://example.com/a' },
+      { Name: 'Related', Topics: [{ Text: 'Beta', FirstURL: 'https://example.com/b' }] },
+    ]),
+    [
+      { text: 'Alpha - note', url: 'https://example.com/a' },
+      { text: 'Beta', url: 'https://example.com/b' },
+    ]
+  );
 });
 
 test('getWikipediaPageRef reads language and title', () => {
@@ -280,11 +300,18 @@ test('SoengOS.html plays live music, YouTube TV, and framed web pages', () => {
   assert.match(html, /media\/open-cinema\.mp4/);
   assert.match(html, /function renderBrowserFrame/);
   assert.match(html, /function renderWikipediaSearch/);
+  assert.match(html, /function renderRemotePage/);
   assert.match(html, /getWikipediaSummaryApi/);
+  assert.match(html, /getDuckDuckGoApi/);
+  assert.match(html, /ATFEuUNC6Sw/);
+  assert.match(html, /wxN1T1uxQ2g/);
+  assert.match(html, /LNlrGhBpYjc/);
+  assert.match(html, /Kbk9BiPhm7o/);
   assert.match(html, /sandbox = 'allow-scripts/);
   assert.match(html, /class="tv-desk"/);
   assert.match(html, /data-tv-action="theater"/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'soengos-lib.js'), 'utf8'), /youtube-nocookie\.com\/embed/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'soengos-lib.js'), 'utf8'), /api\.duckduckgo\.com/);
 });
 
 test('SoengOS.html exposes the practical app launcher and curved motion system', () => {
