@@ -126,6 +126,41 @@
     );
   }
 
+  function getDuckDuckGoApi(query) {
+    const q = String(query || '').trim();
+    if (!q) return null;
+    return (
+      'https://api.duckduckgo.com/?q=' +
+      encodeURIComponent(q) +
+      '&format=json&no_html=1&skip_disambig=1'
+    );
+  }
+
+  function flattenDuckDuckGoTopics(topics, out) {
+    const acc = out || [];
+    (Array.isArray(topics) ? topics : []).forEach((item) => {
+      if (!item || typeof item !== 'object') return;
+      if (Array.isArray(item.Topics)) flattenDuckDuckGoTopics(item.Topics, acc);
+      else if (item.Text) {
+        acc.push({
+          text: String(item.Text),
+          url: String(item.FirstURL || ''),
+        });
+      }
+    });
+    return acc;
+  }
+
+  function hostQueryFromUrl(href) {
+    try {
+      const parsed = new URL(href);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+      return parsed.hostname.replace(/^www\./i, '');
+    } catch (e) {
+      return '';
+    }
+  }
+
   function normalizePath(path) {
     const parts = String(path || '/').split('/').filter(Boolean);
     const stack = [];
@@ -321,6 +356,9 @@
     looksLikeWebAddress,
     getWikipediaSearchApi,
     getWikipediaSummaryApi,
+    getDuckDuckGoApi,
+    flattenDuckDuckGoTopics,
+    hostQueryFromUrl,
     normalizePath,
     joinPath,
     resolveFsPath,
