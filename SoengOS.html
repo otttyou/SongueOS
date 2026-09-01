@@ -68,6 +68,7 @@
     --mono: 'IBM Plex Mono', monospace;
     --sans: "Helvetica Neue", Helvetica, 'Inter', "Segoe UI", system-ui, sans-serif;
     --transition: 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    --icon-spring: 220ms cubic-bezier(0.34, 1.45, 0.64, 1);
     --display: "Fraunces", "Noto Serif SC", "Songti SC", Georgia, serif;
     --song: "Noto Serif SC", "Songti SC", "Fraunces", serif;
     --app-font-size: 12px;
@@ -431,29 +432,77 @@
     backdrop-filter: var(--blur);
   }
   .dock-icon {
-    width: 44px; height: 44px;
-    display: flex; align-items: center; justify-content: center;
+    width: auto;
+    min-width: 44px;
+    height: auto;
+    padding: 2px 3px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
     border: none;
     color: var(--ink);
     cursor: pointer;
     position: relative;
-    transition: transform var(--transition), background var(--transition), color var(--transition), box-shadow var(--transition);
+    transform-origin: bottom center;
+    transition: color var(--transition);
     border-radius: 16px;
+    background: transparent;
   }
-  .dock-icon:hover, .dock-icon.active {
-    background: var(--espresso);
+  .dock-icon-well {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: rgba(255, 252, 246, 0.72);
+    border: 1px solid rgba(44, 40, 36, 0.06);
+    box-shadow: 0 2px 8px rgba(60, 52, 44, 0.04);
+    transition: transform var(--icon-spring), background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+  .dock-icon:hover .dock-icon-well,
+  .dock-icon.active .dock-icon-well {
+    background: rgba(255, 252, 246, 0.96);
+    border-color: rgba(95, 114, 104, 0.2);
+    box-shadow: 0 10px 22px rgba(60, 52, 44, 0.1);
+  }
+  body[data-dock-magnify="false"] .dock-icon:hover .dock-icon-well,
+  body[data-dock-magnify="false"] .dock-icon.active .dock-icon-well {
+    transform: translateY(-4px) scale(1.06);
+  }
+  .dock-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
+  .dock-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px) scale(0.96);
+    padding: 4px 11px;
+    background: rgba(44, 40, 36, 0.9);
     color: var(--cream);
-    transform: translateY(-5px) scale(1.04);
-    box-shadow: 0 10px 22px rgba(24, 20, 16, 0.14);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform var(--icon-spring);
+    z-index: 2;
   }
-  body[data-dock-magnify="true"] .dock-icon {
-    transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1), background var(--transition), color var(--transition), box-shadow var(--transition);
+  .dock-icon:hover .dock-tooltip,
+  .dock-icon:focus-visible .dock-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
   }
-  body[data-dock-magnify="true"] .dock-icon:hover,
-  body[data-dock-magnify="true"] .dock-icon.active {
-    transform: none;
+  .dock-divider {
+    width: 1px;
+    align-self: stretch;
+    margin: 8px 4px;
+    background: rgba(44, 40, 36, 0.1);
+    border-radius: 1px;
+    flex: 0 0 1px;
   }
-  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; }
   .dock-icon::after {
     content: '';
     position: absolute;
@@ -565,7 +614,7 @@
     border-radius: 18px;
     background: rgba(246, 241, 228, 0.12);
     border: 1px solid rgba(246, 241, 228, 0.18);
-    transition: transform var(--transition), background var(--transition), border-color var(--transition);
+    transition: transform var(--icon-spring), background var(--transition), border-color var(--transition), box-shadow var(--transition);
   }
   .desktop-icon:hover .icon-well {
     transform: translateY(-2px);
@@ -594,14 +643,15 @@
   }
   .desktop-icon svg {
     width: 28px; height: 28px;
-    stroke: var(--cream);
+    stroke: var(--ink);
     fill: none;
+    transition: stroke var(--transition), transform var(--icon-spring);
   }
   .desktop-icon span {
     font-family: var(--sans);
     font-size: 10px;
     font-weight: 400;
-    color: rgba(246, 241, 228, 0.85);
+    color: var(--ga);
     text-align: center;
     line-height: 1.3;
   }
@@ -1373,6 +1423,11 @@
     background:rgba(255, 252, 246, 0.85);
     border:1px solid var(--g3);
     color:var(--ink);
+    transition: transform var(--icon-spring), background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+  .app-launcher-item:hover .launcher-icon-well {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 18px rgba(60, 52, 44, 0.08);
   }
   .launcher-copy { flex:1; min-width:0; }
   .app-launcher-item:hover { transform:translateY(-3px); border-color:var(--g5); background:var(--cream); box-shadow:0 10px 24px rgba(24,20,16,0.10); }
@@ -1585,7 +1640,8 @@
     #desktop-icons { grid-template-columns: repeat(2, 64px); left:14px; top:14px; }
     .desktop-icon { width:64px; }
     #desktop-dock { max-width:calc(100vw - 20px); overflow-x:auto; gap:3px; padding:6px; border-radius:var(--radius-lg); }
-    .dock-icon { width:38px; height:38px; flex:0 0 38px; }
+    .dock-icon { min-width: 38px; flex: 0 0 auto; }
+    .dock-icon-well { width: 38px; height: 38px; border-radius: 12px; }
     .app-launcher-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .app-launcher-panel { padding:16px; }
     #topbar { left: 8px; right: 8px; }
@@ -1627,19 +1683,22 @@
     padding: 8px 10px;
   }
   .dock-icon {
-    border-radius: 50%;
-    background: rgba(24, 20, 16, 0.04);
+    border-radius: 0;
+    background: transparent;
   }
-  .dock-icon:hover, .dock-icon.active {
-    background: rgba(252, 249, 244, 0.95);
+  .dock-icon-well {
+    background: rgba(255, 252, 246, 0.78);
+    border-color: rgba(44, 40, 36, 0.07);
+  }
+  .dock-icon:hover .dock-icon-well,
+  .dock-icon.active .dock-icon-well {
+    background: rgba(255, 252, 246, 0.98);
     color: var(--celadon-deep);
-    transform: translateY(-10px) scale(1.18);
-    box-shadow: 0 12px 24px rgba(60, 52, 44, 0.1);
   }
-  body[data-dock-magnify="true"] .dock-icon:hover,
-  body[data-dock-magnify="true"] .dock-icon.active {
-    transform: none;
-    box-shadow: none;
+  body[data-dock-magnify="false"] .dock-icon:hover .dock-icon-well,
+  body[data-dock-magnify="false"] .dock-icon.active .dock-icon-well {
+    transform: translateY(-8px) scale(1.1);
+    box-shadow: 0 12px 24px rgba(60, 52, 44, 0.12);
   }
   .dock-icon.active::after { background: var(--espresso); border-color: var(--espresso); }
   #dock-menu { border: var(--hairline); }
@@ -1816,23 +1875,32 @@
     opacity: 0.32;
   }
   .icon-well[data-tint="blush"],
-  .launcher-icon-well[data-tint="blush"] { background: rgba(226, 216, 204, 0.45); border-color: rgba(154, 125, 92, 0.1); }
+  .launcher-icon-well[data-tint="blush"],
+  .dock-icon-well[data-tint="blush"] { background: rgba(226, 216, 204, 0.45); border-color: rgba(154, 125, 92, 0.1); }
   .icon-well[data-tint="sage"],
-  .launcher-icon-well[data-tint="sage"] { background: rgba(122, 144, 136, 0.12); border-color: rgba(95, 114, 104, 0.16); }
+  .launcher-icon-well[data-tint="sage"],
+  .dock-icon-well[data-tint="sage"] { background: rgba(122, 144, 136, 0.12); border-color: rgba(95, 114, 104, 0.16); }
   .icon-well[data-tint="peach"],
-  .launcher-icon-well[data-tint="peach"] { background: rgba(201, 168, 130, 0.14); border-color: rgba(154, 125, 92, 0.14); }
+  .launcher-icon-well[data-tint="peach"],
+  .dock-icon-well[data-tint="peach"] { background: rgba(201, 168, 130, 0.14); border-color: rgba(154, 125, 92, 0.14); }
   .icon-well[data-tint="rose"],
-  .launcher-icon-well[data-tint="rose"] { background: rgba(168, 132, 124, 0.12); border-color: rgba(168, 132, 124, 0.14); }
+  .launcher-icon-well[data-tint="rose"],
+  .dock-icon-well[data-tint="rose"] { background: rgba(168, 132, 124, 0.12); border-color: rgba(168, 132, 124, 0.14); }
   .icon-well[data-tint="slate"],
-  .launcher-icon-well[data-tint="slate"] { background: rgba(138, 150, 168, 0.1); border-color: rgba(138, 150, 168, 0.14); }
+  .launcher-icon-well[data-tint="slate"],
+  .dock-icon-well[data-tint="slate"] { background: rgba(138, 150, 168, 0.1); border-color: rgba(138, 150, 168, 0.14); }
   .icon-well[data-tint="clay"],
-  .launcher-icon-well[data-tint="clay"] { background: rgba(154, 125, 92, 0.1); border-color: rgba(154, 125, 92, 0.14); }
+  .launcher-icon-well[data-tint="clay"],
+  .dock-icon-well[data-tint="clay"] { background: rgba(154, 125, 92, 0.1); border-color: rgba(154, 125, 92, 0.14); }
   .icon-well[data-tint="ochre"],
-  .launcher-icon-well[data-tint="ochre"] { background: rgba(154, 125, 72, 0.1); border-color: rgba(154, 125, 72, 0.14); }
+  .launcher-icon-well[data-tint="ochre"],
+  .dock-icon-well[data-tint="ochre"] { background: rgba(154, 125, 72, 0.1); border-color: rgba(154, 125, 72, 0.14); }
   .icon-well[data-tint="ink"],
-  .launcher-icon-well[data-tint="ink"] { background: rgba(44, 40, 36, 0.05); border-color: rgba(44, 40, 36, 0.08); }
+  .launcher-icon-well[data-tint="ink"],
+  .dock-icon-well[data-tint="ink"] { background: rgba(44, 40, 36, 0.05); border-color: rgba(44, 40, 36, 0.08); }
   .icon-well[data-tint="celadon"],
-  .launcher-icon-well[data-tint="celadon"] { background: rgba(122, 144, 136, 0.14); border-color: rgba(95, 114, 104, 0.18); }
+  .launcher-icon-well[data-tint="celadon"],
+  .dock-icon-well[data-tint="celadon"] { background: rgba(122, 144, 136, 0.14); border-color: rgba(95, 114, 104, 0.18); }
   .app-launcher-head h2 {
     font-family: var(--display);
     font-size: 22px;
@@ -1861,7 +1929,7 @@
   }
 </style>
 </head>
-<body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
+<body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true" data-dock-magnify="true">
 
 <!-- Boot Screen -->
 <div id="boot-screen">
@@ -2025,16 +2093,47 @@
 
 <!-- Unified Dock (Mac / Hybrid mode) -->
 <div id="desktop-dock" aria-label="Application Dock">
-  <div class="dock-icon" data-app="notes" title="Notes" data-soeng-icon="notes" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="music" title="Music" data-soeng-icon="music" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="photos" title="Photos" data-soeng-icon="photos" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="podcast" title="Podcast" data-soeng-icon="podcast" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="tv" title="TV" data-soeng-icon="tv" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="browser" title="Browser" data-soeng-icon="browser" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="filemanager" title="Files" data-soeng-icon="filemanager" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="terminal" title="Terminal" data-soeng-icon="terminal" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="settings" title="Settings" data-soeng-icon="settings" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="exhibitions" title="Galleries" data-soeng-icon="exhibitions" data-icon-size="24"></div>
+  <div class="dock-icon" data-app="notes" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="notes" data-icon-size="22" data-tint="sage"></span>
+    <span class="dock-tooltip">Notes</span>
+  </div>
+  <div class="dock-icon" data-app="music" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="music" data-icon-size="22" data-tint="peach"></span>
+    <span class="dock-tooltip">Music</span>
+  </div>
+  <div class="dock-icon" data-app="photos" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="photos" data-icon-size="22" data-tint="rose"></span>
+    <span class="dock-tooltip">Photos</span>
+  </div>
+  <div class="dock-icon" data-app="podcast" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="podcast" data-icon-size="22" data-tint="clay"></span>
+    <span class="dock-tooltip">Podcast</span>
+  </div>
+  <div class="dock-icon" data-app="tv" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="tv" data-icon-size="22" data-tint="ink"></span>
+    <span class="dock-tooltip">TV</span>
+  </div>
+  <div class="dock-icon" data-app="browser" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="browser" data-icon-size="22" data-tint="slate"></span>
+    <span class="dock-tooltip">Browser</span>
+  </div>
+  <div class="dock-icon" data-app="filemanager" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="filemanager" data-icon-size="22" data-tint="blush"></span>
+    <span class="dock-tooltip">Files</span>
+  </div>
+  <div class="dock-divider" aria-hidden="true"></div>
+  <div class="dock-icon" data-app="terminal" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="terminal" data-icon-size="22" data-tint="ink"></span>
+    <span class="dock-tooltip">Terminal</span>
+  </div>
+  <div class="dock-icon" data-app="settings" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="settings" data-icon-size="22" data-tint="sage"></span>
+    <span class="dock-tooltip">Settings</span>
+  </div>
+  <div class="dock-icon" data-app="exhibitions" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="exhibitions" data-icon-size="22" data-tint="ochre"></span>
+    <span class="dock-tooltip">Galleries</span>
+  </div>
 </div>
 
 <!-- Dock Context Menu -->
@@ -2264,23 +2363,65 @@ function initDockMagnification() {
   const dock = document.getElementById('desktop-dock');
   if (!dock) return;
   const icons = [...dock.querySelectorAll('.dock-icon')];
-  const resetIcons = () => icons.forEach(icon => { icon.style.transform = ''; });
-  dock.addEventListener('mousemove', (event) => {
-    if (!dockMagnifyEnabled || dock.style.display === 'none') return;
-    const isVertical = dock.classList.contains('vertical') || getComputedStyle(dock).flexDirection === 'column';
-    icons.forEach(icon => {
-      const rect = icon.getBoundingClientRect();
-      const center = isVertical
-        ? rect.top + rect.height / 2
-        : rect.left + rect.width / 2;
-      const pointer = isVertical ? event.clientY : event.clientX;
-      const dist = Math.abs(pointer - center);
-      const lift = Math.max(0, (dockMagnification - 1) * Math.exp(-dist / 72));
-      const scale = 1 + lift;
-      icon.style.transform = `translateY(${-lift * 14}px) scale(${scale})`;
+  const scales = new Map(icons.map((icon) => [icon, 1]));
+  let pointer = null;
+  let rafId = null;
+  const MAG_DIST = 92;
+  const SPRING = 0.2;
+
+  function pointerFine() {
+    if (typeof window.matchMedia !== 'function') return true;
+    return !window.matchMedia('(pointer: coarse)').matches && !window.matchMedia('(hover: none)').matches;
+  }
+
+  function canMagnify() {
+    return dockMagnifyEnabled && pointerFine() && getComputedStyle(dock).display !== 'none';
+  }
+
+  function targetScale(icon) {
+    if (!canMagnify() || pointer == null) return 1;
+    const isVertical = getComputedStyle(dock).flexDirection === 'column';
+    const rect = icon.getBoundingClientRect();
+    const center = isVertical ? rect.top + rect.height / 2 : rect.left + rect.width / 2;
+    const dist = Math.abs(pointer - center);
+    if (dist > MAG_DIST) return 1;
+    const t = 1 - dist / MAG_DIST;
+    const eased = t * t * (3 - 2 * t);
+    return 1 + (dockMagnification - 1) * eased;
+  }
+
+  function tick() {
+    let moving = false;
+    icons.forEach((icon) => {
+      const target = targetScale(icon);
+      const current = scales.get(icon) || 1;
+      const next = current + (target - current) * SPRING;
+      if (Math.abs(next - target) > 0.001 || Math.abs(next - current) > 0.001) moving = true;
+      scales.set(icon, next);
+      const lift = (next - 1) * 18;
+      icon.style.transform = `translateY(${-lift}px) scale(${next})`;
     });
+    if (moving || pointer != null) rafId = requestAnimationFrame(tick);
+    else {
+      rafId = null;
+      icons.forEach((icon) => { icon.style.transform = ''; });
+      scales.forEach((_, icon) => scales.set(icon, 1));
+    }
+  }
+
+  function ensureLoop() {
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  }
+
+  dock.addEventListener('mousemove', (event) => {
+    if (!canMagnify()) return;
+    pointer = getComputedStyle(dock).flexDirection === 'column' ? event.clientY : event.clientX;
+    ensureLoop();
   });
-  dock.addEventListener('mouseleave', resetIcons);
+  dock.addEventListener('mouseleave', () => {
+    pointer = null;
+    ensureLoop();
+  });
 }
 
 function syncControlCenter() {
@@ -2453,6 +2594,13 @@ document.querySelectorAll('.dock-icon[data-app]').forEach(icon => {
     hideDockMenu();
     activateApp(icon.dataset.app);
   });
+  icon.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      hideDockMenu();
+      activateApp(icon.dataset.app);
+    }
+  });
   icon.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     showDockMenu(event, icon.dataset.app);
@@ -2619,22 +2767,35 @@ function restoreWindow(id) {
 }
 
 function activateApp(appName, options = {}) {
-  if (!options.forceNew) {
-    const appWindows = getAppWindows(appName);
-    const minimizedWindow = getMostRecentWindow(appWindows.filter(win => win.minimized), true);
-    if (minimizedWindow && restoreWindow(minimizedWindow.id)) return;
+  if (options.forceNew) {
+    openApp(appName, { forceNew: true });
+    return;
+  }
 
-    const visibleWindow = getMostRecentWindow(appWindows);
-    if (visibleWindow) {
-      const win = document.getElementById('win-' + visibleWindow.id);
-      if (win) {
-        bringToFront(win);
-        return;
-      }
+  const appWindows = getAppWindows(appName);
+  const focusedWindow = appWindows.find((win) => {
+    if (win.minimized) return false;
+    const el = document.getElementById('win-' + win.id);
+    return el && el.classList.contains('focused');
+  });
+  if (focusedWindow) {
+    minimizeWindow(focusedWindow.id);
+    return;
+  }
+
+  const minimizedWindow = getMostRecentWindow(appWindows.filter((win) => win.minimized), true);
+  if (minimizedWindow && restoreWindow(minimizedWindow.id)) return;
+
+  const visibleWindow = getMostRecentWindow(appWindows);
+  if (visibleWindow) {
+    const win = document.getElementById('win-' + visibleWindow.id);
+    if (win) {
+      bringToFront(win);
+      return;
     }
   }
 
-  openApp(appName, { forceNew: true });
+  openApp(appName);
 }
 
 function updateDockIndicators() {
@@ -5004,6 +5165,7 @@ function toggleAppLauncher(force) {
   launcher.classList.toggle('open', shouldOpen);
   if (shouldOpen) {
     closeCmdPalette();
+    mountSoengIcons(launcher);
     launcher.querySelector('.app-launcher-item')?.focus();
   }
 }

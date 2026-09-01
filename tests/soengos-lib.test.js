@@ -303,19 +303,26 @@ test('SoengOS.html loads the shared security library', () => {
 });
 
 test('getSoengIconSvg returns rounded stroke icons', () => {
-  const { getSoengIconSvg } = lib;
+  const { getSoengIconSvg, SOENG_ICON_TINTS } = lib;
   const svg = getSoengIconSvg('notes', 24);
   assert.match(svg, /stroke-linecap="round"/);
   assert.match(svg, /stroke-linejoin="round"/);
   assert.match(svg, /viewBox="0 0 24 24"/);
+  assert.match(svg, /vector-effect="non-scaling-stroke"/);
   assert.equal(getSoengIconSvg('missing'), '');
   assert.match(getSoengIconSvg('workflow', 32), /rx="2\.2"/);
+  assert.equal(SOENG_ICON_TINTS.notes, 'sage');
 });
 
 test('mountSoengIcons is wired in the desktop shell', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /mountSoengIcons\(\)/);
   assert.match(html, /data-soeng-icon="notes"/);
+  assert.match(html, /dock-icon-well/);
+  assert.match(html, /dock-tooltip/);
+  assert.match(html, /dock-divider/);
+  assert.match(html, /function activateApp/);
+  assert.match(html, /minimizeWindow\(focusedWindow\.id\)/);
   assert.match(html, /getSoengIconSvg\('podcast'/);
 });
 

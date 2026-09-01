@@ -225,13 +225,34 @@
       '<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/><rect x="7" y="8" width="10" height="8" rx="1.5"/>',
   };
 
+  const SOENG_ICON_TINTS = {
+    filemanager: 'blush',
+    notes: 'sage',
+    browser: 'slate',
+    music: 'peach',
+    photos: 'rose',
+    podcast: 'clay',
+    tv: 'ink',
+    terminal: 'ink',
+    settings: 'sage',
+    workflow: 'ochre',
+    automation: 'peach',
+    exhibitions: 'ochre',
+    fable: 'peach',
+    cools: 'slate',
+    portraits: 'rose',
+    incident: 'ink',
+    power: 'rose',
+    file: 'blush',
+  };
+
   function getSoengIconSvg(id, size) {
     const paths = SOENG_ICON_PATHS[id];
     if (!paths) return '';
     const px = Number(size) > 0 ? Number(size) : 24;
-    const strokeWidth = px >= 30 ? 1.15 : 1.35;
+    const strokeWidth = px >= 30 ? 1.12 : px >= 22 ? 1.28 : 1.35;
     return (
-      '<svg viewBox="0 0 24 24" width="' + px + '" height="' + px + '" fill="none" stroke="currentColor" stroke-width="' + strokeWidth + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" width="' + px + '" height="' + px + '" fill="none" stroke="currentColor" stroke-width="' + strokeWidth + '" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" aria-hidden="true">' +
       paths +
       '</svg>'
     );
@@ -243,6 +264,9 @@
     scope.querySelectorAll('[data-soeng-icon]').forEach((el) => {
       const id = el.getAttribute('data-soeng-icon');
       const size = el.getAttribute('data-icon-size') || 24;
+      if (!el.getAttribute('data-tint') && SOENG_ICON_TINTS[id]) {
+        el.setAttribute('data-tint', SOENG_ICON_TINTS[id]);
+      }
       el.innerHTML = getSoengIconSvg(id, size);
     });
   }
@@ -262,6 +286,7 @@
     parseCommandLine,
     createFileItemElement,
     SOENG_ICON_PATHS,
+    SOENG_ICON_TINTS,
     getSoengIconSvg,
     mountSoengIcons,
   };
