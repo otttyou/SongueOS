@@ -4583,8 +4583,8 @@ function initPodcast(id) {
 const tvChannels = [
   {
     id: 'eeaao',
-    name: 'A24',
-    program: 'Everything Everywhere All At Once',
+    name: 'Everything Everywhere All At Once',
+    program: 'Official trailer',
     genre: 'A24',
     youtubeId: 'wxN1T1uxQ2g',
     preferYoutube: true,
@@ -4592,8 +4592,8 @@ const tvChannels = [
   },
   {
     id: 'civil',
-    name: 'A24',
-    program: 'Civil War',
+    name: 'Civil War',
+    program: 'Official trailer',
     genre: 'A24',
     youtubeId: 'aDyQxtg0V2w',
     preferYoutube: true,
@@ -4601,8 +4601,8 @@ const tvChannels = [
   },
   {
     id: 'past',
-    name: 'A24',
-    program: 'Past Lives',
+    name: 'Past Lives',
+    program: 'Official trailer',
     genre: 'A24',
     youtubeId: 'kA244xewjcI',
     preferYoutube: true,
@@ -4610,8 +4610,8 @@ const tvChannels = [
   },
   {
     id: 'brutalist',
-    name: 'A24',
-    program: 'The Brutalist',
+    name: 'The Brutalist',
+    program: 'Official trailer',
     genre: 'A24',
     youtubeId: 'GdRXPAHIEW4',
     preferYoutube: true,
@@ -4619,8 +4619,8 @@ const tvChannels = [
   },
   {
     id: 'midsommar',
-    name: 'A24',
-    program: 'Midsommar',
+    name: 'Midsommar',
+    program: 'Official trailer',
     genre: 'A24',
     youtubeId: '1Vnghdsjmd0',
     preferYoutube: true,
@@ -4628,8 +4628,8 @@ const tvChannels = [
   },
   {
     id: 'hereditary',
-    name: 'A24',
-    program: 'Hereditary',
+    name: 'Hereditary',
+    program: 'Official trailer',
     genre: 'A24',
     youtubeId: 'V6wWKNij_1M',
     preferYoutube: true,
@@ -4637,8 +4637,8 @@ const tvChannels = [
   },
   {
     id: 'moonlight',
-    name: 'A24',
-    program: 'Moonlight',
+    name: 'Moonlight',
+    program: 'Official trailer',
     genre: 'A24',
     youtubeId: '9NJj12tJzqc',
     preferYoutube: true,
@@ -4646,8 +4646,8 @@ const tvChannels = [
   },
   {
     id: 'substance',
-    name: 'MUBI',
-    program: 'The Substance',
+    name: 'The Substance',
+    program: 'Official trailer',
     genre: 'MUBI',
     youtubeId: 'LNlrGhBpYjc',
     preferYoutube: true,
@@ -4655,8 +4655,8 @@ const tvChannels = [
   },
   {
     id: 'grazia',
-    name: 'MUBI',
-    program: 'La Grazia',
+    name: 'La Grazia',
+    program: 'Official trailer',
     genre: 'MUBI',
     youtubeId: 'zvQn44a_IHo',
     preferYoutube: true,
@@ -4664,8 +4664,8 @@ const tvChannels = [
   },
   {
     id: 'falling',
-    name: 'MUBI',
-    program: 'Sound of Falling',
+    name: 'Sound of Falling',
+    program: 'Official trailer',
     genre: 'MUBI',
     youtubeId: 'O-jgGbvLgVo',
     preferYoutube: true,
@@ -4673,8 +4673,8 @@ const tvChannels = [
   },
   {
     id: 'bunny',
-    name: 'Open Cinema',
-    program: 'Big Buck Bunny desk',
+    name: 'Big Buck Bunny',
+    program: 'Open Cinema desk',
     genre: 'Film',
     stream: 'media/open-cinema.mp4',
     youtubeId: 'aqz-KE-bpKQ',
@@ -4817,16 +4817,16 @@ function initTV(id) {
   function paintChrome() {
     const channel = currentChannel();
     const custom = Boolean(tvState.customId);
-    programEl.textContent = custom ? 'Tuned YouTube' : channel.program;
+    programEl.textContent = custom ? 'Tuned YouTube' : channel.name;
     channelEl.textContent = custom
       ? `youtube-nocookie · ${tvState.customId}`
-      : `${channel.name} · ${channel.genre}`;
+      : `${channel.genre} · ${channel.program}`;
     liveEl.hidden = !tvState.watching;
     screen.classList.toggle('has-player', tvState.watching);
     screen.classList.toggle('theater', tvState.theater);
     playBtn.textContent = tvState.watching ? 'Replay' : 'Play';
     statusEl.textContent = tvState.watching
-      ? (custom ? `Watching YouTube · ${tvState.customId}` : `Watching ${channel.program}`)
+      ? (custom ? `Watching YouTube · ${tvState.customId}` : `Watching ${channel.name}`)
       : 'Click a desk — playback starts right away';
     if (!custom && urlInput && document.activeElement !== urlInput) {
       urlInput.value = channel.youtubeId
