@@ -94,6 +94,38 @@
     }
   }
 
+  function looksLikeWebAddress(raw) {
+    const trimmed = String(raw || '').trim();
+    if (!trimmed) return false;
+    if (/^(soeng:\/\/|about:blank$)/i.test(trimmed)) return true;
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(trimmed)) return true;
+    if (/\s/.test(trimmed)) return false;
+    const host = trimmed.split('/')[0].split('?')[0];
+    if (/^localhost(:\d+)?$/i.test(host)) return true;
+    return host.includes('.');
+  }
+
+  function getWikipediaSearchApi(query, lang) {
+    const q = String(query || '').trim();
+    if (!q) return null;
+    const language = /^[a-z]{2,3}$/.test(String(lang || '')) ? lang : 'en';
+    return (
+      'https://' + language + '.wikipedia.org/w/api.php?action=opensearch&search=' +
+      encodeURIComponent(q) +
+      '&limit=8&namespace=0&format=json&origin=*'
+    );
+  }
+
+  function getWikipediaSummaryApi(lang, title) {
+    const language = /^[a-z]{2,3}$/.test(String(lang || '')) ? lang : 'en';
+    const page = String(title || '').trim();
+    if (!page) return null;
+    return (
+      'https://' + language + '.wikipedia.org/api/rest_v1/page/summary/' +
+      encodeURIComponent(page)
+    );
+  }
+
   function normalizePath(path) {
     const parts = String(path || '/').split('/').filter(Boolean);
     const stack = [];
@@ -223,15 +255,45 @@
       '<ellipse cx="12" cy="11" rx="5.5" ry="6.5"/><path d="M6.5 20c1.2-3 3.4-4.5 5.5-4.5s4.3 1.5 5.5 4.5"/>',
     incident:
       '<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/><rect x="7" y="8" width="10" height="8" rx="1.5"/>',
+    calculator:
+      '<rect x="5.5" y="3.8" width="13" height="16.4" rx="2.2"/><rect x="7.4" y="6" width="9.2" height="3.2" rx="1"/><path d="M8.2 12.2h1.6M12.2 12.2h1.6M16.2 12.2h1.6M8.2 15.4h1.6M12.2 15.4h1.6M16.2 15.4h1.6"/>',
+    calendar:
+      '<rect x="5" y="6.2" width="14" height="13.2" rx="2"/><path d="M8 4.8v3.2M16 4.8v3.2M5 10.2h14"/><path d="M8.4 13.4h2.2M13.4 13.4h2.2M8.4 16.4h2.2"/>',
+    stickies:
+      '<path d="M7 5.2h8.4c.9 0 1.6.7 1.6 1.6v9.4L14.6 19H7c-.9 0-1.6-.7-1.6-1.6V6.8c0-.9.7-1.6 1.6-1.6z"/><path d="M16.8 16.2L14.4 19v-2c0-.5.4-.8.8-.8h1.6z"/><path d="M8.6 9.4h6.4M8.6 12.2h6.4M8.6 15h3.8"/>',
+  };
+
+  const SOENG_ICON_TINTS = {
+    filemanager: 'blush',
+    notes: 'sage',
+    browser: 'slate',
+    music: 'peach',
+    photos: 'rose',
+    podcast: 'clay',
+    tv: 'ink',
+    terminal: 'ink',
+    settings: 'sage',
+    workflow: 'ochre',
+    automation: 'peach',
+    exhibitions: 'ochre',
+    fable: 'peach',
+    cools: 'slate',
+    portraits: 'rose',
+    incident: 'ink',
+    calculator: 'slate',
+    calendar: 'peach',
+    stickies: 'ochre',
+    power: 'rose',
+    file: 'blush',
   };
 
   function getSoengIconSvg(id, size) {
     const paths = SOENG_ICON_PATHS[id];
     if (!paths) return '';
     const px = Number(size) > 0 ? Number(size) : 24;
-    const strokeWidth = px >= 30 ? 1.15 : 1.35;
+    const strokeWidth = px >= 30 ? 1.12 : px >= 22 ? 1.28 : 1.35;
     return (
-      '<svg viewBox="0 0 24 24" width="' + px + '" height="' + px + '" fill="none" stroke="currentColor" stroke-width="' + strokeWidth + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" width="' + px + '" height="' + px + '" fill="none" stroke="currentColor" stroke-width="' + strokeWidth + '" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" aria-hidden="true">' +
       paths +
       '</svg>'
     );
@@ -243,6 +305,9 @@
     scope.querySelectorAll('[data-soeng-icon]').forEach((el) => {
       const id = el.getAttribute('data-soeng-icon');
       const size = el.getAttribute('data-icon-size') || 24;
+      if (!el.getAttribute('data-tint') && SOENG_ICON_TINTS[id]) {
+        el.setAttribute('data-tint', SOENG_ICON_TINTS[id]);
+      }
       el.innerHTML = getSoengIconSvg(id, size);
     });
   }
@@ -253,6 +318,9 @@
     parseYoutubeVideoId,
     getYoutubeEmbedUrl,
     getWikipediaPageRef,
+    looksLikeWebAddress,
+    getWikipediaSearchApi,
+    getWikipediaSummaryApi,
     normalizePath,
     joinPath,
     resolveFsPath,
@@ -262,6 +330,7 @@
     parseCommandLine,
     createFileItemElement,
     SOENG_ICON_PATHS,
+    SOENG_ICON_TINTS,
     getSoengIconSvg,
     mountSoengIcons,
   };

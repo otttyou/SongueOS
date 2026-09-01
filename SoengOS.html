@@ -68,6 +68,7 @@
     --mono: 'IBM Plex Mono', monospace;
     --sans: "Helvetica Neue", Helvetica, 'Inter', "Segoe UI", system-ui, sans-serif;
     --transition: 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    --icon-spring: 220ms cubic-bezier(0.34, 1.45, 0.64, 1);
     --display: "Fraunces", "Noto Serif SC", "Songti SC", Georgia, serif;
     --song: "Noto Serif SC", "Songti SC", "Fraunces", serif;
     --app-font-size: 12px;
@@ -431,29 +432,77 @@
     backdrop-filter: var(--blur);
   }
   .dock-icon {
-    width: 44px; height: 44px;
-    display: flex; align-items: center; justify-content: center;
+    width: auto;
+    min-width: 44px;
+    height: auto;
+    padding: 2px 3px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
     border: none;
     color: var(--ink);
     cursor: pointer;
     position: relative;
-    transition: transform var(--transition), background var(--transition), color var(--transition), box-shadow var(--transition);
+    transform-origin: bottom center;
+    transition: color var(--transition);
     border-radius: 16px;
+    background: transparent;
   }
-  .dock-icon:hover, .dock-icon.active {
-    background: var(--espresso);
+  .dock-icon-well {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: rgba(255, 252, 246, 0.72);
+    border: 1px solid rgba(44, 40, 36, 0.06);
+    box-shadow: 0 2px 8px rgba(60, 52, 44, 0.04);
+    transition: transform var(--icon-spring), background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+  .dock-icon:hover .dock-icon-well,
+  .dock-icon.active .dock-icon-well {
+    background: rgba(255, 252, 246, 0.96);
+    border-color: rgba(95, 114, 104, 0.2);
+    box-shadow: 0 10px 22px rgba(60, 52, 44, 0.1);
+  }
+  body[data-dock-magnify="false"] .dock-icon:hover .dock-icon-well,
+  body[data-dock-magnify="false"] .dock-icon.active .dock-icon-well {
+    transform: translateY(-4px) scale(1.06);
+  }
+  .dock-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
+  .dock-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px) scale(0.96);
+    padding: 4px 11px;
+    background: rgba(44, 40, 36, 0.9);
     color: var(--cream);
-    transform: translateY(-5px) scale(1.04);
-    box-shadow: 0 10px 22px rgba(24, 20, 16, 0.14);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform var(--icon-spring);
+    z-index: 2;
   }
-  body[data-dock-magnify="true"] .dock-icon {
-    transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1), background var(--transition), color var(--transition), box-shadow var(--transition);
+  .dock-icon:hover .dock-tooltip,
+  .dock-icon:focus-visible .dock-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
   }
-  body[data-dock-magnify="true"] .dock-icon:hover,
-  body[data-dock-magnify="true"] .dock-icon.active {
-    transform: none;
+  .dock-divider {
+    width: 1px;
+    align-self: stretch;
+    margin: 8px 4px;
+    background: rgba(44, 40, 36, 0.1);
+    border-radius: 1px;
+    flex: 0 0 1px;
   }
-  .dock-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; }
   .dock-icon::after {
     content: '';
     position: absolute;
@@ -565,7 +614,7 @@
     border-radius: 18px;
     background: rgba(246, 241, 228, 0.12);
     border: 1px solid rgba(246, 241, 228, 0.18);
-    transition: transform var(--transition), background var(--transition), border-color var(--transition);
+    transition: transform var(--icon-spring), background var(--transition), border-color var(--transition), box-shadow var(--transition);
   }
   .desktop-icon:hover .icon-well {
     transform: translateY(-2px);
@@ -594,14 +643,15 @@
   }
   .desktop-icon svg {
     width: 28px; height: 28px;
-    stroke: var(--cream);
+    stroke: var(--ink);
     fill: none;
+    transition: stroke var(--transition), transform var(--icon-spring);
   }
   .desktop-icon span {
     font-family: var(--sans);
     font-size: 10px;
     font-weight: 400;
-    color: rgba(246, 241, 228, 0.85);
+    color: var(--ga);
     text-align: center;
     line-height: 1.3;
   }
@@ -1129,10 +1179,98 @@
   .photo-preview p { font-size:11px; color:var(--g7); line-height:1.6; }
   .photo-preview-stage {
     height:180px; margin-bottom:12px; border:1px solid var(--g3);
-    background:linear-gradient(160deg, #1a1a1a, #333);
+    background:linear-gradient(160deg, #ece8df, #d4cdc2);
     display:flex; align-items:center; justify-content:center;
     border-radius:var(--radius-sm); overflow:hidden;
   }
+  .photo-preview-stage img, .photo-thumb img {
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .photo-thumb { position:relative; padding:0; }
+  .photo-thumb span {
+    position:absolute; left:0; right:0; bottom:0;
+    margin:0; padding:6px 6px 8px;
+    background:linear-gradient(transparent, rgba(44,40,36,0.55));
+    color:var(--cream); font-size:9px;
+  }
+  .music-visualizer {
+    display:flex; align-items:flex-end; gap:3px;
+    height:42px; margin:10px 0 4px;
+  }
+  .music-visualizer span {
+    flex:1; height:8%; background:var(--celadon-deep); opacity:0.55;
+    border-radius:2px 2px 0 0;
+    transform-origin:bottom;
+  }
+  .music-progress { cursor:pointer; }
+  .media-vol {
+    width:88px; accent-color:var(--espresso);
+  }
+  .wiki-thumb {
+    max-width:220px; max-height:160px; object-fit:cover;
+    border-radius:var(--radius-md); border:var(--hairline);
+    margin:4px 0 12px;
+  }
+  .wiki-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .search-hit {
+    width:min(52rem, 100%);
+    text-align:left; padding:12px 14px; margin:0 0 8px;
+    border:var(--hairline); background:rgba(255,252,246,0.7);
+    border-radius:var(--radius-md); cursor:pointer;
+  }
+  .search-hit:hover { background:var(--cream); box-shadow:var(--shadow-float); }
+  .search-hit strong { display:block; font-size:13px; color:var(--ink); margin-bottom:4px; }
+  .search-hit span { font-size:11px; color:var(--g7); line-height:1.5; }
+  .browser-page.search { align-items:flex-start; justify-content:flex-start; padding:22px 26px; }
+  .browser-fallback {
+    width:min(36rem, 92%);
+    padding:22px; border:var(--hairline); background:var(--cream);
+    border-radius:var(--radius-lg); text-align:left;
+  }
+  .calc-app { display:flex; flex-direction:column; height:100%; background:var(--g1); padding:16px; gap:12px; }
+  .calc-display {
+    min-height:64px; padding:14px 16px; text-align:right;
+    font-family:var(--mono); font-size:26px; color:var(--ink);
+    background:var(--cream); border:var(--hairline); border-radius:var(--radius-md);
+    overflow:hidden;
+  }
+  .calc-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; flex:1; }
+  .calc-grid button {
+    border:var(--hairline); background:rgba(255,252,246,0.85); color:var(--ink);
+    font-family:var(--sans); font-size:16px; cursor:pointer; border-radius:var(--radius-md);
+  }
+  .calc-grid button:hover { background:var(--cream); }
+  .calc-grid button.op { background:rgba(122,144,136,0.16); color:var(--celadon-deep); }
+  .calc-grid button.eq { background:var(--espresso); color:var(--cream); grid-column: span 2; }
+  .calendar-app { display:flex; flex-direction:column; height:100%; background:var(--g1); }
+  .calendar-head { display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:var(--hairline); }
+  .calendar-head h3 { flex:1; text-align:center; font-family:var(--display); font-size:16px; font-weight:400; }
+  .calendar-grid { display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; padding:12px; }
+  .calendar-dow { font-size:9px; letter-spacing:0.12em; color:var(--g7); text-align:center; padding:4px 0; }
+  .calendar-day {
+    min-height:54px; border:1px solid transparent; background:rgba(255,252,246,0.5);
+    border-radius:10px; padding:6px; cursor:pointer; text-align:left;
+  }
+  .calendar-day:hover { border-color:rgba(44,40,36,0.1); background:var(--cream); }
+  .calendar-day.today { border-color:var(--celadon-deep); }
+  .calendar-day.muted { opacity:0.38; }
+  .calendar-day strong { display:block; font-size:11px; color:var(--ink); }
+  .calendar-day .evt { font-size:9px; color:var(--g7); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .calendar-side { padding:0 14px 14px; display:flex; gap:8px; }
+  .calendar-side input, .calendar-side button { height:28px; border:var(--hairline); border-radius:var(--radius-pill); padding:0 10px; font-size:11px; background:var(--cream); }
+  .calendar-side input { flex:1; }
+  .stickies-app { display:flex; flex-direction:column; height:100%; background:var(--g1); }
+  .stickies-grid { flex:1; overflow:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; padding:14px; }
+  .sticky-note {
+    min-height:160px; padding:14px; border:var(--hairline);
+    background:#f3ead4; border-radius:4px 18px 14px 14px;
+    box-shadow:var(--shadow-float); display:flex; flex-direction:column; gap:8px;
+  }
+  .sticky-note textarea {
+    flex:1; border:0; background:transparent; resize:none; outline:none;
+    font-family:var(--song); font-size:13px; color:var(--ink); line-height:1.5;
+  }
+  .sticky-note .sticky-meta { display:flex; justify-content:space-between; font-size:9px; color:var(--g7); }
   .podcast-episode, .tv-channel {
     display:flex; gap:12px; padding:12px; border:1px solid var(--g3);
     margin-bottom:8px; cursor:pointer; background:var(--g2);
@@ -1373,6 +1511,11 @@
     background:rgba(255, 252, 246, 0.85);
     border:1px solid var(--g3);
     color:var(--ink);
+    transition: transform var(--icon-spring), background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+  .app-launcher-item:hover .launcher-icon-well {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 18px rgba(60, 52, 44, 0.08);
   }
   .launcher-copy { flex:1; min-width:0; }
   .app-launcher-item:hover { transform:translateY(-3px); border-color:var(--g5); background:var(--cream); box-shadow:0 10px 24px rgba(24,20,16,0.10); }
@@ -1585,7 +1728,8 @@
     #desktop-icons { grid-template-columns: repeat(2, 64px); left:14px; top:14px; }
     .desktop-icon { width:64px; }
     #desktop-dock { max-width:calc(100vw - 20px); overflow-x:auto; gap:3px; padding:6px; border-radius:var(--radius-lg); }
-    .dock-icon { width:38px; height:38px; flex:0 0 38px; }
+    .dock-icon { min-width: 38px; flex: 0 0 auto; }
+    .dock-icon-well { width: 38px; height: 38px; border-radius: 12px; }
     .app-launcher-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .app-launcher-panel { padding:16px; }
     #topbar { left: 8px; right: 8px; }
@@ -1627,19 +1771,22 @@
     padding: 8px 10px;
   }
   .dock-icon {
-    border-radius: 50%;
-    background: rgba(24, 20, 16, 0.04);
+    border-radius: 0;
+    background: transparent;
   }
-  .dock-icon:hover, .dock-icon.active {
-    background: rgba(252, 249, 244, 0.95);
+  .dock-icon-well {
+    background: rgba(255, 252, 246, 0.78);
+    border-color: rgba(44, 40, 36, 0.07);
+  }
+  .dock-icon:hover .dock-icon-well,
+  .dock-icon.active .dock-icon-well {
+    background: rgba(255, 252, 246, 0.98);
     color: var(--celadon-deep);
-    transform: translateY(-10px) scale(1.18);
-    box-shadow: 0 12px 24px rgba(60, 52, 44, 0.1);
   }
-  body[data-dock-magnify="true"] .dock-icon:hover,
-  body[data-dock-magnify="true"] .dock-icon.active {
-    transform: none;
-    box-shadow: none;
+  body[data-dock-magnify="false"] .dock-icon:hover .dock-icon-well,
+  body[data-dock-magnify="false"] .dock-icon.active .dock-icon-well {
+    transform: translateY(-8px) scale(1.1);
+    box-shadow: 0 12px 24px rgba(60, 52, 44, 0.12);
   }
   .dock-icon.active::after { background: var(--espresso); border-color: var(--espresso); }
   #dock-menu { border: var(--hairline); }
@@ -1816,23 +1963,32 @@
     opacity: 0.32;
   }
   .icon-well[data-tint="blush"],
-  .launcher-icon-well[data-tint="blush"] { background: rgba(226, 216, 204, 0.45); border-color: rgba(154, 125, 92, 0.1); }
+  .launcher-icon-well[data-tint="blush"],
+  .dock-icon-well[data-tint="blush"] { background: rgba(226, 216, 204, 0.45); border-color: rgba(154, 125, 92, 0.1); }
   .icon-well[data-tint="sage"],
-  .launcher-icon-well[data-tint="sage"] { background: rgba(122, 144, 136, 0.12); border-color: rgba(95, 114, 104, 0.16); }
+  .launcher-icon-well[data-tint="sage"],
+  .dock-icon-well[data-tint="sage"] { background: rgba(122, 144, 136, 0.12); border-color: rgba(95, 114, 104, 0.16); }
   .icon-well[data-tint="peach"],
-  .launcher-icon-well[data-tint="peach"] { background: rgba(201, 168, 130, 0.14); border-color: rgba(154, 125, 92, 0.14); }
+  .launcher-icon-well[data-tint="peach"],
+  .dock-icon-well[data-tint="peach"] { background: rgba(201, 168, 130, 0.14); border-color: rgba(154, 125, 92, 0.14); }
   .icon-well[data-tint="rose"],
-  .launcher-icon-well[data-tint="rose"] { background: rgba(168, 132, 124, 0.12); border-color: rgba(168, 132, 124, 0.14); }
+  .launcher-icon-well[data-tint="rose"],
+  .dock-icon-well[data-tint="rose"] { background: rgba(168, 132, 124, 0.12); border-color: rgba(168, 132, 124, 0.14); }
   .icon-well[data-tint="slate"],
-  .launcher-icon-well[data-tint="slate"] { background: rgba(138, 150, 168, 0.1); border-color: rgba(138, 150, 168, 0.14); }
+  .launcher-icon-well[data-tint="slate"],
+  .dock-icon-well[data-tint="slate"] { background: rgba(138, 150, 168, 0.1); border-color: rgba(138, 150, 168, 0.14); }
   .icon-well[data-tint="clay"],
-  .launcher-icon-well[data-tint="clay"] { background: rgba(154, 125, 92, 0.1); border-color: rgba(154, 125, 92, 0.14); }
+  .launcher-icon-well[data-tint="clay"],
+  .dock-icon-well[data-tint="clay"] { background: rgba(154, 125, 92, 0.1); border-color: rgba(154, 125, 92, 0.14); }
   .icon-well[data-tint="ochre"],
-  .launcher-icon-well[data-tint="ochre"] { background: rgba(154, 125, 72, 0.1); border-color: rgba(154, 125, 72, 0.14); }
+  .launcher-icon-well[data-tint="ochre"],
+  .dock-icon-well[data-tint="ochre"] { background: rgba(154, 125, 72, 0.1); border-color: rgba(154, 125, 72, 0.14); }
   .icon-well[data-tint="ink"],
-  .launcher-icon-well[data-tint="ink"] { background: rgba(44, 40, 36, 0.05); border-color: rgba(44, 40, 36, 0.08); }
+  .launcher-icon-well[data-tint="ink"],
+  .dock-icon-well[data-tint="ink"] { background: rgba(44, 40, 36, 0.05); border-color: rgba(44, 40, 36, 0.08); }
   .icon-well[data-tint="celadon"],
-  .launcher-icon-well[data-tint="celadon"] { background: rgba(122, 144, 136, 0.14); border-color: rgba(95, 114, 104, 0.18); }
+  .launcher-icon-well[data-tint="celadon"],
+  .dock-icon-well[data-tint="celadon"] { background: rgba(122, 144, 136, 0.14); border-color: rgba(95, 114, 104, 0.18); }
   .app-launcher-head h2 {
     font-family: var(--display);
     font-size: 22px;
@@ -1861,7 +2017,7 @@
   }
 </style>
 </head>
-<body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true">
+<body data-desktop-mode="hybrid" data-window-controls="linux" data-dock-position="center" data-taskbar-visible="true" data-dock-magnify="true">
 
 <!-- Boot Screen -->
 <div id="boot-screen">
@@ -2005,6 +2161,19 @@
       <span>Automate</span>
     </div>
 
+    <div class="desktop-icon" ondblclick="openApp('calculator')">
+      <div class="icon-well" data-soeng-icon="calculator" data-icon-size="28" data-tint="slate"></div>
+      <span>Calc</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('calendar')">
+      <div class="icon-well" data-soeng-icon="calendar" data-icon-size="28" data-tint="peach"></div>
+      <span>Calendar</span>
+    </div>
+    <div class="desktop-icon" ondblclick="openApp('stickies')">
+      <div class="icon-well" data-soeng-icon="stickies" data-icon-size="28" data-tint="ochre"></div>
+      <span>Stickies</span>
+    </div>
+
     <div class="desktop-section-label">galleries</div>
 
     <div class="desktop-icon" ondblclick="openApp('exhibitions')">
@@ -2025,16 +2194,55 @@
 
 <!-- Unified Dock (Mac / Hybrid mode) -->
 <div id="desktop-dock" aria-label="Application Dock">
-  <div class="dock-icon" data-app="notes" title="Notes" data-soeng-icon="notes" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="music" title="Music" data-soeng-icon="music" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="photos" title="Photos" data-soeng-icon="photos" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="podcast" title="Podcast" data-soeng-icon="podcast" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="tv" title="TV" data-soeng-icon="tv" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="browser" title="Browser" data-soeng-icon="browser" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="filemanager" title="Files" data-soeng-icon="filemanager" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="terminal" title="Terminal" data-soeng-icon="terminal" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="settings" title="Settings" data-soeng-icon="settings" data-icon-size="24"></div>
-  <div class="dock-icon" data-app="exhibitions" title="Galleries" data-soeng-icon="exhibitions" data-icon-size="24"></div>
+  <div class="dock-icon" data-app="notes" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="notes" data-icon-size="22" data-tint="sage"></span>
+    <span class="dock-tooltip">Notes</span>
+  </div>
+  <div class="dock-icon" data-app="music" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="music" data-icon-size="22" data-tint="peach"></span>
+    <span class="dock-tooltip">Music</span>
+  </div>
+  <div class="dock-icon" data-app="photos" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="photos" data-icon-size="22" data-tint="rose"></span>
+    <span class="dock-tooltip">Photos</span>
+  </div>
+  <div class="dock-icon" data-app="podcast" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="podcast" data-icon-size="22" data-tint="clay"></span>
+    <span class="dock-tooltip">Podcast</span>
+  </div>
+  <div class="dock-icon" data-app="tv" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="tv" data-icon-size="22" data-tint="ink"></span>
+    <span class="dock-tooltip">TV</span>
+  </div>
+  <div class="dock-icon" data-app="browser" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="browser" data-icon-size="22" data-tint="slate"></span>
+    <span class="dock-tooltip">Browser</span>
+  </div>
+  <div class="dock-icon" data-app="filemanager" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="filemanager" data-icon-size="22" data-tint="blush"></span>
+    <span class="dock-tooltip">Files</span>
+  </div>
+  <div class="dock-divider" aria-hidden="true"></div>
+  <div class="dock-icon" data-app="terminal" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="terminal" data-icon-size="22" data-tint="ink"></span>
+    <span class="dock-tooltip">Terminal</span>
+  </div>
+  <div class="dock-icon" data-app="calculator" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="calculator" data-icon-size="22" data-tint="slate"></span>
+    <span class="dock-tooltip">Calculator</span>
+  </div>
+  <div class="dock-icon" data-app="calendar" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="calendar" data-icon-size="22" data-tint="peach"></span>
+    <span class="dock-tooltip">Calendar</span>
+  </div>
+  <div class="dock-icon" data-app="settings" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="settings" data-icon-size="22" data-tint="sage"></span>
+    <span class="dock-tooltip">Settings</span>
+  </div>
+  <div class="dock-icon" data-app="exhibitions" tabindex="0">
+    <span class="icon-well dock-icon-well" data-soeng-icon="exhibitions" data-icon-size="22" data-tint="ochre"></span>
+    <span class="dock-tooltip">Galleries</span>
+  </div>
 </div>
 
 <!-- Dock Context Menu -->
@@ -2063,13 +2271,16 @@
       <button class="app-launcher-item" onclick="launchFromLauncher('filemanager')"><span class="launcher-icon-well" data-soeng-icon="filemanager" data-icon-size="22" data-tint="blush"></span><span class="launcher-copy"><strong>Files</strong><span>Browse, preview, create, and remove local files.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('notes')"><span class="launcher-icon-well" data-soeng-icon="notes" data-icon-size="22" data-tint="sage"></span><span class="launcher-copy"><strong>Notes</strong><span>Write notes with automatic local saving.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('browser')"><span class="launcher-icon-well" data-soeng-icon="browser" data-icon-size="22" data-tint="slate"></span><span class="launcher-copy"><strong>Browser</strong><span>Navigate Soeng pages and safe external links.</span></span></button>
-      <button class="app-launcher-item" onclick="launchFromLauncher('music')"><span class="launcher-icon-well" data-soeng-icon="music" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Music</strong><span>Browse tracks and control simulated playback.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('music')"><span class="launcher-icon-well" data-soeng-icon="music" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Music</strong><span>Play sequenced tracks through the speakers.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('photos')"><span class="launcher-icon-well" data-soeng-icon="photos" data-icon-size="22" data-tint="rose"></span><span class="launcher-copy"><strong>Photos</strong><span>Explore the local image library and metadata.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('podcast')"><span class="launcher-icon-well" data-soeng-icon="podcast" data-icon-size="22" data-tint="clay"></span><span class="launcher-copy"><strong>Podcast</strong><span>Select episodes and control listening progress.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('tv')"><span class="launcher-icon-well" data-soeng-icon="tv" data-icon-size="22" data-tint="ink"></span><span class="launcher-copy"><strong>TV</strong><span>Choose a channel and start or stop viewing.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('terminal')"><span class="launcher-icon-well" data-soeng-icon="terminal" data-icon-size="22" data-tint="ink"></span><span class="launcher-copy"><strong>Terminal</strong><span>Use the working soeng-sh command environment.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('workflow')"><span class="launcher-icon-well" data-soeng-icon="workflow" data-icon-size="22" data-tint="ochre"></span><span class="launcher-copy"><strong>Workflow Hub</strong><span>Create, move, run, and pause workflow cards.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('automation')"><span class="launcher-icon-well" data-soeng-icon="automation" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Automation Studio</strong><span>Turn a prompt into runnable workflow steps.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('calculator')"><span class="launcher-icon-well" data-soeng-icon="calculator" data-icon-size="22" data-tint="slate"></span><span class="launcher-copy"><strong>Calculator</strong><span>Four-function desk calculator.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('calendar')"><span class="launcher-icon-well" data-soeng-icon="calendar" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Calendar</strong><span>Month view with local day notes.</span></span></button>
+      <button class="app-launcher-item" onclick="launchFromLauncher('stickies')"><span class="launcher-icon-well" data-soeng-icon="stickies" data-icon-size="22" data-tint="ochre"></span><span class="launcher-copy"><strong>Stickies</strong><span>Paper slips that save as you type.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('settings')"><span class="launcher-icon-well" data-soeng-icon="settings" data-icon-size="22" data-tint="sage"></span><span class="launcher-copy"><strong>Settings</strong><span>Adjust desktop mode, controls, scale, and system state.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('exhibitions')"><span class="launcher-icon-well" data-soeng-icon="exhibitions" data-icon-size="22" data-tint="ochre"></span><span class="launcher-copy"><strong>Galleries</strong><span>Kengo Works exhibitions — ink walls, graph paper, portraits.</span></span></button>
       <button class="app-launcher-item" onclick="launchFromLauncher('fable')"><span class="launcher-icon-well" data-soeng-icon="fable" data-icon-size="22" data-tint="peach"></span><span class="launcher-copy"><strong>Fable Wall</strong><span>Scroll a generative ink wall on cream paper.</span></span></button>
@@ -2114,6 +2325,9 @@
   <div class="ctx-item" onclick="openApp('terminal');closeCtxMenu()">Terminal</div>
   <div class="ctx-item" onclick="openApp('workflow');closeCtxMenu()">Workflow Hub</div>
   <div class="ctx-item" onclick="openApp('automation');closeCtxMenu()">Automation Studio</div>
+  <div class="ctx-item" onclick="openApp('calculator');closeCtxMenu()">Calculator</div>
+  <div class="ctx-item" onclick="openApp('calendar');closeCtxMenu()">Calendar</div>
+  <div class="ctx-item" onclick="openApp('stickies');closeCtxMenu()">Stickies</div>
   <div class="ctx-item" onclick="openApp('settings');closeCtxMenu()">Settings</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" onclick="openApp('exhibitions');closeCtxMenu()">Galleries</div>
@@ -2264,23 +2478,65 @@ function initDockMagnification() {
   const dock = document.getElementById('desktop-dock');
   if (!dock) return;
   const icons = [...dock.querySelectorAll('.dock-icon')];
-  const resetIcons = () => icons.forEach(icon => { icon.style.transform = ''; });
-  dock.addEventListener('mousemove', (event) => {
-    if (!dockMagnifyEnabled || dock.style.display === 'none') return;
-    const isVertical = dock.classList.contains('vertical') || getComputedStyle(dock).flexDirection === 'column';
-    icons.forEach(icon => {
-      const rect = icon.getBoundingClientRect();
-      const center = isVertical
-        ? rect.top + rect.height / 2
-        : rect.left + rect.width / 2;
-      const pointer = isVertical ? event.clientY : event.clientX;
-      const dist = Math.abs(pointer - center);
-      const lift = Math.max(0, (dockMagnification - 1) * Math.exp(-dist / 72));
-      const scale = 1 + lift;
-      icon.style.transform = `translateY(${-lift * 14}px) scale(${scale})`;
+  const scales = new Map(icons.map((icon) => [icon, 1]));
+  let pointer = null;
+  let rafId = null;
+  const MAG_DIST = 92;
+  const SPRING = 0.2;
+
+  function pointerFine() {
+    if (typeof window.matchMedia !== 'function') return true;
+    return !window.matchMedia('(pointer: coarse)').matches && !window.matchMedia('(hover: none)').matches;
+  }
+
+  function canMagnify() {
+    return dockMagnifyEnabled && pointerFine() && getComputedStyle(dock).display !== 'none';
+  }
+
+  function targetScale(icon) {
+    if (!canMagnify() || pointer == null) return 1;
+    const isVertical = getComputedStyle(dock).flexDirection === 'column';
+    const rect = icon.getBoundingClientRect();
+    const center = isVertical ? rect.top + rect.height / 2 : rect.left + rect.width / 2;
+    const dist = Math.abs(pointer - center);
+    if (dist > MAG_DIST) return 1;
+    const t = 1 - dist / MAG_DIST;
+    const eased = t * t * (3 - 2 * t);
+    return 1 + (dockMagnification - 1) * eased;
+  }
+
+  function tick() {
+    let moving = false;
+    icons.forEach((icon) => {
+      const target = targetScale(icon);
+      const current = scales.get(icon) || 1;
+      const next = current + (target - current) * SPRING;
+      if (Math.abs(next - target) > 0.001 || Math.abs(next - current) > 0.001) moving = true;
+      scales.set(icon, next);
+      const lift = (next - 1) * 18;
+      icon.style.transform = `translateY(${-lift}px) scale(${next})`;
     });
+    if (moving || pointer != null) rafId = requestAnimationFrame(tick);
+    else {
+      rafId = null;
+      icons.forEach((icon) => { icon.style.transform = ''; });
+      scales.forEach((_, icon) => scales.set(icon, 1));
+    }
+  }
+
+  function ensureLoop() {
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  }
+
+  dock.addEventListener('mousemove', (event) => {
+    if (!canMagnify()) return;
+    pointer = getComputedStyle(dock).flexDirection === 'column' ? event.clientY : event.clientX;
+    ensureLoop();
   });
-  dock.addEventListener('mouseleave', resetIcons);
+  dock.addEventListener('mouseleave', () => {
+    pointer = null;
+    ensureLoop();
+  });
 }
 
 function syncControlCenter() {
@@ -2453,6 +2709,13 @@ document.querySelectorAll('.dock-icon[data-app]').forEach(icon => {
     hideDockMenu();
     activateApp(icon.dataset.app);
   });
+  icon.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      hideDockMenu();
+      activateApp(icon.dataset.app);
+    }
+  });
   icon.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     showDockMenu(event, icon.dataset.app);
@@ -2619,22 +2882,35 @@ function restoreWindow(id) {
 }
 
 function activateApp(appName, options = {}) {
-  if (!options.forceNew) {
-    const appWindows = getAppWindows(appName);
-    const minimizedWindow = getMostRecentWindow(appWindows.filter(win => win.minimized), true);
-    if (minimizedWindow && restoreWindow(minimizedWindow.id)) return;
+  if (options.forceNew) {
+    openApp(appName, { forceNew: true });
+    return;
+  }
 
-    const visibleWindow = getMostRecentWindow(appWindows);
-    if (visibleWindow) {
-      const win = document.getElementById('win-' + visibleWindow.id);
-      if (win) {
-        bringToFront(win);
-        return;
-      }
+  const appWindows = getAppWindows(appName);
+  const focusedWindow = appWindows.find((win) => {
+    if (win.minimized) return false;
+    const el = document.getElementById('win-' + win.id);
+    return el && el.classList.contains('focused');
+  });
+  if (focusedWindow) {
+    minimizeWindow(focusedWindow.id);
+    return;
+  }
+
+  const minimizedWindow = getMostRecentWindow(appWindows.filter((win) => win.minimized), true);
+  if (minimizedWindow && restoreWindow(minimizedWindow.id)) return;
+
+  const visibleWindow = getMostRecentWindow(appWindows);
+  if (visibleWindow) {
+    const win = document.getElementById('win-' + visibleWindow.id);
+    if (win) {
+      bringToFront(win);
+      return;
     }
   }
 
-  openApp(appName, { forceNew: true });
+  openApp(appName);
 }
 
 function updateDockIndicators() {
@@ -2915,6 +3191,9 @@ function openApp(name, options = {}) {
     case 'cools': openKengoExhibit('cools', options); break;
     case 'portraits': openKengoExhibit('portraits', options); break;
     case 'incident': openKengoExhibit('incident', options); break;
+    case 'calculator': openCalculator(options); break;
+    case 'calendar': openCalendar(options); break;
+    case 'stickies': openStickies(options); break;
   }
 }
 
@@ -3204,7 +3483,7 @@ const termFS = {
   '/home': ['user'],
   '/home/user': ['Documents', 'Pictures', 'Downloads', 'Projects', 'readme.md', 'notes.txt', '.bashrc'],
   '/home/user/Documents': ['report.pdf', 'todo.txt'],
-  '/home/user/Pictures': ['wallpaper.png', 'screenshot.png', 'zen-garden.jpg', 'city-night.jpg'],
+  '/home/user/Pictures': ['wallpaper.svg', 'screenshot.svg', 'zen-garden.svg', 'city-night.svg'],
   '/home/user/Downloads': [],
   '/home/user/Projects': ['soengos', 'webapp'],
   '/etc': ['hosts', 'passwd', 'fstab'],
@@ -3754,11 +4033,14 @@ function initNotes(id) {
   renderEditor();
 }
 
-// ── Live tone desk (Web Audio — no fake progress) ──
+// ── Live tone desk (Web Audio sequencer — real sound, not a fake bar) ──
 const soengTone = (() => {
   let ctx = null;
   const live = [];
   let ticker = null;
+  let analyser = null;
+  let master = null;
+  let volume = 0.72;
 
   function context() {
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -3782,10 +4064,58 @@ const soengTone = (() => {
       clearInterval(ticker);
       ticker = null;
     }
+    analyser = null;
+    master = null;
   }
 
-  function patches(name, c, dest) {
-    if (name === 'rain') {
+  function envGain(c, start, dur, peak) {
+    const g = keep(c.createGain());
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(peak, start + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    return g;
+  }
+
+  function tone(c, dest, { freq, type, start, dur, peak }) {
+    const osc = keep(c.createOscillator());
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, start);
+    const g = envGain(c, start, dur, peak);
+    osc.connect(g);
+    g.connect(dest);
+    osc.start(start);
+    osc.stop(start + dur + 0.02);
+  }
+
+  function schedule(c, dest, name, seconds) {
+    const now = c.currentTime + 0.02;
+    const kits = {
+      zen:   { scale: [196, 220, 247, 294, 330, 392], bpm: 72, wave: 'sine', peak: 0.07 },
+      rain:  { scale: [147, 175, 196, 220], bpm: 96, wave: 'triangle', peak: 0.05, noise: true },
+      dock:  { scale: [131, 165, 196, 262, 330], bpm: 84, wave: 'triangle', peak: 0.06 },
+      focus: { scale: [196, 247, 294, 392], bpm: 108, wave: 'square', peak: 0.03 },
+      drive: { scale: [98, 147, 196, 233, 294], bpm: 118, wave: 'sawtooth', peak: 0.045 },
+      voice: { scale: [148, 175, 196, 220, 247], bpm: 64, wave: 'sawtooth', peak: 0.04 },
+    };
+    const kit = kits[name] || kits.zen;
+    const step = 60 / kit.bpm;
+    const steps = Math.max(16, Math.ceil(seconds / step));
+    for (let i = 0; i < steps; i++) {
+      const start = now + i * step;
+      const note = kit.scale[i % kit.scale.length];
+      const octave = (i % 7 === 0) ? 0.5 : (i % 5 === 0) ? 2 : 1;
+      tone(c, dest, {
+        freq: note * octave,
+        type: kit.wave,
+        start,
+        dur: step * (name === 'focus' ? 0.45 : 0.72),
+        peak: kit.peak * (i % 4 === 0 ? 1.25 : 0.85),
+      });
+      if (name === 'drive' && i % 2 === 0) {
+        tone(c, dest, { freq: 52, type: 'sine', start, dur: step * 0.4, peak: 0.08 });
+      }
+    }
+    if (kit.noise) {
       const buffer = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
@@ -3796,92 +4126,12 @@ const soengTone = (() => {
       filter.type = 'highpass';
       filter.frequency.value = 1400;
       const g = keep(c.createGain());
-      g.gain.value = 0.05;
+      g.gain.value = 0.04;
       noise.connect(filter);
       filter.connect(g);
       g.connect(dest);
       noise.start();
-      const pad = keep(c.createOscillator());
-      pad.type = 'triangle';
-      pad.frequency.value = 110;
-      const pg = keep(c.createGain());
-      pg.gain.value = 0.03;
-      pad.connect(pg);
-      pg.connect(dest);
-      pad.start();
-      return;
     }
-    if (name === 'drive') {
-      const kick = keep(c.createOscillator());
-      kick.type = 'sine';
-      kick.frequency.value = 52;
-      const kg = keep(c.createGain());
-      kg.gain.value = 0.08;
-      const lfo = keep(c.createOscillator());
-      lfo.frequency.value = 1.6;
-      const lg = keep(c.createGain());
-      lg.gain.value = 0.05;
-      lfo.connect(lg);
-      lg.connect(kg.gain);
-      kick.connect(kg);
-      kg.connect(dest);
-      kick.start();
-      lfo.start();
-      const lead = keep(c.createOscillator());
-      lead.type = 'sawtooth';
-      lead.frequency.value = 196;
-      const lp = keep(c.createBiquadFilter());
-      lp.type = 'lowpass';
-      lp.frequency.value = 720;
-      const lg2 = keep(c.createGain());
-      lg2.gain.value = 0.025;
-      lead.connect(lp);
-      lp.connect(lg2);
-      lg2.connect(dest);
-      lead.start();
-      return;
-    }
-    if (name === 'voice') {
-      const osc = keep(c.createOscillator());
-      osc.type = 'sawtooth';
-      osc.frequency.value = 148;
-      const filter = keep(c.createBiquadFilter());
-      filter.type = 'bandpass';
-      filter.frequency.value = 620;
-      filter.Q.value = 4;
-      const g = keep(c.createGain());
-      g.gain.value = 0.035;
-      const lfo = keep(c.createOscillator());
-      lfo.frequency.value = 2.4;
-      const lg = keep(c.createGain());
-      lg.gain.value = 80;
-      lfo.connect(lg);
-      lg.connect(filter.frequency);
-      osc.connect(filter);
-      filter.connect(g);
-      g.connect(dest);
-      osc.start();
-      lfo.start();
-      return;
-    }
-    const notes = name === 'focus' ? [196, 247, 294] : name === 'dock' ? [131, 196, 262] : [220, 247, 277, 330];
-    notes.forEach((freq, i) => {
-      const osc = keep(c.createOscillator());
-      osc.type = name === 'focus' ? 'square' : 'sine';
-      osc.frequency.value = freq;
-      const g = keep(c.createGain());
-      g.gain.value = 0;
-      const lfo = keep(c.createOscillator());
-      lfo.frequency.value = 0.07 + i * 0.04;
-      const lg = keep(c.createGain());
-      lg.gain.value = name === 'focus' ? 0.018 : 0.035;
-      lfo.connect(lg);
-      lg.connect(g.gain);
-      osc.connect(g);
-      g.connect(dest);
-      osc.start();
-      lfo.start();
-    });
   }
 
   function play(name, seconds, onProgress) {
@@ -3891,10 +4141,13 @@ const soengTone = (() => {
       return false;
     }
     silence();
-    const dest = keep(c.createGain());
-    dest.gain.value = 0.95;
-    dest.connect(c.destination);
-    patches(name, c, dest);
+    master = keep(c.createGain());
+    master.gain.value = volume;
+    analyser = keep(c.createAnalyser());
+    analyser.fftSize = 64;
+    master.connect(analyser);
+    analyser.connect(c.destination);
+    schedule(c, master, name, seconds);
     const startedAt = c.currentTime;
     ticker = setInterval(() => {
       const elapsed = Math.min(seconds, c.currentTime - startedAt);
@@ -3904,11 +4157,23 @@ const soengTone = (() => {
         silence();
         onProgress?.(1, seconds, false);
       }
-    }, 200);
+    }, 120);
     return true;
   }
 
-  return { play, stop: silence };
+  function setVolume(value) {
+    volume = Math.max(0, Math.min(1, Number(value)));
+    if (master) master.gain.value = volume;
+  }
+
+  function getSpectrum() {
+    if (!analyser) return [];
+    const bins = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(bins);
+    return Array.from(bins);
+  }
+
+  return { play, stop: silence, setVolume, getSpectrum };
 })();
 
 // ── Music ──
@@ -3935,20 +4200,23 @@ function openMusic(options = {}) {
         <button data-music-action="prev">Prev</button>
         <button data-music-action="play">Play</button>
         <button data-music-action="next">Next</button>
+        <button data-music-action="stop">Stop</button>
+        <input class="media-vol" type="range" min="0" max="100" value="72" data-music-vol title="Volume" />
         <span data-music-status style="margin-left:auto;color:var(--g7);">Ready</span>
       </div>
       <div class="media-main">
         <div class="music-now-playing">
           <h3 data-music-title>—</h3>
           <p data-music-artist>—</p>
-          <div class="music-progress"><div class="music-progress-bar" data-music-bar></div></div>
+          <div class="music-visualizer" data-music-viz></div>
+          <div class="music-progress" data-music-seek><div class="music-progress-bar" data-music-bar></div></div>
           <div style="font-size:10px;color:var(--g7);" data-music-time>0:00 / 0:00</div>
         </div>
         <div data-music-list></div>
       </div>
     </div>
   `;
-  const id = createWindow('music', 'Music', 520, 420, html, { ...options, appName: 'music' });
+  const id = createWindow('music', 'Music', 520, 460, html, { ...options, appName: 'music' });
   initMusic(id);
 }
 
@@ -3963,6 +4231,18 @@ function initMusic(id) {
   const timeEl = win.querySelector('[data-music-time]');
   const statusEl = win.querySelector('[data-music-status]');
   const playBtn = win.querySelector('[data-music-action="play"]');
+  const viz = win.querySelector('[data-music-viz]');
+  viz.textContent = '';
+  for (let i = 0; i < 16; i++) viz.appendChild(document.createElement('span'));
+
+  function paintViz() {
+    const bins = soengTone.getSpectrum();
+    [...viz.children].forEach((bar, i) => {
+      const v = bins[i] || 0;
+      bar.style.height = `${Math.max(8, (v / 255) * 100)}%`;
+    });
+    if (musicState.playing) requestAnimationFrame(paintViz);
+  }
 
   function currentTrack() {
     return musicLibrary.find(t => t.id === musicState.trackId) || musicLibrary[0];
@@ -3999,10 +4279,12 @@ function initMusic(id) {
 
   function startPlayback() {
     const track = currentTrack();
+    const startAt = musicState.progress || 0;
     musicState.playing = true;
-    const started = soengTone.play(track.patch, track.duration, (progress, elapsed, alive) => {
+    const remaining = Math.max(6, track.duration * (1 - startAt));
+    const started = soengTone.play(track.patch, remaining, (progress, elapsed, alive) => {
       if (musicState.trackId !== track.id) return;
-      musicState.progress = progress;
+      musicState.progress = startAt + progress * (1 - startAt);
       if (!alive && progress >= 1) {
         const idx = musicLibrary.findIndex(t => t.id === track.id);
         musicState.trackId = musicLibrary[(idx + 1) % musicLibrary.length].id;
@@ -4016,6 +4298,8 @@ function initMusic(id) {
     if (!started) {
       musicState.playing = false;
       showToast('This browser blocked audio. Click Play again after a gesture.');
+    } else {
+      requestAnimationFrame(paintViz);
     }
     render();
   }
@@ -4031,6 +4315,21 @@ function initMusic(id) {
   }
 
   win.querySelector('[data-music-action="play"]').addEventListener('click', togglePlay);
+  win.querySelector('[data-music-action="stop"]')?.addEventListener('click', () => {
+    musicState.playing = false;
+    musicState.progress = 0;
+    soengTone.stop();
+    render();
+  });
+  win.querySelector('[data-music-vol]')?.addEventListener('input', (event) => {
+    soengTone.setVolume(Number(event.target.value) / 100);
+  });
+  win.querySelector('[data-music-seek]')?.addEventListener('click', (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    musicState.progress = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    if (musicState.playing) startPlayback();
+    else render();
+  });
   win.querySelector('[data-music-action="prev"]').addEventListener('click', () => {
     const idx = musicLibrary.findIndex(t => t.id === musicState.trackId);
     musicState.trackId = musicLibrary[(idx - 1 + musicLibrary.length) % musicLibrary.length].id;
@@ -4051,17 +4350,19 @@ function initMusic(id) {
 
 // ── Photos ──
 const photoMeta = {
-  '/home/user/Pictures/wallpaper.png': { caption: 'Default SoengOS wallpaper', date: '2026-04-15', gradient: 'linear-gradient(135deg, #1a1a2e, #16213e)' },
-  '/home/user/Pictures/screenshot.png': { caption: 'Desktop screenshot', date: '2026-05-01', gradient: 'linear-gradient(135deg, #2d3436, #636e72)' },
-  '/home/user/Pictures/zen-garden.jpg': { caption: 'Zen garden at dawn', date: '2026-05-10', gradient: 'linear-gradient(135deg, #2f4f4f, #556b2f)' },
-  '/home/user/Pictures/city-night.jpg': { caption: 'City skyline at night', date: '2026-05-12', gradient: 'linear-gradient(135deg, #0f0c29, #302b63)' },
+  '/home/user/Pictures/wallpaper.svg': { caption: '宣纸场 · default wallpaper', date: '2026-04-15', src: 'media/photos/wallpaper.svg' },
+  '/home/user/Pictures/screenshot.svg': { caption: 'Desk chrome, hairline bars', date: '2026-05-01', src: 'media/photos/screenshot.svg' },
+  '/home/user/Pictures/zen-garden.svg': { caption: 'Raked gravel, two stones', date: '2026-05-10', src: 'media/photos/zen-garden.svg' },
+  '/home/user/Pictures/city-night.svg': { caption: 'Ink towers at dusk', date: '2026-05-12', src: 'media/photos/city-night.svg' },
 };
 
 function openPhotos(options = {}) {
   const html = `
     <div class="media-app" data-photos-app>
       <div class="media-toolbar">
+        <button data-photos-action="prev">Prev</button>
         <button data-photos-action="open-folder">Open in Files</button>
+        <button data-photos-action="next">Next</button>
         <span data-photos-count style="margin-left:auto;color:var(--g7);"></span>
       </div>
       <div class="media-main">
@@ -4095,13 +4396,20 @@ function initPhotos(id) {
   function showPhoto(name) {
     active = name;
     const full = joinPath(photosPath, name);
-    const meta = photoMeta[full] || { caption: name, date: 'Unknown', gradient: 'linear-gradient(135deg, #222, #444)' };
-    stage.style.background = meta.gradient;
+    const meta = photoMeta[full] || { caption: name, date: 'Unknown' };
     stage.textContent = '';
-    const label = document.createElement('span');
-    label.style.cssText = 'font-size:11px;color:var(--ga);font-family:var(--mono);';
-    label.textContent = name;
-    stage.appendChild(label);
+    stage.style.background = '';
+    if (meta.src) {
+      const img = document.createElement('img');
+      img.alt = meta.caption;
+      img.src = meta.src;
+      stage.appendChild(img);
+    } else {
+      const label = document.createElement('span');
+      label.style.cssText = 'font-size:11px;color:var(--ga);font-family:var(--mono);';
+      label.textContent = name;
+      stage.appendChild(label);
+    }
     captionEl.textContent = meta.caption;
     metaEl.textContent = `${full}\nCaptured: ${meta.date}`;
     grid.querySelectorAll('.photo-thumb').forEach(el => {
@@ -4116,18 +4424,32 @@ function initPhotos(id) {
     thumb.dataset.name = name;
     const full = joinPath(photosPath, name);
     const meta = photoMeta[full];
-    if (meta) thumb.style.background = meta.gradient;
-    const iconWrap = document.createElement('div');
-    iconWrap.className = 'photo-thumb-icon';
-    iconWrap.innerHTML = getSoengIconSvg('photos', 28);
+    if (meta?.src) {
+      const img = document.createElement('img');
+      img.alt = name;
+      img.src = meta.src;
+      thumb.appendChild(img);
+    } else {
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'photo-thumb-icon';
+      iconWrap.innerHTML = getSoengIconSvg('photos', 28);
+      thumb.appendChild(iconWrap);
+    }
     const span = document.createElement('span');
     span.textContent = name;
-    thumb.append(iconWrap, span);
+    thumb.appendChild(span);
     thumb.addEventListener('click', () => showPhoto(name));
     grid.appendChild(thumb);
   });
 
   if (active) showPhoto(active);
+  function shiftPhoto(delta) {
+    if (!files.length) return;
+    const idx = Math.max(0, files.indexOf(active));
+    showPhoto(files[(idx + delta + files.length) % files.length]);
+  }
+  win.querySelector('[data-photos-action="prev"]')?.addEventListener('click', () => shiftPhoto(-1));
+  win.querySelector('[data-photos-action="next"]')?.addEventListener('click', () => shiftPhoto(1));
   win.querySelector('[data-photos-action="open-folder"]').addEventListener('click', () => {
     openFileManager();
     showToast('Opened Pictures in Files');
@@ -4149,7 +4471,10 @@ function openPodcast(options = {}) {
     <div class="media-app" data-podcast-app>
       <div class="media-toolbar">
         <button data-podcast-action="play">Play</button>
+        <button data-podcast-action="back">−15s</button>
+        <button data-podcast-action="fwd">+15s</button>
         <button data-podcast-action="stop">Stop</button>
+        <input class="media-vol" type="range" min="0" max="100" value="72" data-podcast-vol title="Volume" />
         <span data-podcast-status style="margin-left:auto;color:var(--g7);">Ready</span>
       </div>
       <div class="media-main" data-podcast-list></div>
@@ -4228,6 +4553,19 @@ function initPodcast(id) {
     } else {
       startEpisode();
     }
+  });
+  win.querySelector('[data-podcast-action="back"]')?.addEventListener('click', () => {
+    const episode = currentEpisode();
+    podcastState.progress = Math.max(0, podcastState.progress - 15 / episode.duration);
+    render();
+  });
+  win.querySelector('[data-podcast-action="fwd"]')?.addEventListener('click', () => {
+    const episode = currentEpisode();
+    podcastState.progress = Math.min(1, podcastState.progress + 15 / episode.duration);
+    render();
+  });
+  win.querySelector('[data-podcast-vol]')?.addEventListener('input', (event) => {
+    soengTone.setVolume(Number(event.target.value) / 100);
   });
   win.querySelector('[data-podcast-action="stop"]').addEventListener('click', () => {
     podcastState.playing = false;
@@ -4379,6 +4717,12 @@ function initTV(id) {
     const reveal = () => video.classList.add('show');
     video.addEventListener('loadeddata', reveal, { once: true });
     video.addEventListener('error', () => {
+      const channel = currentChannel();
+      if (channel.youtubeId && tvState.sourceKey !== `yt:${channel.youtubeId}`) {
+        statusEl.textContent = 'Local reel failed — tuning YouTube';
+        mountYoutube(channel.youtubeId, autoplay);
+        return;
+      }
       statusEl.textContent = 'Local reel failed — try Tune YT';
       video.classList.remove('show');
     });
@@ -4744,8 +5088,13 @@ function openSettings(options = {}) {
 const soengPages = {
   'soeng://welcome': {
     title: 'Welcome to SoengBrowser',
-    body: 'Type a normal https address and press Enter. Wikipedia articles load as readable pages. YouTube links play in-place. Other sites open in a sandboxed frame — some hosts still refuse to be framed; use Open tab for those.',
+    body: 'Type a URL or a search phrase and press Enter. Wikipedia articles load as readable pages with live summaries. YouTube plays in-place. Other sites open in a sandboxed frame — if a host refuses framing, use Open tab.',
     status: 'Local system page',
+  },
+  'soeng://home': {
+    title: 'SoengOS Home',
+    body: 'Hybrid desktop: menu bar, dock, taskbar, terminal, and first-class windows. Search from the address bar. Music, Photos, Podcast, and TV share this same contract.',
+    status: 'Start page',
   },
   'soeng://apps': {
     title: 'Application Runtime',
@@ -4757,12 +5106,41 @@ const soengPages = {
     body: 'The production OS should bind this desktop contract to Linux services: Wayland compositor, portals, filesystem, containers, power, network, audio, Bluetooth, and package management.',
     status: 'Beyond web prototype',
   },
+  'soeng://poetry': {
+    title: '墨海',
+    body: '留白多于装饰。纸是场，字是墨。打开一扇窗，不要吵醒整张桌子。',
+    status: 'Song quiet',
+  },
+  'soeng://source': {
+    title: 'Source',
+    body: 'SoengOS.html is the desktop contract. soengos-lib.js holds navigation, filesystem, and icon helpers. kengo-exhibit.js paints the galleries. Clone, open, and bind a native runtime when you are ready.',
+    status: 'Repository sitting',
+  },
   'soeng://help': {
     title: 'Keyboard and Mouse',
-    body: 'Use Ctrl/Cmd+K for commands, F11 for focus mode, desktop right-click for the Linux menu, dock click for Mac-style restore, and titlebars for drag/resize.',
+    body: 'Ctrl/Cmd+K command palette · F11 focus · desktop right-click for the Linux menu · dock click restores or minimizes · titlebars drag and resize · address bar search uses Wikipedia.',
     status: 'Controls are interactive',
   },
 };
+
+const BROWSER_BOOKMARKS_KEY = 'soeng-browser-bookmarks';
+const defaultBrowserBookmarks = [
+  { label: 'Welcome', url: 'soeng://welcome' },
+  { label: 'Home', url: 'soeng://home' },
+  { label: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Operating_system' },
+  { label: 'YouTube', url: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ' },
+  { label: 'Example', url: 'https://example.com' },
+  { label: 'Help', url: 'soeng://help' },
+];
+
+function loadBrowserBookmarks() {
+  const stored = parseJsonArray(localStorage.getItem(BROWSER_BOOKMARKS_KEY) || 'null', null);
+  return stored && stored.length ? stored : defaultBrowserBookmarks.slice();
+}
+
+function saveBrowserBookmarks(items) {
+  try { localStorage.setItem(BROWSER_BOOKMARKS_KEY, JSON.stringify(items)); } catch (e) {}
+}
 
 function renderBrowserChrome(page, { title, body, status, icon }) {
   page.className = 'browser-page';
@@ -4806,7 +5184,7 @@ async function renderWikipediaPage(page, safeUrl, wiki) {
   heading.textContent = 'Loading Wikipedia…';
   page.appendChild(heading);
   try {
-    const api = `https://${wiki.lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wiki.title)}`;
+    const api = getWikipediaSummaryApi(wiki.lang, wiki.title);
     const res = await fetch(api, { headers: { Accept: 'application/json' } });
     if (!res.ok) throw new Error('wiki');
     const data = await res.json();
@@ -4814,27 +5192,89 @@ async function renderWikipediaPage(page, safeUrl, wiki) {
     page.textContent = '';
     const title = document.createElement('h2');
     title.textContent = data.title || wiki.title.replace(/_/g, ' ');
+    if (data.thumbnail?.source) {
+      const img = document.createElement('img');
+      img.className = 'wiki-thumb';
+      img.alt = data.title || '';
+      img.src = data.thumbnail.source;
+      page.appendChild(img);
+    }
     const copy = document.createElement('p');
     copy.textContent = data.extract || 'This article loaded, but the summary was empty.';
     const meta = document.createElement('div');
     meta.className = 'browser-status';
     meta.textContent = `${wiki.lang}.wikipedia.org · live summary`;
-    page.append(title, copy, meta);
+    const actions = document.createElement('div');
+    actions.className = 'wiki-actions';
+    const openBtn = document.createElement('button');
+    openBtn.className = 'browser-action';
+    openBtn.textContent = 'Open full article';
+    openBtn.addEventListener('click', () => window.open(data.content_urls?.desktop?.page || safeUrl, '_blank', 'noopener,noreferrer'));
+    actions.appendChild(openBtn);
+    page.append(title, copy, meta, actions);
   } catch (e) {
     renderBrowserFrame(page, safeUrl, wiki.title);
   }
 }
 
-function renderBrowserPage(win, state, url) {
+async function renderWikipediaSearch(page, query, go) {
+  page.className = 'browser-page search';
+  page.dataset.liveUrl = `search:${query}`;
+  page.textContent = '';
+  const heading = document.createElement('h2');
+  heading.textContent = `Search · ${query}`;
+  page.appendChild(heading);
+  const api = getWikipediaSearchApi(query);
+  try {
+    const res = await fetch(api);
+    if (!res.ok) throw new Error('search');
+    const data = await res.json();
+    if (page.dataset.liveUrl !== `search:${query}`) return;
+    const titles = data[1] || [];
+    const snippets = data[2] || [];
+    const urls = data[3] || [];
+    if (!titles.length) {
+      const empty = document.createElement('p');
+      empty.textContent = 'No Wikipedia results. Try a URL such as example.com.';
+      page.appendChild(empty);
+      return;
+    }
+    titles.forEach((title, i) => {
+      const hit = document.createElement('button');
+      hit.type = 'button';
+      hit.className = 'search-hit';
+      const strong = document.createElement('strong');
+      strong.textContent = title;
+      const span = document.createElement('span');
+      span.textContent = snippets[i] || urls[i] || '';
+      hit.append(strong, span);
+      hit.addEventListener('click', () => go(urls[i] || `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`));
+      page.appendChild(hit);
+    });
+  } catch (e) {
+    const copy = document.createElement('p');
+    copy.textContent = 'Search is offline. Type a full https URL instead.';
+    page.appendChild(copy);
+  }
+}
+
+function renderBrowserPage(win, state, url, go) {
   const page = win.querySelector('[data-browser-page]');
   const urlBar = win.querySelector('[data-browser-url]');
-  const safeUrl = getAllowedNavigationUrl(url);
+  const raw = String(url || '').trim();
+  if (raw && !looksLikeWebAddress(raw) && raw !== 'about:blank' && !/^soeng:\/\//i.test(raw)) {
+    state.current = raw;
+    if (urlBar) urlBar.value = raw;
+    renderWikipediaSearch(page, raw, go);
+    return;
+  }
+  const safeUrl = getAllowedNavigationUrl(raw);
   if (!safeUrl) {
     state.current = String(url || '');
     if (urlBar) urlBar.value = state.current;
     renderBrowserChrome(page, {
       title: 'Navigation blocked',
-      body: 'Only http:, https:, soeng://, and about:blank URLs are allowed.',
+      body: 'Only http:, https:, soeng://, about:blank, or a search phrase are allowed.',
       status: 'Blocked protocol',
       icon: '<rect x="8" y="8" width="32" height="32"/><line x1="14" y1="14" x2="34" y2="34"/><line x1="34" y1="14" x2="14" y2="34"/>',
     });
@@ -4882,16 +5322,11 @@ function openBrowser(options = {}) {
         <button class="nav-btn" data-browser-action="forward">&#9654;</button>
         <button class="nav-btn" data-browser-action="refresh">&#8635;</button>
         <button class="browser-action" data-browser-action="home">Home</button>
-        <input type="text" class="url-bar" value="soeng://welcome" data-browser-url spellcheck="false" />
+        <input type="text" class="url-bar" value="soeng://welcome" data-browser-url spellcheck="false" placeholder="Search Wikipedia or type a URL" />
+        <button class="browser-action" data-browser-action="star">☆</button>
         <button class="browser-action" data-browser-action="open-tab">Open tab</button>
       </div>
-      <div class="browser-bookmarks">
-        <button class="browser-action" data-url="soeng://welcome">Welcome</button>
-        <button class="browser-action" data-url="https://example.com">Example</button>
-        <button class="browser-action" data-url="https://en.wikipedia.org/wiki/Operating_system">Wikipedia</button>
-        <button class="browser-action" data-url="https://www.youtube.com/watch?v=aqz-KE-bpKQ">YouTube</button>
-        <button class="browser-action" data-url="soeng://help">Help</button>
-      </div>
+      <div class="browser-bookmarks" data-browser-bookmarks></div>
       <div class="browser-content">
         <div class="browser-page" data-browser-page></div>
       </div>
@@ -4910,13 +5345,39 @@ function initBrowser(id) {
       state.back.push(state.current);
       state.forward = [];
     }
-    renderBrowserPage(win, state, url);
+    renderBrowserPage(win, state, url, go);
   };
+  function paintBookmarks() {
+    const row = win.querySelector('[data-browser-bookmarks]');
+    if (!row) return;
+    row.textContent = '';
+    loadBrowserBookmarks().forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'browser-action';
+      btn.textContent = item.label;
+      btn.addEventListener('click', () => go(item.url));
+      row.appendChild(btn);
+    });
+  }
+  paintBookmarks();
   win.querySelector('[data-browser-url]').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') go(event.target.value.trim() || 'soeng://welcome');
   });
-  win.querySelectorAll('[data-url]').forEach(btn => btn.addEventListener('click', () => go(btn.dataset.url)));
-  win.querySelector('[data-browser-action="home"]').addEventListener('click', () => go('soeng://welcome'));
+  win.querySelector('[data-browser-action="home"]').addEventListener('click', () => go('soeng://home'));
+  win.querySelector('[data-browser-action="star"]')?.addEventListener('click', () => {
+    const items = loadBrowserBookmarks();
+    const href = state.current;
+    if (!href) return;
+    if (items.some(item => item.url === href)) {
+      saveBrowserBookmarks(items.filter(item => item.url !== href));
+      showToast('Bookmark removed');
+    } else {
+      items.push({ label: String(href).replace(/^https?:\/\//, '').slice(0, 28), url: href });
+      saveBrowserBookmarks(items);
+      showToast('Bookmarked');
+    }
+    paintBookmarks();
+  });
   win.querySelector('[data-browser-action="open-tab"]').addEventListener('click', () => {
     const href = getAllowedNavigationUrl(state.current);
     if (!href || href.startsWith('soeng://') || href === 'about:blank') {
@@ -4925,7 +5386,7 @@ function initBrowser(id) {
     }
     window.open(href, '_blank', 'noopener,noreferrer');
   });
-  win.querySelector('[data-browser-action="refresh"]').addEventListener('click', () => { renderBrowserPage(win, state, state.current); showToast('Page refreshed'); });
+  win.querySelector('[data-browser-action="refresh"]').addEventListener('click', () => { renderBrowserPage(win, state, state.current, go); showToast('Page refreshed'); });
   win.querySelector('[data-browser-action="back"]').addEventListener('click', () => {
     const previous = state.back.pop();
     if (!previous) { showToast('No previous page'); return; }
@@ -4938,7 +5399,229 @@ function initBrowser(id) {
     state.back.push(state.current);
     go(next, false);
   });
-  renderBrowserPage(win, state, state.current);
+  renderBrowserPage(win, state, state.current, go);
+}
+
+function evalCalculator(expr) {
+  const cleaned = String(expr || '').replace(/×/g, '*').replace(/÷/g, '/').replace(/[^0-9+\-*/().%\s]/g, '');
+  if (!cleaned.trim()) return '0';
+  try {
+    const value = Function('"use strict"; return (' + cleaned + ')')();
+    if (!Number.isFinite(value)) return 'Error';
+    return String(Math.round(value * 1e10) / 1e10);
+  } catch (e) {
+    return 'Error';
+  }
+}
+
+function openCalculator(options = {}) {
+  const html = `
+    <div class="calc-app" data-calc-app>
+      <div class="calc-display" data-calc-display>0</div>
+      <div class="calc-grid">
+        <button data-calc="C">C</button><button data-calc="(">(</button><button data-calc=")">)</button><button class="op" data-calc="/">÷</button>
+        <button data-calc="7">7</button><button data-calc="8">8</button><button data-calc="9">9</button><button class="op" data-calc="*">×</button>
+        <button data-calc="4">4</button><button data-calc="5">5</button><button data-calc="6">6</button><button class="op" data-calc="-">−</button>
+        <button data-calc="1">1</button><button data-calc="2">2</button><button data-calc="3">3</button><button class="op" data-calc="+">+</button>
+        <button data-calc="0">0</button><button data-calc=".">.</button><button class="eq" data-calc="=">=</button>
+      </div>
+    </div>`;
+  const id = createWindow('calculator', 'Calculator', 320, 420, html, { ...options, appName: 'calculator' });
+  initCalculator(id);
+}
+
+function initCalculator(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.calcReady === '1') return;
+  win.dataset.calcReady = '1';
+  const display = win.querySelector('[data-calc-display]');
+  let expr = '';
+  function paint() { display.textContent = expr || '0'; }
+  win.querySelectorAll('[data-calc]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.calc;
+      if (key === 'C') expr = '';
+      else if (key === '=') expr = evalCalculator(expr);
+      else expr = (expr === 'Error' ? '' : expr) + key;
+      paint();
+    });
+  });
+}
+
+function loadCalendarEvents() {
+  try { return JSON.parse(localStorage.getItem('soeng-calendar') || '{}') || {}; } catch (e) { return {}; }
+}
+function saveCalendarEvents(map) {
+  try { localStorage.setItem('soeng-calendar', JSON.stringify(map)); } catch (e) {}
+}
+
+function openCalendar(options = {}) {
+  const html = `
+    <div class="calendar-app" data-calendar-app>
+      <div class="calendar-head">
+        <button class="fm-action" data-cal-nav="-1">Prev</button>
+        <h3 data-cal-title></h3>
+        <button class="fm-action" data-cal-nav="1">Next</button>
+      </div>
+      <div class="calendar-grid" data-cal-grid></div>
+      <div class="calendar-side">
+        <input type="text" data-cal-note placeholder="Add a note for the selected day" />
+        <button class="fm-action" data-cal-save>Save</button>
+      </div>
+    </div>`;
+  const id = createWindow('calendar', 'Calendar', 520, 480, html, { ...options, appName: 'calendar' });
+  initCalendar(id);
+}
+
+function initCalendar(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.calReady === '1') return;
+  win.dataset.calReady = '1';
+  const titleEl = win.querySelector('[data-cal-title]');
+  const grid = win.querySelector('[data-cal-grid]');
+  const note = win.querySelector('[data-cal-note]');
+  const cursor = new Date();
+  cursor.setDate(1);
+  let selected = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+
+  function key(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function render() {
+    const events = loadCalendarEvents();
+    const year = cursor.getFullYear();
+    const month = cursor.getMonth();
+    titleEl.textContent = cursor.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+    grid.textContent = '';
+    ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'calendar-dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+    const first = new Date(year, month, 1);
+    const start = first.getDay();
+    const days = new Date(year, month + 1, 0).getDate();
+    const today = key(new Date());
+    for (let i = 0; i < start; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'calendar-day muted';
+      grid.appendChild(cell);
+    }
+    for (let day = 1; day <= days; day++) {
+      const date = new Date(year, month, day);
+      const iso = key(date);
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'calendar-day' + (iso === today ? ' today' : '');
+      const strong = document.createElement('strong');
+      strong.textContent = String(day);
+      cell.appendChild(strong);
+      if (events[iso]) {
+        const evt = document.createElement('div');
+        evt.className = 'evt';
+        evt.textContent = events[iso];
+        cell.appendChild(evt);
+      }
+      cell.addEventListener('click', () => {
+        selected = iso;
+        note.value = events[iso] || '';
+        note.focus();
+      });
+      grid.appendChild(cell);
+    }
+    note.value = events[selected] || '';
+  }
+
+  win.querySelectorAll('[data-cal-nav]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cursor.setMonth(cursor.getMonth() + Number(btn.dataset.calNav));
+      render();
+    });
+  });
+  win.querySelector('[data-cal-save]').addEventListener('click', () => {
+    const events = loadCalendarEvents();
+    const text = note.value.trim();
+    if (text) events[selected] = text;
+    else delete events[selected];
+    saveCalendarEvents(events);
+    render();
+    showToast('Calendar saved');
+  });
+  render();
+}
+
+function loadStickies() {
+  const fallback = [{ id: '1', body: '留白多于装饰。' }];
+  try {
+    const parsed = JSON.parse(localStorage.getItem('soeng-stickies') || 'null');
+    return Array.isArray(parsed) && parsed.length ? parsed : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+function saveStickies(items) {
+  try { localStorage.setItem('soeng-stickies', JSON.stringify(items)); } catch (e) {}
+}
+
+function openStickies(options = {}) {
+  const html = `
+    <div class="stickies-app" data-stickies-app>
+      <div class="media-toolbar">
+        <button data-sticky-new>New note</button>
+        <span style="margin-left:auto;color:var(--g7);">Paper slips, saved locally</span>
+      </div>
+      <div class="stickies-grid" data-sticky-grid></div>
+    </div>`;
+  const id = createWindow('stickies', 'Stickies', 560, 420, html, { ...options, appName: 'stickies' });
+  initStickies(id);
+}
+
+function initStickies(id) {
+  const win = document.getElementById('win-' + id);
+  if (!win || win.dataset.stickiesReady === '1') return;
+  win.dataset.stickiesReady = '1';
+  const grid = win.querySelector('[data-sticky-grid]');
+  let notes = loadStickies();
+
+  function render() {
+    grid.textContent = '';
+    notes.forEach(note => {
+      const card = document.createElement('div');
+      card.className = 'sticky-note';
+      const area = document.createElement('textarea');
+      area.value = note.body;
+      area.addEventListener('input', () => {
+        note.body = area.value;
+        saveStickies(notes);
+      });
+      const meta = document.createElement('div');
+      meta.className = 'sticky-meta';
+      const label = document.createElement('span');
+      label.textContent = '墨笺';
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.textContent = 'Remove';
+      del.style.cssText = 'border:0;background:none;cursor:pointer;color:var(--g7);font-size:9px;';
+      del.addEventListener('click', () => {
+        notes = notes.filter(item => item.id !== note.id);
+        if (!notes.length) notes = [{ id: String(Date.now()), body: '' }];
+        saveStickies(notes);
+        render();
+      });
+      meta.append(label, del);
+      card.append(area, meta);
+      grid.appendChild(card);
+    });
+  }
+
+  win.querySelector('[data-sticky-new]').addEventListener('click', () => {
+    notes.unshift({ id: String(Date.now()), body: '' });
+    saveStickies(notes);
+    render();
+  });
+  render();
 }
 
 // ── Command Palette ──
@@ -4951,6 +5634,9 @@ const cmdActions = [
   { name: 'Open Podcast', category: 'Apps', action: () => activateApp('podcast'), shortcut: '' },
   { name: 'Open TV', category: 'Apps', action: () => activateApp('tv'), shortcut: '' },
   { name: 'Open Terminal', category: 'Apps', action: () => activateApp('terminal'), shortcut: '' },
+  { name: 'Open Calculator', category: 'Apps', action: () => activateApp('calculator'), shortcut: '' },
+  { name: 'Open Calendar', category: 'Apps', action: () => activateApp('calendar'), shortcut: '' },
+  { name: 'Open Stickies', category: 'Apps', action: () => activateApp('stickies'), shortcut: '' },
   { name: 'Open Settings', category: 'Apps', action: () => activateApp('settings'), shortcut: '' },
   { name: 'Open Workflow Hub', category: 'Apps', action: () => activateApp('workflow'), shortcut: '' },
   { name: 'Open Automation Studio', category: 'Apps', action: () => activateApp('automation'), shortcut: '' },
@@ -5004,6 +5690,7 @@ function toggleAppLauncher(force) {
   launcher.classList.toggle('open', shouldOpen);
   if (shouldOpen) {
     closeCmdPalette();
+    mountSoengIcons(launcher);
     launcher.querySelector('.app-launcher-item')?.focus();
   }
 }

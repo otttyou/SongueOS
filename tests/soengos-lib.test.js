@@ -85,6 +85,18 @@ test('parseYoutubeVideoId reads watch, short, embed, and bare ids', () => {
   assert.equal(getYoutubeEmbedUrl('https://youtu.be/aqz-KE-bpKQ'), 'https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ');
 });
 
+test('looksLikeWebAddress distinguishes URLs from search phrases', () => {
+  const { looksLikeWebAddress, getWikipediaSearchApi, getWikipediaSummaryApi } = lib;
+  assert.equal(looksLikeWebAddress('https://example.com'), true);
+  assert.equal(looksLikeWebAddress('example.com/docs'), true);
+  assert.equal(looksLikeWebAddress('soeng://welcome'), true);
+  assert.equal(looksLikeWebAddress('linux kernel'), false);
+  assert.equal(looksLikeWebAddress('linux'), false);
+  assert.match(getWikipediaSearchApi('operating system'), /opensearch/);
+  assert.match(getWikipediaSummaryApi('en', 'Linux'), /rest_v1\/page\/summary\/Linux/);
+  assert.equal(getWikipediaSearchApi(''), null);
+});
+
 test('getWikipediaPageRef reads language and title', () => {
   assert.deepEqual(getWikipediaPageRef('https://en.wikipedia.org/wiki/Operating_system'), {
     lang: 'en',
@@ -217,6 +229,9 @@ test('SoengOS.html exposes media and productivity apps', () => {
   assert.match(html, /function openPhotos/);
   assert.match(html, /function openPodcast/);
   assert.match(html, /function openTV/);
+  assert.match(html, /function openCalculator/);
+  assert.match(html, /function openCalendar/);
+  assert.match(html, /function openStickies/);
 });
 
 test('SoengOS.html ships Song quiet + wabi paper studio tokens', () => {
@@ -264,7 +279,8 @@ test('SoengOS.html plays live music, YouTube TV, and framed web pages', () => {
   assert.match(html, /data-tv-url/);
   assert.match(html, /media\/open-cinema\.mp4/);
   assert.match(html, /function renderBrowserFrame/);
-  assert.match(html, /wikipedia\.org\/api\/rest_v1\/page\/summary/);
+  assert.match(html, /function renderWikipediaSearch/);
+  assert.match(html, /getWikipediaSummaryApi/);
   assert.match(html, /sandbox = 'allow-scripts/);
   assert.match(html, /class="tv-desk"/);
   assert.match(html, /data-tv-action="theater"/);
@@ -276,7 +292,7 @@ test('SoengOS.html exposes the practical app launcher and curved motion system',
   for (const token of ['--radius-lg: 18px', '--radius-pill: 999px', 'id="app-launcher"', 'function launchFromLauncher']) {
     assert.ok(html.includes(token), token);
   }
-  for (const app of ['filemanager', 'notes', 'browser', 'music', 'photos', 'podcast', 'tv', 'terminal', 'workflow', 'automation', 'settings']) {
+  for (const app of ['filemanager', 'notes', 'browser', 'music', 'photos', 'podcast', 'tv', 'terminal', 'workflow', 'automation', 'settings', 'calculator', 'calendar', 'stickies']) {
     assert.match(html, new RegExp(`launchFromLauncher\\('${app}'\\)`), app);
   }
   assert.match(html, /function newWorkflow\(\) \{[\s\S]*kanban-card/);
@@ -303,19 +319,27 @@ test('SoengOS.html loads the shared security library', () => {
 });
 
 test('getSoengIconSvg returns rounded stroke icons', () => {
-  const { getSoengIconSvg } = lib;
+  const { getSoengIconSvg, SOENG_ICON_TINTS } = lib;
   const svg = getSoengIconSvg('notes', 24);
   assert.match(svg, /stroke-linecap="round"/);
   assert.match(svg, /stroke-linejoin="round"/);
   assert.match(svg, /viewBox="0 0 24 24"/);
+  assert.match(svg, /vector-effect="non-scaling-stroke"/);
   assert.equal(getSoengIconSvg('missing'), '');
   assert.match(getSoengIconSvg('workflow', 32), /rx="2\.2"/);
+  assert.equal(SOENG_ICON_TINTS.notes, 'sage');
+  assert.match(getSoengIconSvg('calculator', 24), /rect/);
 });
 
 test('mountSoengIcons is wired in the desktop shell', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'SoengOS.html'), 'utf8');
   assert.match(html, /mountSoengIcons\(\)/);
   assert.match(html, /data-soeng-icon="notes"/);
+  assert.match(html, /dock-icon-well/);
+  assert.match(html, /dock-tooltip/);
+  assert.match(html, /dock-divider/);
+  assert.match(html, /function activateApp/);
+  assert.match(html, /minimizeWindow\(focusedWindow\.id\)/);
   assert.match(html, /getSoengIconSvg\('podcast'/);
 });
 
